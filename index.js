@@ -4,7 +4,7 @@ const dbConfig = require('./config/database.js');
 const defaultThreadPoolSize = 4;
 
 // Increase thread pool size by poolMax
-process.env.UV_THREADPOOL_SIZE = dbConfig.hrPool.poolMax + defaultThreadPoolSize;
+process.env.UV_THREADPOOL_SIZE = dbConfig.poolMax + defaultThreadPoolSize;
 
 async function startup() {
   console.log('Starting application');
@@ -34,7 +34,6 @@ startup();
 
 async function shutdown(e) {
   let err = e;
-
   console.log('Shutting down application');
 
   try {

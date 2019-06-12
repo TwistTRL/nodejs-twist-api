@@ -1,8 +1,7 @@
 const express = require('express');
 const router = new express.Router();
-const employees = require('../controllers/employees.js');
+const RSSRouter = require('../routes/RSS');
 
-router.route('/employees/:id?')
-  .get(employees.get);
+router.use('/RSS', RSSRouter);
 
 module.exports = router;

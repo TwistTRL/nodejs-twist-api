@@ -2,7 +2,8 @@ const oracledb = require('oracledb');
 const dbConfig = require('../config/database.js');
 
 async function initialize() {
-  await oracledb.createPool(dbConfig.hrPool);
+  oracledb.fetchAsString = [ oracledb.CLOB ];
+  await oracledb.createPool(dbConfig);
 }
 
 module.exports.initialize = initialize;
@@ -13,7 +14,7 @@ async function close() {
 
 module.exports.close = close;
 
-function simpleExecute(statement, binds = [], opts = {}) {
+function simpleExecute(statement, binds = {}, opts = {}) {
   return new Promise(async (resolve, reject) => {
     let conn;
 
