@@ -1,12 +1,14 @@
 const express = require('express');
 const webServerConfig = require('../config/web-server.js');
 const rootRouter = require('./router');
+const cors = require('cors');
 var httpServer;
 
 function initialize() {
   return new Promise((resolve, reject) => {
     const app = express();
-
+    // Middleware
+    app.use(cors());
     // Mount the router at /api so all its routes start with /api
     app.use('/api', rootRouter);
     httpServer = app.listen(webServerConfig.port)
