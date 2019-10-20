@@ -1,11 +1,10 @@
-const express = require("express");
 const database = require("../services/database");
 
-const baseQuery =
+const GET_RESPIRATORY_SUPPORT_VARIABLE_SQL =
 `
 SELECT  ROWNUM AS ID,
         PERSON_ID,
-        VALID_FROM_DT_TM*1000 AS TIME,
+        VALID_FROM_DT_TM AS TIME,
         AIRWAY_ASSESSMENT,
         APRV_PHIGH,
         APRV_PLOW,
@@ -57,14 +56,25 @@ SELECT  ROWNUM AS ID,
         RST,
         RSS
 FROM RESPIRATORY_SUPPORT_VARIABLE
-WHERE PERSON_ID = :personID
+WHERE PERSON_ID = :person_id
+  AND VALID_FROM_DT_TM BETWEEN :from_ AND :to_
 ORDER BY VALID_FROM_DT_TM ASC
 `
 
-const handler = async function(req, res, next) {
-  let binds = {personID: req.params.personID};
-  let result = await database.simpleExecute(baseQuery, binds);
-  res.send(result.rows);
+const getRespiratorySupportVariableSqlExecutor = async function(conn,binds,opts){
+  let rss = await conn.execute(GET_RESPIRATORY_SUPPORT_VARIABLE_SQL,binds,opts);
+  return rss.rows;
 }
 
-module.exports = handler;
+const getRespiratorySupportVariable = async function(person_id,from,to) {
+  let binds = {
+    person_id,
+    from_:from,
+    to_:to
+  };
+  let opts={};
+  let rss = await database.simpleExecute(getRespiratorySupportVariableSqlExecutor,binds,opts);
+  return rss;
+}
+
+module.exports.getRespiratorySupportVariable = getRespiratorySupportVariable;

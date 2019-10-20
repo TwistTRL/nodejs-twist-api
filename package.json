@@ -1,5 +1,5 @@
 {
-  "name": "hr_app",
+  "name": "twist-backend",
   "version": "0.1.1",
   "description": "Creating a REST API with Node.js and Oracle Database",
   "main": "index.js",
