@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const database = require("../services/database");
 
 const GET_PERSONEL_BASICS_SQL = 
@@ -56,7 +58,7 @@ FROM PERSON_PHONE
 WHERE CHB_PRSNL_ID = :chb_prsnl_id
 `
 
-const getPersonelSqlExecutor = async function(conn,binds,opts){
+async function getPersonelSqlExecutor(conn,binds){
   let [personel_basics,personel_names,personel_mrns,personel_phones] = await Promise.all([
     conn.execute(GET_PERSONEL_BASICS_SQL,binds,opts),
     conn.execute(GET_PERSONEL_NAMES_SQL,binds,opts),
@@ -64,7 +66,7 @@ const getPersonelSqlExecutor = async function(conn,binds,opts){
     conn.execute(GET_PERSONEL_PHONES_SQL,binds,opts),
   ]);
   
-  if (personel_basics.rows.length == 0) {
+  if (personel_basics.rows.length != 1) {
     return null;
   }
   
@@ -76,20 +78,19 @@ const getPersonelSqlExecutor = async function(conn,binds,opts){
   return personel;
 }
 
-const getPersonel = async function(personel_id) {
-  let binds = {personel_id};
-  let opts = {};
-  let personel = await database.simpleExecute(getPersonelSqlExecutor,binds,opts);
-  return personel;
-}
-
-const getManyPersonel = async function(personel_id=[]) {
-  let personels = [];
-  for (let p of personel_id) {
-    personels.push(await getPersonel(b));
-  }
+async function getManyPersonelSqlExecutor(conn,binds){
+  let personels = await Promise.all(
+    binds.map( b=>getPersonelSqlExecutor(conn,b) )
+  );
   return personels;
 }
 
-module.exports.getPersonel = getPersonel;
-module.exports.getManyPersonel = getManyPersonel;
+const getPersonel = database.withConnection(getPersonelSqlExecutor);
+
+const getManyPersonel =  database.withConnection(getPersonelSqlExecutor);
+
+module.exports = {
+  getPersonelSqlExecutor,
+  getPersonel,
+  getManyPersonelSqlExecutor
+};

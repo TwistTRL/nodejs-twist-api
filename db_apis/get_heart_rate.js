@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const database = require("../services/database");
 
 const GET_HEART_RATE_SQL =
@@ -12,20 +14,14 @@ WHERE PERSON_ID = :person_id
 ORDER BY UNIX_TS ASC
 `
 
-const getHeartRateSqlExecutor = async function(conn,binds,opts){
-  let hr = await conn.execute(GET_HEART_RATE_SQL,binds,opts);
+async function getHeartRateSqlExecutor(conn,binds){
+  let hr = await conn.execute(GET_HEART_RATE_SQL,binds);
   return hr.rows;
 }
 
-const getHeartRate = async function(person_id,from,to) {
-  let binds = {
-    person_id,
-    from_:from,
-    to_:to
-  };
-  let opts = {};
-  let hr = await database.simpleExecute(getHeartRateSqlExecutor,binds,opts);
-  return hr;
-}
+const getHeartRate = database.withConnection(getHeartRateSqlExecutor);
 
-module.exports.getHeartRate = getHeartRate;
+module.exports = {
+  getHeartRateSqlExecutor,
+  getHeartRate
+};

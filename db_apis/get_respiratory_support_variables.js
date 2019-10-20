@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const database = require("../services/database");
 
 const GET_RESPIRATORY_SUPPORT_VARIABLE_SQL =
@@ -61,20 +63,14 @@ WHERE PERSON_ID = :person_id
 ORDER BY VALID_FROM_DT_TM ASC
 `
 
-const getRespiratorySupportVariableSqlExecutor = async function(conn,binds,opts){
-  let rss = await conn.execute(GET_RESPIRATORY_SUPPORT_VARIABLE_SQL,binds,opts);
-  return rss.rows;
-}
-
-const getRespiratorySupportVariable = async function(person_id,from,to) {
-  let binds = {
-    person_id,
-    from_:from,
-    to_:to
-  };
-  let opts={};
-  let rss = await database.simpleExecute(getRespiratorySupportVariableSqlExecutor,binds,opts);
+async function getRespiratorySupportVariableSqlExecutor(conn,binds){
+  let rss = await conn.execute(GET_RESPIRATORY_SUPPORT_VARIABLE_SQL,binds).then( ret=>ret.rows );
   return rss;
 }
 
-module.exports.getRespiratorySupportVariable = getRespiratorySupportVariable;
+const getRespiratorySupportVariable =  database.withConnection(getRespiratorySupportVariableSqlExecutor);
+
+module.exports = {
+  getRespiratorySupportVariableSqlExecutor,
+  getRespiratorySupportVariable
+};

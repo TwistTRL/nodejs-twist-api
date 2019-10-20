@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const database = require("../services/database");
 
 // Given a time, get patient basic info
@@ -51,15 +53,14 @@ FROM PERSON_PHONE
 WHERE PERSON_ID = :person_id
 `
 
-const getPersonSqlExecutor = async function(conn,binds,opts){
+async function getPersonSqlExecutor(conn,binds){
   let [person_basics,person_names,person_mrns,person_phones] = await Promise.all([
     conn.execute(GET_PERSON_BASICS_SQL,binds,opts),
     conn.execute(GET_PERSON_NAMES_SQL,binds,opts),
     conn.execute(GET_PERSON_MRNS_SQL,binds,opts),
     conn.execute(GET_PERSON_PHONES_SQL,binds,opts),
   ]);
-  
-  if (person_basics.rows.length == 0) {
+  if (person_basics.rows.length != 1) {
     return null;
   }
   
@@ -71,20 +72,19 @@ const getPersonSqlExecutor = async function(conn,binds,opts){
   return person;
 }
 
-const getPerson = async function(person_id) {
-  let binds = {person_id};
-  let opts = {};
-  let person = await database.simpleExecute(getPersonSqlExecutor,binds,opts);
-  return person;
-}
-
-const getManyPerson = async function(person_id=[]) {
-  let persons = [];
-  for (let p of person_id) {
-    persons.push(await getPerson(b));
-  }
+async function getManyPersonSqlExecutor(conn,binds){
+  let persons = await Promise.all(
+    binds.map( b=>getPersonSqlExecutor(conn,b) )
+  );
   return persons;
 }
 
-module.exports.getPerson = getPerson;
-module.exports.getManyPerson = getManyPerson;
+const getPerson = database.withConnection(getPersonSqlExecutor);
+const getManyPerson = database.withConnection(getManyPersonSqlExecutor);
+
+module.exports = {
+  getPersonSqlExecutor,
+  getManyPersonSqlExecutor,
+  getPerson,
+  getManyPerson
+};
