@@ -4,32 +4,50 @@ const {getRespiratorySupportVariable} = require("../db_apis/get_respiratory_supp
 const {getHeartRate} = require("../db_apis/get_heart_rate");
 const {getPerson} = require("../db_apis/get_person");
 const {getPersonel} = require("../db_apis/get_personel");
+const {getBed} = require("../db_apis/get_bed");
+const {getBedSurvey} = require("../db_apis/get_bed_survey");
 
 // legacy
 router.get("/person/:person_id/RSS", async (req, res, next)=>{
   let person_id = parseFloat(req.params.person_id);
   let from = parseFloat(req.query.from);
   let to = parseFloat(req.query.to);
+  let binds = {
+    person_id,
+    from_:from,
+    to_:to
+  };
   res.send(
-    await getRespiratorySupportVariable(person_id,from,to)
+    await getRespiratorySupportVariable(binds)
   );
 });
+
 router.get("/person/:person_id/HR", async (req, res, next)=>{
-  let person_id = parseInt(req.query.person_id);
+  let person_id = parseFloat(req.params.person_id);
   let from = parseFloat(req.query.from);
   let to = parseFloat(req.query.to);
+  let binds = {
+    person_id,
+    from_:from,
+    to_:to
+  };
   res.send(
-    await getHeartRate(person_id,from,to)
+    await getHeartRate(binds)
   );
 });
 
 // FHIR like API
 router.get("/RespiratorySupportVariable", async (req, res, next)=>{
-  let person_id = parseInt(req.query.person_id);
+  let person_id = parseFloat(req.query.person_id);
   let from = parseFloat(req.query.from);
   let to = parseFloat(req.query.to);
+  let binds = {
+    person_id,
+    from_:from,
+    to_:to
+  };
   res.send(
-    await getRespiratorySupportVariable(person_id,from,to)
+    await getRespiratorySupportVariable(binds)
   );
 });
 
@@ -37,43 +55,53 @@ router.get("/HeartRate", async (req,res, next) => {
   let person_id = parseInt(req.query.person_id);
   let from = parseFloat(req.query.from);
   let to = parseFloat(req.query.to);
+  let binds = {
+    person_id,
+    from_:from,
+    to_:to
+  };
   res.send(
-    await getHeartRate(person_id,from,to)
+    await getHeartRate(binds)
   );
 });
 
 router.get("/Person/:person_id", async (req,res, next) => {
   let person_id = parseInt(req.params.person_id);
+  let binds = {
+    person_id
+  };
   res.send(
-    await getPerson(person_id)
+    await getPerson(binds)
   );
 });
 
-router.get("/Personel/:personel_id", async (req,res, next) => {
-  let personel_id = parseInt(req.params.personel_id);
+router.get("/Personel/:chb_prsnl_id", async (req,res, next) => {
+  let chb_prsnl_id = parseInt(req.params.chb_prsnl_id);
+  let binds = {
+    chb_prsnl_id
+  };
   res.send(
-    await getPersonel(personel_id)
+    await getPersonel(chb_prsnl_id)
   );
 });
 
-router.get("/Bed_Survey/", async (req,res, next) => {
+router.get("/survey/bed_space", async (req,res, next) => {
   let at = parseFloat(req.query.at);
+  let binds = {
+    at_unix_ts:at
+  };
   res.send(
-    await getBedSurvey(at)
-  );
-});
-
-router.get("/Personel_Bed_Assignment/", async (req,res, next) => {
-  let bed_cd = parseFloat(req.params.bed_cd);
-  res.send(
-    await getBed(bed_cd)
+    await getBedSurvey(binds)
   );
 });
 
 router.get("/Bed/:bed_cd", async (req,res, next) => {
   let bed_cd = parseFloat(req.params.bed_cd);
+  let binds = {
+    bed_cd
+  };
   res.send(
-    await getBed(bed_cd)
+    await getBed(binds)
   );
 });
 

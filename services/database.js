@@ -3,7 +3,7 @@ const dbConfig = require('../config/database.js');
 
 async function initialize() {
   await oracledb.createPool(dbConfig);
-  oracledb.outFormat = oracledb.OUT_FORMAT_ARRAY;
+  oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
 }
 
 async function close() {
@@ -14,7 +14,7 @@ function withConnection(func) {
   return async function(...args){
     let conn = await oracledb.getConnection();
     let result = await func(conn,...args);
-    conn.close();
+    await conn.close();
     return result;
   }
 }

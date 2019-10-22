@@ -27,7 +27,7 @@ SELECT
   NAME_LAST,
   NAME_TYPE_CODE.VALUE AS NAME_TYPE
 FROM CHB_PRSNL
-  JOIN PERSON USING(PERSON_ID)
+  JOIN PERSON_NAME USING(PERSON_ID)
   JOIN NAME_TYPE_CODE USING(NAME_TYPE_CD)
 WHERE CHB_PRSNL_ID = :chb_prsnl_id
 `
@@ -46,7 +46,7 @@ WHERE CHB_PRSNL_ID = :chb_prsnl_id
 `
 
 // Given a person, get all person phone numbers
-const GET_PERSONELPHONES_SQL = 
+const GET_PERSONEL_PHONES_SQL = 
 `
 SELECT
   PHONE_NUM,
@@ -59,29 +59,28 @@ WHERE CHB_PRSNL_ID = :chb_prsnl_id
 `
 
 async function getPersonelSqlExecutor(conn,binds){
-  let [personel_basics,personel_names,personel_mrns,personel_phones] = await Promise.all([
-    conn.execute(GET_PERSONEL_BASICS_SQL,binds,opts),
-    conn.execute(GET_PERSONEL_NAMES_SQL,binds,opts),
-    conn.execute(GET_PERSONEL_MRNS_SQL,binds,opts),
-    conn.execute(GET_PERSONEL_PHONES_SQL,binds,opts),
-  ]);
-  
-  if (personel_basics.rows.length != 1) {
+  let personel_basics = await conn.execute(GET_PERSONEL_BASICS_SQL,binds).then( res=>res.rows );
+  let personel_names = await conn.execute(GET_PERSONEL_NAMES_SQL,binds).then( res=>res.rows );
+  let personel_mrns = null;//aawait conn.execute(GET_PERSONEL_MRNS_SQL,binds).then( res=>res.rows );
+  let personel_phones =  null;//await conn.execute(GET_PERSONEL_PHONES_SQL,binds).then( res=>res.rows );
+
+  if (personel_basics.length != 1) {
     return null;
   }
   
-  let personel = {...personel_basics.rows[0]};
-  personel["NAMES"] = personel_names.rows;
-  personel["MRNS"] = personel_mrns.rows;
-  personel["PHONES"] = personel_phones.rows;
+  let personel = {...personel_basics};
+  personel["NAMES"] = personel_names;
+  personel["MRNS"] = personel_mrns;
+  personel["PHONES"] = personel_phones;
   
   return personel;
 }
 
 async function getManyPersonelSqlExecutor(conn,binds){
-  let personels = await Promise.all(
-    binds.map( b=>getPersonelSqlExecutor(conn,b) )
-  );
+  let personels = [];
+  for (let b of binds) {
+    personels.push(await getPersonelSqlExecutor(conn,b));
+  }
   return personels;
 }
 

@@ -54,28 +54,27 @@ WHERE PERSON_ID = :person_id
 `
 
 async function getPersonSqlExecutor(conn,binds){
-  let [person_basics,person_names,person_mrns,person_phones] = await Promise.all([
-    conn.execute(GET_PERSON_BASICS_SQL,binds,opts),
-    conn.execute(GET_PERSON_NAMES_SQL,binds,opts),
-    conn.execute(GET_PERSON_MRNS_SQL,binds,opts),
-    conn.execute(GET_PERSON_PHONES_SQL,binds,opts),
-  ]);
-  if (person_basics.rows.length != 1) {
+  let person_basics = await conn.execute(GET_PERSON_BASICS_SQL,binds).then( res=>res.rows );
+  let person_names = await conn.execute(GET_PERSON_NAMES_SQL,binds).then( res=>res.rows );
+  let person_mrns = null;//aawait conn.execute(GET_PERSON_MRNS_SQL,binds).then( res=>res.rows );
+  let person_phones = null;//await conn.execute(GET_PERSON_PHONES_SQL,binds).then( res=>res.rows );
+  if (person_basics.length != 1) {
     return null;
   }
   
-  let person = {...person_basics.rows[0]};
-  person["NAMES"] = person_names.rows;
-  person["MRNS"] = person_mrns.rows;
-  person["PHONES"] = person_phones.rows;
+  let person = {...person_basics};
+  person["NAMES"] = person_names;
+  person["MRNS"] = person_mrns;
+  person["PHONES"] = person_phones;
   
   return person;
 }
 
 async function getManyPersonSqlExecutor(conn,binds){
-  let persons = await Promise.all(
-    binds.map( b=>getPersonSqlExecutor(conn,b) )
-  );
+  let persons = [];
+  for (let b of binds) {
+    persons.push(await getPersonSqlExecutor(conn,b));
+  }
   return persons;
 }
 

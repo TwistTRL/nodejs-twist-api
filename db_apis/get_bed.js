@@ -8,14 +8,14 @@ SELECT
   BED_CODE.VALUE AS BED,
   ROOM_CODE.VALUE AS ROOM,
   NURSE_UNIT_CODE.VALUE AS NURSE_UNIT
-FROM BED
-  JOIN ROOM USING(BED_CD)
-  JOIN NURSE_UNIT USING(NURSE_UNIT_CD)
+FROM BED_CODE
+  JOIN ROOM_CODE USING(ROOM_CD)
+  JOIN NURSE_UNIT_CODE USING(NURSE_UNIT_CD)
 WHERE BED_CD = :bed_cd
 `
 
 async function getBedSqlExecutor(conn,binds){
-  let bed = await conn.execute(GET_BED_SQL,binds,opts);
+  let bed = await conn.execute(GET_BED_SQL,binds);
   if (bed.rows.length != 1) {
     return null;
   }
@@ -23,9 +23,10 @@ async function getBedSqlExecutor(conn,binds){
 }
 
 async function getManyBedSqlExecutor(conn,binds){
-  let beds = await Promise.all(
-    binds.map( b=>getBedSqlExecutor(conn,b) )
-  );
+  let beds = [];
+  for (let b of binds) {
+    beds.push(await getBedSqlExecutor(conn,b));
+  }
   return beds;
 }
 
