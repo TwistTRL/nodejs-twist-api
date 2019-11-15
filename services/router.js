@@ -1,5 +1,6 @@
 const express = require("express");
 const router = new express.Router();
+const {getRelationalQuery} = require("../db_apis/get-relational-query");
 const {getRespiratorySupportVariable} = require("../db_apis/get_respiratory_support_variables");
 const {getHeartRate} = require("../db_apis/get_heart_rate");
 const {getPerson} = require("../db_apis/get_person");
@@ -103,6 +104,22 @@ router.get("/Bed/:bed_cd", async (req,res, next) => {
   res.send(
     await getBed(binds)
   );
+});
+
+router.post("/relational-query", async (req,res, next) => {
+  let query = req.body;
+  try{
+    let toSend = await getRelationalQuery(query);
+    res.send(
+      toSend
+    );
+  }
+  catch(e){
+    console.log(new Date());
+    console.log(e);
+    res.status(500);
+    res.send(e.toString());
+  }
 });
 
 module.exports = router;

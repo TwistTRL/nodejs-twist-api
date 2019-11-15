@@ -9,6 +9,7 @@ function initialize() {
     const app = express();
     // Middleware
     app.use(cors());
+    app.use(express.json());
     // Mount the router at /api so all its routes start with /api
     app.use('/api', rootRouter);
     httpServer = app.listen(webServerConfig.port)
