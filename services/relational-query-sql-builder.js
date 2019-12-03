@@ -16,6 +16,7 @@ const schema = {
         JOIN SEX_CODE USING(SEX_CD)
       )
     `,
+    id: ["__ID__"],
     attributes: {
       __ID__:null,
       NAME_FIRST:null,
@@ -41,8 +42,9 @@ const schema = {
         JOIN PERSON_NAME USING(PERSON_ID)
       )
     `,
+    id: ["__ID__"],
     references:{
-      PATIENT:null,
+      PATIENT:[["__REF__PATIENT"],["__ID__"]],
     },
     attributes:{
       __ID__:null,
@@ -65,14 +67,15 @@ const schema = {
       FROM CHB_MRN
       )
     `,
+    id: ["__ID__"],
     references:{
-      PATIENT:null,
+      PATIENT:[["__REF__PATIENT"],["__ID__"]],
     },
     attributes: {
       __ID__:null,
       MRN:null,
-      BEG_EFFECTIVE_UNIX_TS:null,
-      END_EFFECTIVE_UNIX_TS:null
+      BEG_EFFECTIVE_DT_TM:null,
+      END_EFFECTIVE_DT_TM:null
     }
   },
   
@@ -80,7 +83,7 @@ const schema = {
     cte:`
       PATIENT_PHONE AS (
       SELECT /*+ INLINE */
-        PHONE_ID AS "__ID__",
+        PERSON_PHONE_ID AS "__ID__",
         PERSON_ID AS "__REF__PATIENT",
         PHONE_NUM,
         PHONE_TYPE_CODE.VALUE AS PHONE_TYPE,
@@ -90,8 +93,9 @@ const schema = {
         JOIN PHONE_TYPE_CODE USING(PHONE_TYPE_CD)
       )
     `,
+    id: ["__ID__"],
     references:{
-      PATIENT:null,
+      PATIENT:[["__REF__PATIENT"],["__ID__"]],
     },
     attributes:{
       __ID__:null,
@@ -115,8 +119,9 @@ const schema = {
         JOIN ENCNTR_TYPE_CODE USING(ENCNTR_TYPE_CD)
       )
     `,
+    id: ["__ID__"],
     references:{
-      PATIENT:null,
+      PATIENT:[["__REF__PATIENT"],["__ID__"]],
     },
     attributes:{
       __ID__:null,
@@ -134,13 +139,14 @@ const schema = {
         ENCNTR_ID AS "__REF__PATIENT_ENCOUNTER",
         BED_CD AS "__REF__BED",
         START_UNIX_TS,
-        END_UNIX_TS  
+        END_UNIX_TS
       FROM ENCNTR_BED_SPACE
       )
     `,
+    id: ["__ID__"],
     references: {
-      PATIENT_ENCOUNTER:null,
-      BED:null,
+      PATIENT_ENCOUNTER:[["__REF__PATIENT_ENCOUNTER"],["__ID__"]],
+      BED:[["__REF__BED"],["__ID__"]],
     },
     attributes: {
       __ID__:null,
@@ -165,6 +171,7 @@ const schema = {
         JOIN SEX_CODE USING(SEX_CD)
       )
     `,
+    id: ["__ID__"],
     attributes: {
       __ID__:null,
       NAME_FIRST:null,
@@ -191,8 +198,9 @@ const schema = {
         JOIN PERSON_NAME USING(PERSON_ID)
       )
     `,
+    id: ["__ID__"],
     references:{
-      PERSONNEL:null,
+      PERSONNEL:[["__REF__PERSONNEL"],["__ID__"]],
     },
     attributes:{
       __ID__:null,
@@ -217,8 +225,9 @@ const schema = {
         JOIN PHONE_TYPE_CODE USING(PHONE_TYPE_CD)
       )
     `,
+    id: ["__ID__"],
     references: {
-      PERSONNEL:null,
+      PERSONNEL:[["__REF__PERSONNEL"],["__ID__"]],
     },
     attributes:{
       __ID__:null,
@@ -244,9 +253,10 @@ const schema = {
         JOIN ASSIGN_TYPE_CODE USING(ASSIGN_TYPE_CD)
       )
     `,
+    id: ["__ID__"],
     references: {
-      PERSONNEL:null,
-      BED:null,
+      PERSONNEL:[["__REF__PERSONNEL"],["__ID__"]],
+      BED:[["__REF__BED"],["__ID__"]],
     },
     attributes: {
       __ID__:null,
@@ -266,8 +276,9 @@ const schema = {
       FROM BED_CODE
       )
     `,
+    id: ["__ID__"],
     references: {
-      ROOM: null,
+      ROOM: [["__REF__ROOM"],["__ID__"]],
     },
     attributes:{
       __ID__:null,
@@ -285,8 +296,9 @@ const schema = {
       FROM ROOM_CODE
       )
     `,
+    id: ["__ID__"],
     references: {
-      NURSE_UNIT: null,
+      NURSE_UNIT: [["__REF__NURSE_UNIT"],["__ID__"]],
     },
     attributes:{
       __ID__:null,
@@ -303,6 +315,7 @@ const schema = {
       FROM NURSE_UNIT_CODE
       )
     `,
+    id: ["__ID__"],
     attributes:{
       __ID__:null,
       NAME:null,
@@ -313,15 +326,18 @@ const schema = {
     cte: `
       HEART_RATE AS (
       SELECT /*+ INLINE */
-        PERSON_ID || DTUNIX "__ID__",
+        '(' || PERSON_ID || ',' || DTUNIX || ')' AS "__ID__",
         PERSON_ID AS "__REF__PATIENT",
         HR_EKG AS VALUE,
-        DTUNIX AS UNIX_TS
+        DTUNIX AS UNIX_TS,
+        PERSON_ID,
+        DTUNIX
       FROM VITALS
       )
     `,
+    id: ["PERSON_ID","DTUNIX"],
     references:{
-      PATIENT:null
+      PATIENT:[["__REF__PATIENT"],["__ID__"]],
     },
     attributes: {
       __ID__:null,
@@ -329,7 +345,7 @@ const schema = {
       UNIX_TS:null,
     }
   }
-};
+}
 
 const sqlBuilder = new SqlBuilder(schema);
 
