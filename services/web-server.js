@@ -1,5 +1,5 @@
 const express = require('express');
-const webServerConfig = require('../config/web-server.js');
+const webServerConfig = require('../config/web-server-config.js');
 const rootRouter = require('./router');
 const cors = require('cors');
 var httpServer;
