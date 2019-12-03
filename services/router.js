@@ -8,8 +8,12 @@ const {getPersonel} = require("../db_apis/get_personel");
 const {getBed} = require("../db_apis/get_bed");
 const {getBedSurvey} = require("../db_apis/get_bed_survey");
 
+const {getLab} = require("../db_apis/get_labs");
+
+
+
 // legacy
-router.get("/person/:person_id/RSS", async (req, res, next)=>{
+router.get("/person/:person_iddbConfig/RSS", async (req, res, next)=>{
   let person_id = parseFloat(req.params.person_id);
   let from = parseFloat(req.query.from);
   let to = parseFloat(req.query.to);
@@ -36,6 +40,22 @@ router.get("/person/:person_id/HR", async (req, res, next)=>{
     await getHeartRate(binds)
   );
 });
+
+//~~~~~~~~~~~~~~~~~~~ new
+
+router.get("/person/:person_id/labs", async (req, res, next)=>{
+  let person_id = parseFloat(req.params.person_id);
+  console.log("getting labs for %s ...",person_id);
+
+  let binds = {
+    person_id
+  };
+  res.send(
+    await getLab(binds)
+  );
+});
+
+//~~~~~~~~~~~~~~~~~~~~
 
 // FHIR like API
 router.get("/RespiratorySupportVariable", async (req, res, next)=>{
