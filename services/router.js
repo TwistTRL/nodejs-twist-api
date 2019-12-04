@@ -8,9 +8,11 @@ const {getPersonel} = require("../db_apis/get_personel");
 const {getBed} = require("../db_apis/get_bed");
 const {getBedSurvey} = require("../db_apis/get_bed_survey");
 
-const {getLab} = require("../db_apis/get_labs");
+const {getLab, getLabV2} = require("../db_apis/get_labs");
 
-
+router.get("/", function (req, res) {
+  res.send("Node.js API on Twist");
+});
 
 // legacy
 router.get("/person/:person_iddbConfig/RSS", async (req, res, next)=>{
@@ -52,6 +54,18 @@ router.get("/person/:person_id/labs", async (req, res, next)=>{
   };
   res.send(
     await getLab(binds)
+  );
+});
+
+router.get("/person/:person_id/labsv2", async (req, res, next)=>{
+  let person_id = parseFloat(req.params.person_id);
+  console.log("getting labsV2 for %s ...",person_id);
+
+  let binds = {
+    person_id
+  };
+  res.send(
+    await getLabV2(binds)
   );
 });
 

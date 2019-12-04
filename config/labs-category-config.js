@@ -35,10 +35,20 @@ const categoryList = [ALBUMIN, ALKPHOS, BNP,
 // add all the category to a dictionary,
 // each category is an array  
 var categoryDictionary = {};
+
 categoryList.forEach(addToDictionary);
 
 function addToDictionary(item) {
   categoryDictionary[item] = [];
+}
+
+/**
+ * just create a new dictionary for a timestamp
+ * 
+ * @param {number} dt_unix from lab record, for example "DT_UNIX":1524725340  
+ */
+function getSingleTimeRecord(dt_unix) {
+  return {"time":dt_unix};
 }
 
 
@@ -163,5 +173,6 @@ function getCategory(labString){
 
 module.exports = {
   getCategory,
-  categoryDictionary
+  categoryDictionary,
+  getSingleTimeRecord
 }
