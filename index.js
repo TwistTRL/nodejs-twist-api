@@ -1,6 +1,6 @@
 const webServer = require('./services/web-server.js');
 const database = require('./services/database.js');
-const dbConfig = require('./config/database.js');
+const dbConfig = require('./config/database-config.js');
 const defaultThreadPoolSize = 4;
 
 // Increase thread pool size by poolMax

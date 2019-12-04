@@ -15,10 +15,10 @@ router.get("/", function (req, res) {
 });
 
 // legacy
-router.get("/person/:person_iddbConfig/RSS", async (req, res, next)=>{
+router.get("/person/:person_id/RSS", async (req, res, next)=>{
   let person_id = parseFloat(req.params.person_id);
-  let from = parseFloat(req.query.from);
-  let to = parseFloat(req.query.to);
+  let from = parseFloat(req.query.from) || 0;
+  let to = parseFloat(req.query.to) || Date.now();
   let binds = {
     person_id,
     from_:from,
@@ -31,8 +31,8 @@ router.get("/person/:person_iddbConfig/RSS", async (req, res, next)=>{
 
 router.get("/person/:person_id/HR", async (req, res, next)=>{
   let person_id = parseFloat(req.params.person_id);
-  let from = parseFloat(req.query.from);
-  let to = parseFloat(req.query.to);
+  let from = parseFloat(req.query.from) || 0;
+  let to = parseFloat(req.query.to) || Date.now();
   let binds = {
     person_id,
     from_:from,
@@ -74,8 +74,8 @@ router.get("/person/:person_id/labsv2", async (req, res, next)=>{
 // FHIR like API
 router.get("/RespiratorySupportVariable", async (req, res, next)=>{
   let person_id = parseFloat(req.query.person_id);
-  let from = parseFloat(req.query.from);
-  let to = parseFloat(req.query.to);
+  let from = parseFloat(req.query.from) || 0;
+  let to = parseFloat(req.query.to) || Date.now();
   let binds = {
     person_id,
     from_:from,
@@ -88,8 +88,8 @@ router.get("/RespiratorySupportVariable", async (req, res, next)=>{
 
 router.get("/HeartRate", async (req,res, next) => {
   let person_id = parseInt(req.query.person_id);
-  let from = parseFloat(req.query.from);
-  let to = parseFloat(req.query.to);
+  let from = parseFloat(req.query.from) || 0;
+  let to = parseFloat(req.query.to) || Date.now();
   let binds = {
     person_id,
     from_:from,
