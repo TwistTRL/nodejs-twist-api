@@ -1,5 +1,0 @@
-{
-    "plantuml.server": "https://www.plantuml.com/plantuml",
-    "plantuml.render": "PlantUMLServer",
-    "plantuml.java": "/usr/lib/jvm/java-11-openjdk-amd64/bin/java"
-}
