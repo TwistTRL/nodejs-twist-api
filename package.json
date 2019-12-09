@@ -1,7 +1,7 @@
 {
-  "name": "twist-backend",
-  "version": "0.0.1",
-  "description": "Creating a REST API with Node.js and Oracle Database",
+  "name": "Twist Backend API",
+  "version": "0.0.2",
+  "description": "API with Node.js and Oracle Database to get person/vitals infomatin",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -14,5 +14,10 @@
     "oracledb": "^4.0.1",
     "relational-query-sql-builder": "file:../relational-query-sql-builder",
     "update": "^0.7.4"
+  },
+  "apidoc": {
+    "title": "Twist API with Node.js-Oracle database",
+    "url" : "http://twist:3300/api",
+    "sampleUrl": "http://twist:3300/api"
   }
 }

@@ -55,17 +55,32 @@ router.get("/person/:person_id/HR", async (req, res, next)=>{
 });
 
 //~~~~~~~~~~~~~~~~~~~ new
-
+/**
+ * @api {get} /person/:person_id/labs Request patient labs information
+ * @apiVersion 0.0.1
+ * @apiName GetPersonLabs
+ * @apiGroup Person
+ * @apiParam {Number} person_id patient unique ID.
+ * @apiSuccess {String} labName Name of the lab.
+ * @apiSuccess {Number} DT_UNIX Timestamp of the lab.
+ * @apiSuccess {String} VALUE Value of the lab.
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       "labName": [
+ *                    {
+ *                       "firstname": "John",
+ *                       "lastname": "Doe"
+ *                    }
+ *                  ]
+ *     }
+ * 
+ */
 router.get("/person/:person_id/labs", async (req, res, next)=>{
   let person_id = parseFloat(req.params.person_id);
   console.log("getting labs for %s ...",person_id);
 
-  let binds = {
-    person_id
-  };
-  res.send(
-    await getLab(binds)
-  );
+  let binds = {@apiVersion 0.1.0
 });
 
 router.get("/person/:person_id/labsv2", async (req, res, next)=>{
@@ -80,7 +95,30 @@ router.get("/person/:person_id/labsv2", async (req, res, next)=>{
   );
 });
 
-//~~
+
+/**
+ * @api {get} /person/:person_id/vitals/hr/binned/12H Request patient heart rate binned 12 hours information
+ * @apiVersion 0.0.1
+ * @apiName GetPersonHrBinned12H
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {String} range Range of the heart rate.
+ * @apiSuccess {String} from Start timestamp.
+ * @apiSuccess {String} to End timestamp.
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       [
+            {
+              "range": VAL,
+              "from": START_TM,
+              "to": END_TM
+            }
+          ]
+ *     }
+ * 
+ */
+
 router.get("/person/:person_id/vitals/hr/binned/12H", async (req, res, next)=>{
   let person_id = parseFloat(req.params.person_id);
   console.log("getting hr_12H for %s ...",person_id);
@@ -131,6 +169,28 @@ router.get("/person/:person_id/vitals/hr/binnedvar/5M", async (req, res, next)=>
 
 
 //~~ v2
+
+/**
+ * @api {get} /person/:person_id/vitals/hr/binnedv2/12H Request patient heart rate binned 12 hours information
+ * @apiVersion 0.0.2
+ * @apiName GetPersonHrBinned12HV2
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {NUMBER} time Timestamp.
+ * @apiSuccess {String} SvO2 lab.
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+          [  
+              {
+                  "time": NUMBER,
+                  "SvO2": VARCHAR2
+                }      
+          ]
+      }
+ * 
+ */
+
 router.get("/person/:person_id/vitals/hr/binnedv2/12H", async (req, res, next)=>{
   let person_id = parseFloat(req.params.person_id);
   console.log("getting hr_12H for %s ...",person_id);
@@ -230,43 +290,36 @@ router.get("/person/:person_id/vitals/hr/calc/5M", async (req, res, next)=>{
 });
 
 //~~~~~~~~-----------------------------
+/**
+ * @api {post} /vitals Request vitals information
+ * @apiVersion 0.0.2
+ * @apiName GetVitals
+ * @apiGroup Vitals
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String} vital_type Type of vital: "mbp", "sbp", "dbp", "spo2", "hr".
+ * @apiParam {Number} from Start timestamp.
+ * @apiParam {Number} to End timestamp.
+ * @apiParam {String} data_type Type of data: "binned", "calc".
+ * @apiParam {String} data_resolution Resolution of data: "1D","12H", "5H", "5M".
 
-router.get("/person/:person_id/vitals/\*", async (req, res, next)=>{
-  let person_id = parseFloat(req.params.person_id);
+ * @apiSuccess {String} range Range of the heart rate.
+ * @apiSuccess {String} from Start timestamp.
+ * @apiSuccess {String} to End timestamp.
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     {
+ *       [
+            {
+              "range": VAL,
+              "from": START_TM,
+              "to": END_TM
+            }
+          ]
+ *     }
+ * 
+ */
 
 
-  let originalUrl = req.originalUrl;
-  console.log("originalUrl", originalUrl);
-
-  let n = originalUrl.indexOf("/vitals/");
-  let newUrl = originalUrl.slice(n+8);
-  console.log("newUrl", newUrl);
-
-  let arrayUrl = newUrl.split("/");
-  console.log("arrayUrl", arrayUrl);
-
-  switch (arrayUrl[0]) {
-    case "mbp":
-      break;
-    case "sbp":
-      break;
-    case "dbp":
-      break;
-    case "spo2":
-      break;
-    default:
-      break;
-  }
-
-  return arrayUrl;
-
-  let binds = {
-    person_id
-  };
-  res.send(
-    await getHrCalc5M(binds)
-  );
-});
 
 router.post("/vitals", async (req,res, next) => {
   let query = req.body;
