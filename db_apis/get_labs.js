@@ -9,7 +9,7 @@
  */
 
 const database = require("../services/database");
-const {getCategory, categoryDictionary, getSingleTimeRecord} = require("../config/labs-category-config");
+const {categoryList, getCategory, categoryDictionary, getSingleTimeRecord} = require("../db_relation/labs-category-config");
 
 const GET_LABS_BY_PERSONID_SQL = `
 SELECT *
@@ -94,7 +94,12 @@ async function getLabSqlExecutorV2(conn,binds){
   }
   console.timeEnd('label');
 
-  return cgArrayV2;
+
+  var result = {};
+  result.keys = categoryList;
+  result.data = cgArrayV2;
+
+  return result;
 }
 
 const getLab = database.withConnection(getLabSqlExecutor);

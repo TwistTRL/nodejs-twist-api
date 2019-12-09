@@ -3,6 +3,9 @@ const router = new express.Router();
 const url = require('url');
 const qs = require('querystring');
 const {getRelationalQuery} = require("../db_apis/get-relational-query");
+const {getVitalsQuery} = require("../db_apis/get-vitals-all");
+
+
 const {getRespiratorySupportVariable} = require("../db_apis/get_respiratory_support_variables");
 const {getHeartRate} = require("../db_apis/get_heart_rate");
 const {getPerson} = require("../db_apis/get_person");
@@ -225,6 +228,65 @@ router.get("/person/:person_id/vitals/hr/calc/5M", async (req, res, next)=>{
     await getHrCalc5M(binds)
   );
 });
+
+//~~~~~~~~-----------------------------
+
+router.get("/person/:person_id/vitals/\*", async (req, res, next)=>{
+  let person_id = parseFloat(req.params.person_id);
+
+
+  let originalUrl = req.originalUrl;
+  console.log("originalUrl", originalUrl);
+
+  let n = originalUrl.indexOf("/vitals/");
+  let newUrl = originalUrl.slice(n+8);
+  console.log("newUrl", newUrl);
+
+  let arrayUrl = newUrl.split("/");
+  console.log("arrayUrl", arrayUrl);
+
+  switch (arrayUrl[0]) {
+    case "mbp":
+      break;
+    case "sbp":
+      break;
+    case "dbp":
+      break;
+    case "spo2":
+      break;
+    default:
+      break;
+  }
+
+  return arrayUrl;
+
+  let binds = {
+    person_id
+  };
+  res.send(
+    await getHrCalc5M(binds)
+  );
+});
+
+router.post("/vitals", async (req,res, next) => {
+  let query = req.body;
+  try{
+    let toSend = await getVitalsQuery(query);
+    res.send(
+      toSend
+    );
+  }
+  catch(e){
+    console.log(new Date());
+    console.log(e);
+    res.status(500);
+    res.send(e.toString());
+  }
+});
+
+
+
+//~~~~~~~~~~----------------------------
 
 // ~~ raw hr bewteen two timestamp
 

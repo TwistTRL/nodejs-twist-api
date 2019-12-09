@@ -9,7 +9,7 @@
  */
 
 const database = require("../services/database");
-const {getSingleHrResult} = require("../config/hr-bin-config-v2");
+const {getSingleHrResult} = require("../db_relation/hr-bin-config-v2");
 var assert = require('assert');
 
 // get header dict information from DEF_VITALS_LMT

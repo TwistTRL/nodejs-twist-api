@@ -9,7 +9,7 @@
  */
 
 const database = require("../services/database");
-const {getSingleHrResult, getBinString} = require("../config/hr-bin-config");
+const {getSingleHrResult, getBinString} = require("../db_relation/hr-bin-config");
 var assert = require('assert');
 
 const SQL_PART1 = `

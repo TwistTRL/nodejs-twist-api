@@ -172,6 +172,7 @@ function getCategory(labString){
 
 
 module.exports = {
+  categoryList,
   getCategory,
   categoryDictionary,
   getSingleTimeRecord

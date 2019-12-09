@@ -9,7 +9,7 @@
  */
 
 const database = require("../services/database");
-const {getSingleHrCALCResult} = require("../config/hr-calc-config");
+const {getSingleHrCALCResult} = require("../db_relation/hr-calc-config");
 
 const SQL_PART1 = `
 SELECT 

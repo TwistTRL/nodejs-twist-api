@@ -9,7 +9,7 @@
  */
 
 const database = require("../services/database");
-const {getSingleRawHr} = require("../config/hr-raw-config");
+const {getSingleRawHr} = require("../db_relation/hr-raw-config");
 var assert = require('assert');
 
 // get raw hr between two timestamp
