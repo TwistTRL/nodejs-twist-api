@@ -80,7 +80,12 @@ router.get("/person/:person_id/labs", async (req, res, next)=>{
   let person_id = parseFloat(req.params.person_id);
   console.log("getting labs for %s ...",person_id);
 
-  let binds = {@apiVersion 0.1.0
+  let binds = {
+    person_id
+  };
+  res.send(
+    await getLab(binds)
+  );
 });
 
 router.get("/person/:person_id/labsv2", async (req, res, next)=>{
