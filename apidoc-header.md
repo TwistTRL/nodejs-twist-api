@@ -2,7 +2,7 @@
 
 **Twist API code and details:  [github.com/TwistTRL/nodejs-twist-api](https://github.com/TwistTRL/nodejs-twist-api)**
 
-Maintained by [Peng](https://github.com/pzeng123) 😃.
+Maintained by [Peng](https://github.com/pzeng123) ☕.
 
 
 ### Labs

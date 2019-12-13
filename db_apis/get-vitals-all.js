@@ -2,6 +2,7 @@ const database = require("../services/database");
 const {getSingleResult,getSingleRawResult,CAT_VITAL_TYPE_ARRAY,SQLVitalTypeDict} = require("../db_relation/vitals-db-relation");
 const {isJsonString} = require("../utils/isJson");
 const {InputInvalidError} = require("../utils/errors");  
+const {getSingleVitalCALCResult} = require("../db_relation/vitals-calc-relation")
 
 const cat2 = "data_type";
 const cat3 = "data_resolution";
@@ -14,6 +15,14 @@ const catTo = "to";
 const cat2Array = ["binned", "calc"];
 const cat3Array = ["1D","12H", "5H", "5M"];
 
+const DATATYPE = Object.freeze({
+  BINNED: "binned",
+  CALC: "calc",
+  RAW: "raw"
+});
+
+
+// get binned vitals
 const SQL_GET_DICT = `
 SELECT 
   BIN_ID,
@@ -36,6 +45,33 @@ WHERE PERSON_ID = `
 const SQL_PART3 = `
 ORDER BY START_TM
 `
+
+// get calc vitals
+const SQL_CALC_PART1 = `
+SELECT 
+  START_TM,
+  END_TM,
+  VAL_MIN,
+  VAL_MEAN,
+  VAL_PERC1,
+  VAL_PERC5,
+  VAL_PERC25,
+  VAL_PERC50,
+  VAL_PERC75,
+  VAL_PERC95,
+  VAL_PERC99,
+  VAL_MAX
+FROM `
+
+const SQL_CALC_PART2 = `
+WHERE PERSON_ID = `
+
+const SQL_CALC_PART3 = ` AND VITAL_TYPE = '`
+
+const SQL_CALC_PART4 = `'
+ORDER BY START_TM`
+
+
 
 // get raw vitals between two timestamp
 const SQL_GET_RAW_PART1 = `
@@ -120,8 +156,8 @@ function _calculateRawRecords(rawRecord, vitalType) {
  * @param {*} query
  * @returns
  */
-async function vitalsQuerySQLExecutor(conn,query){
-  console.time('getVital');
+async function vitalsBinnedQuerySQLExecutor(conn,query){
+  console.time('getVitalBinned');
 
   let sqlDict = SQL_GET_DICT + "'" + SQLVitalTypeDict[query[catVitalType]] + "'";
   console.log("sqlDict = ", sqlDict);
@@ -140,7 +176,7 @@ async function vitalsQuerySQLExecutor(conn,query){
   }
 
   let sqlTable = _getSqlTable(query);
-  console.log("sqlTable = ", sqlTable);
+  console.log("binned sqlTable = ", sqlTable);
 
   let person_id = query[catPersonId];
 
@@ -149,10 +185,72 @@ async function vitalsQuerySQLExecutor(conn,query){
   let vitalsRecords = await conn.execute(sqlQuery);  
   let jsonString = _calculateRecords(dictResult, vitalsRecords, query[cat3]);
 
-  console.timeEnd('getVital');
+  console.timeEnd('getVitalBinned');
   return jsonString;
 
 }
+
+
+async function vitalsCalcQuerySQLExecutor(conn,query){
+  console.time('getVitalCalc');
+  let sqlTable = _getSqlTable(query);
+  console.log("calc sqlTable = ", sqlTable);
+  let person_id = query[catPersonId];
+  let vitalType = SQLVitalTypeDict[query[catVitalType]];
+
+  let sqlQuery = SQL_CALC_PART1 + sqlTable + SQL_CALC_PART2 + person_id + SQL_CALC_PART3 + vitalType + SQL_CALC_PART4;
+  console.log("sqlQuery = ", sqlQuery);
+  let vitalsRecords = await conn.execute(sqlQuery);  
+
+  var result = [];
+  var timeInterval;
+
+  // just for doublecheck START_TM and END_TM
+  switch (query[cat3]) {
+    case "12H":
+      timeInterval = 43200;
+      break;
+    case "5H":
+      timeInterval = 18000;
+      break;
+    case "1D":
+      timeInterval = 86400;
+      break;
+    case "5M":
+      timeInterval = 300;
+      break;
+    default:
+      console.log("Invalid Time String...");
+      return;
+  }
+// vitalsRecords = {"metadata":[], "rows":[]}
+var arr = vitalsRecords.rows;
+console.log("record size :", arr.length);
+
+if (arr.length < 1) {
+  return [];
+}
+for (let vitalRecord of arr) {
+  //example vitalRecord = {"START_TM": "1524657600", "END_TM": "1524700800", "VAL_MIN": "108"...}
+
+  // if timeString is "12H", every end_tm is larger than start_tm 12 hours or 43200 seconds
+  if (vitalRecord.END_TM*1 - vitalRecord.START_TM*1 != timeInterval) {
+    console.log("Error for " + timeString + " with " + vitalRecord.START_TM + ", " + vitalRecord.END_TM);
+  }
+
+  // start_time was sorted when sql query done.
+  // at each start time (for a personid and a VITAL_TYPE), there is only one record
+
+  let singleResult = getSingleVitalCALCResult(vitalRecord);
+  result.push(singleResult);
+}
+
+  console.timeEnd('getVitalCalc');
+  return result;
+
+}
+
+
 
 function _getQueryType(query) {
 
@@ -164,8 +262,8 @@ function _getQueryType(query) {
   if (!isJsonString(query)) {
     console.warn("not json");
     throw new InputInvalidError('Input not in json');
-
   }
+
   if (!CAT_VITAL_TYPE_ARRAY.includes(query[catVitalType])) {
     console.warn("catVitalType no included: " + query[catVitalType]);
     throw new InputInvalidError('vital_type not valid: ' + query[catVitalType] + '. \nAll vital_type: "mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp".');
@@ -173,7 +271,6 @@ function _getQueryType(query) {
   if (query[catPersonId] == null) {
     console.warn("catPersonId is null");
     throw new InputInvalidError('person_id is null');
-
   }
 
 
@@ -186,8 +283,13 @@ function _getQueryType(query) {
     if (query[cat3] == null || !cat3Array.includes(query[cat3])){
       throw new InputInvalidError('"data_resolution" is not valid. All "data_resolution": "1D","12H", "5H", "5M".');
     }
+
     console.log("type: get down sampled");
-    return 1;
+    if (query[cat2] == cat2Array[0]) {
+      return DATATYPE.BINNED;
+    } else {
+      return DATATYPE.CALC;
+    }
   }
 
   let currentTime = new Date().getTime()/1000|0;
@@ -198,12 +300,13 @@ function _getQueryType(query) {
     throw new InputInvalidError('Timestamp "to" is not valid');
   }
   console.log("type: get raw");
-  return 2;
+  return DATATYPE.RAW;
 
 }
 
 function _getSqlTable(query) {
   var sqlTable;
+  console.log("query[cat2] = ", query[cat2]);
 
   if (query[cat2] == "binned") {
     switch (query[cat3]) {
@@ -226,7 +329,7 @@ function _getSqlTable(query) {
   } else if (query[cat2] == "calc") {
     switch (query[cat3]) {
       case "1D":
-        sqlTable = "STAGING_NEW_VITALS_BIN_1D"
+        sqlTable = "STAGING_NEW_VITALS_CALC_1D"
         break;
       case "12H":
         sqlTable = "STAGING_NEW_VITALS_CALC_12H"
@@ -317,10 +420,11 @@ function _calculateRecords(dictResult, vitalsRecords, timeString) {
 
 const getVitalsQuery = database.withConnection(async function(conn,query){
   console.log("query = ", query);
-  if (_getQueryType(query) == 1) {
-    return await vitalsQuerySQLExecutor(conn,query);
-  } else if (_getQueryType(query) == 2){
-    console.log("_getQueryType", 2)
+  if (_getQueryType(query) == DATATYPE.BINNED) {
+    return await vitalsBinnedQuerySQLExecutor(conn,query);
+  }  else if (_getQueryType(query) == DATATYPE.CALC){
+    return await vitalsCalcQuerySQLExecutor(conn,query);
+  } else if (_getQueryType(query) == DATATYPE.RAW){
     return await vitalsRawQuerySQLExecutor(conn,query);
   } else {
     throw new InputInvalidError('_getQueryType ERROR');

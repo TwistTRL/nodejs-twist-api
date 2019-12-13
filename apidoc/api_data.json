@@ -28,7 +28,7 @@
       },
       "examples": [
         {
-          "title": "Example of request vitals raw data ",
+          "title": "POST json example",
           "content": "{\n  \"person_id\": 25796315,\n  \"lab_names\": [\"SvO2\", \"PaCO2\"]\n}",
           "type": "json"
         }
@@ -187,7 +187,7 @@
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "HTTP/1.1 200 OK\n   {\n     \"keys\": \n       [\n         labName,\n         ...\n       ],\n     \"data\": \n       [  \n         {\n             \"time\": timestamp,\n             labName : labValue,\n             ...\n           },\n           ...\n       ]\n   }",
+          "content": "HTTP/1.1 200 OK\n   {\n     \"keys\":\n       [\n         labName,\n         ...\n       ],\n     \"data\":\n       [\n         {\n             \"time\": timestamp,\n             labName : labValue,\n             ...\n           },\n           ...\n       ]\n   }",
           "type": "json"
         }
       ]
@@ -606,7 +606,7 @@
       },
       "examples": [
         {
-          "title": "Example of request vitals binned data ",
+          "title": "POST json example",
           "content": "{\n  \"person_id\": 25796315,\n  \"vital_type\": \"mbp\",\n  \"data_type\": \"binned\",\n  \"data_resolution\": \"1D\"\n}",
           "type": "json"
         }
@@ -669,7 +669,7 @@
       "examples": [
         {
           "title": "Success-Response:",
-          "content": "HTTP/1.1 200 OKbinned",
+          "content": "HTTP/1.1 200 OK\n[\n        {\n          bin_id : [lmt_st, lmt_end],\n          ...\n        },\n        {\n          bin_id: value,\n          ...\n          \"from\" : from_timestamp,\n          \"to\" : to_timestamp,\n          \"time\" : average_timestamp\n        }\n    ]",
           "type": "json"
         }
       ]
@@ -745,7 +745,7 @@
       },
       "examples": [
         {
-          "title": "Example of request vitals calc data ",
+          "title": "POST json example",
           "content": "{\n  \"person_id\": 25796315,\n  \"vital_type\": \"mbp\",\n  \"data_type\": \"calc\",\n  \"data_resolution\": \"1D\"\n}",
           "type": "json"
         }
@@ -855,7 +855,7 @@
       },
       "examples": [
         {
-          "title": "Example of request vitals raw data ",
+          "title": "Example of request vitals raw data",
           "content": "{\n  \"person_id\": 25796315,\n  \"vital_type\": \"mbp\",\n  \"from\":1542014000,\n  \"to\":1542018000\n}",
           "type": "json"
         }
@@ -950,7 +950,7 @@
       },
       "examples": [
         {
-          "title": "Example of test heart rate APIs ",
+          "title": "POST json example",
           "content": "{\n    \"person_id\": 25796315,\n    \"vital_type\": \"hr\",\n    \"data_type\": \"binned\",\n    \"data_resolution\": \"1D\"\n}",
           "type": "json"
         }
@@ -1192,6 +1192,62 @@
     "filename": "./temp/q1/main.js",
     "group": "_home_peng_apidev_nodejs_twist_api_temp_q1_main_js",
     "groupTitle": "_home_peng_apidev_nodejs_twist_api_temp_q1_main_js",
+    "name": ""
+  },
+  {
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "optional": false,
+            "field": "varname1",
+            "description": "<p>No type.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "varname2",
+            "description": "<p>With type.</p>"
+          }
+        ]
+      }
+    },
+    "type": "",
+    "url": "",
+    "version": "0.0.0",
+    "filename": "./temp/r/main.js",
+    "group": "_home_peng_apidev_nodejs_twist_api_temp_r_main_js",
+    "groupTitle": "_home_peng_apidev_nodejs_twist_api_temp_r_main_js",
+    "name": ""
+  },
+  {
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "optional": false,
+            "field": "varname1",
+            "description": "<p>No type.</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "varname2",
+            "description": "<p>With type.</p>"
+          }
+        ]
+      }
+    },
+    "type": "",
+    "url": "",
+    "version": "0.0.0",
+    "filename": "./temp/ttt/main.js",
+    "group": "_home_peng_apidev_nodejs_twist_api_temp_ttt_main_js",
+    "groupTitle": "_home_peng_apidev_nodejs_twist_api_temp_ttt_main_js",
     "name": ""
   }
 ]

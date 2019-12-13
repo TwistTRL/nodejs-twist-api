@@ -68,9 +68,9 @@ const testHr = database.withConnection(async function(conn,query){
     let sameCharNum = findSameCharNum(string1, string2);
     var result1;
     if (string1.length == string2.length && string2.length == sameCharNum) {
-        result1 = "Test success.\n";
+        result1 = " ✔ Test success.\n";
     } else {
-        result1 = "Test failed.\n";
+        result1 = " ✘ Test failed.\n";
     }
 
     var result2;
