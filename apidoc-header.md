@@ -38,6 +38,7 @@ SQL_COLUNM_NAME_FOR_CAT_VITAL_TYPE_ARRAY:
 
 `["MBP1", "SBP1", "DBP1", "SPO2_1", "HR_EKG","CVPM","RAP","LAPM","RR","TEMP1","TEMPCORE1"]`
 
+Table DEF_VITALS_LMT: 
 
 | BIN_ID | VITAL_TYPE| LMT_ST | LMT_END 
 |---- |:-----:| :-----:|----:|
