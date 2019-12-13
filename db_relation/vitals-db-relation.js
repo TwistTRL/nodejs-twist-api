@@ -1,4 +1,3 @@
-
 /**
  * VITALS DATABASE RELATIONS
  * 
@@ -7,39 +6,16 @@
  * 
  */
 
+const CAT_VITAL_TYPE_ARRAY = ["mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp", "tempcore"];
+const SQL_COLUNM_NAME_FOR_CAT_VITAL_TYPE_ARRAY = ["MBP1", "SBP1", "DBP1", "SPO2_1", "HR_EKG","CVPM","RAP","LAPM","RR","TEMP1","TEMPCORE1"];
+
+let SQLVitalTypeDict = {};
+CAT_VITAL_TYPE_ARRAY.forEach((catVitalType, SQLName) => SQLVitalTypeDict[catVitalType] = SQL_COLUNM_NAME_FOR_CAT_VITAL_TYPE_ARRAY[SQLName]);
+
+
 /**
  * 
- * @param {*} dictResult 
- * { '1': [ 0, 30 ],
-  '2': [ 30, 40 ],
-  '3': [ 40, 50 ],
-  '4': [ 50, 60 ],
-  '5': [ 60, 70 ],
-  '6': [ 70, 80 ],
-  '7': [ 80, 90 ],
-  '8': [ 90, 100 ],
-  '9': [ 100, 110 ],
-  '10': [ 110, 120 ],
-  '11': [ 120, 130 ],
-  '12': [ 130, 140 ],
-  '13': [ 140, 150 ],
-  '14': [ 150, 160 ],
-  '15': [ 160, 170 ],
-  '16': [ 170, 180 ],
-  '17': [ 180, 190 ],
-  '18': [ 190, 200 ],
-  '19': [ 200, 210 ],
-  '20': [ 210, 220 ],
-  '21': [ 220, 230 ],
-  '22': [ 230, 240 ],
-  '23': [ 240, 250 ],
-  '24': [ 250, 260 ],
-  '25': [ 260, 270 ],
-  '26': [ 270, 280 ],
-  '27': [ 280, 290 ],
-  '28': [ 290, null ] }
-
- * 
+ * @param {*} dictResult  
  * @param {*} START_TM 
  * @param {*} END_TM 
  */
@@ -63,5 +39,7 @@ function getSingleRawResult() {
 
 module.exports = {
   getSingleResult,
-  getSingleRawResult
+  getSingleRawResult,
+  CAT_VITAL_TYPE_ARRAY,
+  SQLVitalTypeDict
 }

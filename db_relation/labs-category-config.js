@@ -31,7 +31,6 @@ const categoryList = [ALBUMIN, ALKPHOS, BNP,
   SAO2, PACO2, PH, PAO2, TNI, TNT];
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-
 // add all the category to a dictionary,
 // each category is an array  
 var categoryDictionary = {};
@@ -170,10 +169,96 @@ function getCategory(labString){
   return categoryString;
 }
 
+function getLabNameFromLabCat(labCatString) {
+ 
+  switch(labCatString) {
+    case ALBUMIN:
+      return ["Albumin"];
+
+    case ALKPHOS:
+      return ["Alkaline Phosphatase"];
+
+    case BNP:
+      return ["B-Type Natriuretic Peptide"];
+    case HCO3:
+      return [
+    "Bicarb Act Arterial Cath Lab",
+    "Bicarb Actual Venous Cath Lab",
+    "Bicarb Arterial",
+    "Bicarb Arterial OR",
+    "Combined Procainamide and NAPA",
+    "Coxsackie A9 Ab"];
+
+    case BUN:
+      return ["BUN"];
+
+     
+    case CR:
+      return ["Creatinine"];
+     
+    case DDIMER:
+      return ["D-dimer"];
+
+    case LACTATE:
+      return ["Lactic Acid",
+     "Lactic Acid, Whole Blood"];
+
+
+    case SVO2:
+      return ["O2 Sat Venous", "O2 Sat Venous Cardiac", "O2Hgb Venous Co-oximetry", "O2Sat Right Atrium Cardiac",
+      "O2Sat Venous Cath Lab","O2Sat Venous Co-oximetry", "O2Sat Venous OR"];
+
+    case SAO2:
+      return ["O2Hgb  Arterial Co-oximetry",
+    "O2Sat Arterial",
+    "O2Sat Arterial Cardiac",
+    "O2Sat Arterial Cath Lab",
+    "O2Sat Arterial Co-oximetry",
+    "O2Sat Arterial OR"];
+
+      
+
+    case PACO2:
+      return ["pCO2 Arterial",
+    "pCO2 Arterial Cath Lab",
+    "pCO2 Arterial Corrected OR",
+    "pCO2 Arterial OR",
+    "pCO2 Arterial, Temp Corrected"];
+
+
+    case PH:
+      return ["pH Arterial",
+    "pH Arterial Cath Lab",
+    "pH Arterial Corrected OR",
+    "pH Arterial OR",
+    "pH Arterial, Temp Corrected",
+    "Primary Ciliary Dyskinesia Seq Panel"];
+
+
+    case PAO2:
+      return ["pO2 Arterial",
+     "pO2 Arterial Cath Lab",
+     "pO2 Arterial Corrected OR",
+     "pO2 Arterial OR",
+     "pO2 Arterial, Temp Corrected"];
+
+    case TNI:
+      return ["Troponin I",
+     "Troponin I, Cardiac, TNNI3"];
+    
+    case TNT:
+      return ["Troponin T"];
+      
+    default:
+      return null;
+  }
+}
+
 
 module.exports = {
   categoryList,
   getCategory,
   categoryDictionary,
-  getSingleTimeRecord
+  getSingleTimeRecord,
+  getLabNameFromLabCat
 }

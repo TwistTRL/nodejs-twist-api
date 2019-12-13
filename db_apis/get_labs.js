@@ -2,39 +2,38 @@
 
 /**
  * API FUNCTIONS FOR GETTING LABS
- * 
- * PENG 
+ *
+ * PENG
  * 12/3/19
- * 
+ *
  */
 
-const database = require("../services/database");
-const {categoryList, getCategory, categoryDictionary, getSingleTimeRecord} = require("../db_relation/labs-category-config");
+const database = require('../services/database');
+const {categoryList, getCategory, categoryDictionary, getSingleTimeRecord, getLabNameFromLabCat} = require('../db_relation/labs-category-config');
 
 const GET_LABS_BY_PERSONID_SQL = `
 SELECT *
 FROM LABS
 WHERE PERSON_ID = :person_id
 ORDER BY DT_UNIX
-`
+`;
 
-async function getLabSqlExecutor(conn,binds){
+async function getLabSqlExecutor(conn, binds) {
   console.time('label');
 
-  let lab = await conn.execute(GET_LABS_BY_PERSONID_SQL,binds);
+  const lab = await conn.execute(GET_LABS_BY_PERSONID_SQL, binds);
   // lab = {"metadata":[], "rows":[]}
-  var arr = lab["rows"];
-  var cgDictionary = categoryDictionary;
-  console.log("lab size of current person", arr.length);
-  console.log("cgDictionary", cgDictionary);
-  for (let labRecord of arr) {
+  let arr = lab['rows'];
+  let cgDictionary = categoryDictionary;
+  console.log('lab size of current person', arr.length);
+  console.log('cgDictionary', cgDictionary);
+  for (const labRecord of arr) {
     // SINGLE_LABREPORT labRecord = {"PERSON_ID":...,"ORDER_ID":...,"DT_UTC":...,"EVENT_CD":...,"LAB":"...",...}
-    let categoryString = getCategory(labRecord.LAB);
+    const categoryString = getCategory(labRecord.LAB);
     if (categoryString !== null) {
       // only need "DT_UNIX" and "VALUE" in the labRecord
-      cgDictionary[categoryString].push({"DT_UNIX": labRecord.DT_UNIX, "VALUE": labRecord.VALUE})      
-      //cgDictionary[categoryString].push(labRecord)
-
+      cgDictionary[categoryString].push({'DT_UNIX': labRecord.DT_UNIX, 'VALUE': labRecord.VALUE*1});
+      // cgDictionary[categoryString].push(labRecord)
     }
   }
   console.timeEnd('label');
@@ -42,24 +41,24 @@ async function getLabSqlExecutor(conn,binds){
   return cgDictionary;
 }
 
-async function getLabSqlExecutorV2(conn,binds){
+async function getLabSqlExecutorV2(conn, binds) {
   console.time('label');
 
-  let lab = await conn.execute(GET_LABS_BY_PERSONID_SQL,binds);
-  var cgArrayV2 = [];
+  const lab = await conn.execute(GET_LABS_BY_PERSONID_SQL, binds);
+  let cgArrayV2 = [];
 
   // lab = {"metadata":[], "rows":[]}
-  var arr = lab["rows"];
-  console.log("lab size of current person", arr.length);
+  let arr = lab['rows'];
+  console.log('lab size of current person', arr.length);
 
   if (arr.length < 1) {
     return null;
   }
 
-  var currentTime = 0;
-  for (let labRecord of arr) {
+  let currentTime = 0;
+  for (const labRecord of arr) {
     // SINGLE_LABREPORT labRecord = {"PERSON_ID":...,"ORDER_ID":...,"DT_UTC":...,"EVENT_CD":...,"LAB":"...",...}
-    let categoryString = getCategory(labRecord.LAB);
+    const categoryString = getCategory(labRecord.LAB);
     if (categoryString !== null) {
       // Since we only need "DT_UNIX" and "VALUE" in the labRecord
       // an example for singleSimpleRecord:
@@ -75,17 +74,16 @@ async function getLabSqlExecutorV2(conn,binds){
       // for a new currentTime, create a new dictionary with timestamp
 
       if (currentTime != labRecord.DT_UNIX) {
-
         if (currentTime != 0) {
           cgArrayV2.push(singleSimpleRecord);
         } else {
-          console.log("start pushing into array...");
+          console.log('start pushing into array...');
         }
         currentTime = labRecord.DT_UNIX;
         singleSimpleRecord = getSingleTimeRecord(currentTime);
       }
 
-      singleSimpleRecord[categoryString] = labRecord.VALUE;
+      singleSimpleRecord[categoryString] = labRecord.VALUE*1;
     }
   }
   // last item
@@ -95,7 +93,7 @@ async function getLabSqlExecutorV2(conn,binds){
   console.timeEnd('label');
 
 
-  var result = {};
+  let result = {};
   result.keys = categoryList;
   result.data = cgArrayV2;
 
@@ -107,9 +105,9 @@ const getLabV2 = database.withConnection(getLabSqlExecutorV2);
 
 
 /**
- *  
+ *
  * getLab:
- * 
+ *
  * {
  *  "Albumin":[
  *    {
@@ -131,30 +129,51 @@ const getLabV2 = database.withConnection(getLabSqlExecutorV2);
     ],
  *  ...
  * }
- * 
- * 
- * 
+ *
+ *
+ *
  * getLabV2:
- * 
- * [  
+ *
+ * {
+ * "keys": [
+    "Albumin",
+    "Alk Phos",
+    "BNP",
+    "HCO3",
+    "BUN",
+    "Cr",
+    "D-dimer",
+    "Lactate",
+    "SvO2",
+    "SaO2",
+    "PaCO2",
+    "pH",
+    "PaO2",
+    "TnI",
+    "TnT"
+  ],
+ *
+ *
+ * "data":
+ * [
  *    {
         "time": NUMBER,
-        "SvO2": VARCHAR2,
+        "SvO2": NUMBER,
         ...
       },
       {
         "time": 1524732420,
-        "Lactate": VARCHAR2,
+        "Lactate": NUMBER,
         ...
       },
       ...
  * ]
- * 
- *  
- * 
- *  */ 
+ * }
+ *
+ *
+ *  */
 
 module.exports = {
   getLab,
-  getLabV2
+  getLabV2,
 };

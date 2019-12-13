@@ -45,7 +45,10 @@ async function getHr12HSqlExecutor(conn,binds){
     dictResult[row.BIN_ID] = [row.LMT_ST, row.LMT_END];
   }
 
-  let hrRecords = await conn.execute(SQL_PART1+`STAGING_NEW_VITALS_BIN_12H`+SQL_PART2,binds);
+  let SQL_GET_HR = SQL_PART1+`STAGING_NEW_VITALS_BIN_12H`+SQL_PART2;
+  console.log("SQL_GET_HR = ", SQL_GET_HR);
+
+  let hrRecords = await conn.execute(SQL_GET_HR,binds);
     
   let jsonString = calculateRecords(dictResult, hrRecords, "12H");
   console.timeEnd('getHr');
@@ -78,7 +81,10 @@ async function getHr1DSqlExecutor(conn,binds){
     dictResult[row.BIN_ID] = [row.LMT_ST, row.LMT_END];
   }
 
-  let hrRecords = await conn.execute(SQL_PART1+`STAGING_NEW_VITALS_BIN_1D`+SQL_PART2,binds);  
+  let SQL_GET_HR = SQL_PART1+`STAGING_NEW_VITALS_BIN_1D`+SQL_PART2;
+  console.log("SQL_GET_HR = ", SQL_GET_HR);
+
+  let hrRecords = await conn.execute(SQL_GET_HR,binds);  
   let jsonString = calculateRecords(dictResult, hrRecords, "1D");
   console.timeEnd('getHr');
   return jsonString;

@@ -1,5 +1,5 @@
 {
-  "name": "Twist Backend API",
+  "name": "twist-backend-api",
   "version": "0.0.2",
   "description": "API with Node.js and Oracle Database to get person/vitals infomatin",
   "main": "index.js",
@@ -11,13 +11,26 @@
   "dependencies": {
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "morgan": "^1.9.1",
     "oracledb": "^4.0.1",
     "relational-query-sql-builder": "file:../relational-query-sql-builder",
     "update": "^0.7.4"
   },
   "apidoc": {
     "title": "Twist API with Node.js-Oracle database",
-    "url" : "http://twist:3300/api",
-    "sampleUrl": "http://twist:3300/api"
+    "url": "http://twist:3300/api",
+    "sampleUrl": "http://twist:3300/api",
+    "header": {
+      "title": "Introduction",
+      "filename": "apidoc-header.md"
+    }
+  },
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^6.7.2",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-plugin-import": "^2.19.1",
+    "mocha": "^6.2.2"
   }
 }
