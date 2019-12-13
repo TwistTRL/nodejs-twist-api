@@ -28,7 +28,7 @@ WHERE PERSON_ID = `
 
 const GET_LABS_BY_PERSONID_SQL_2 = ` AND `
 const GET_LABS_BY_PERSONID_SQL_3 = `
-ORDER BY DT_UNIX
+ORDER BY DT_UNIX, VALUE
 `
 
 async function getLabSqlExecutor(conn,query){
@@ -92,6 +92,12 @@ function getLabNameByLabCatList(requestLabs) {
 
 const getLabsQuery = database.withConnection(async function(conn,query){
   console.log("query = ", query);
+
+  if(Object.entries(query).length === 0 && query.constructor === Object) {
+    console.error("query empty");
+    throw new InputInvalidError('Input not valid, so query is empty.');
+  }
+
   if (!isJsonString(query)) {
     console.warn("not json");
     throw new InputInvalidError('Input not in json');

@@ -12,11 +12,15 @@ const database = require('../services/database');
 const {categoryList, getCategory, categoryDictionary, getSingleTimeRecord, getLabNameFromLabCat} = require('../db_relation/labs-category-config');
 
 const GET_LABS_BY_PERSONID_SQL = `
-SELECT *
+SELECT 
+  LAB,
+  DT_UNIX,
+  VALUE
 FROM LABS
 WHERE PERSON_ID = :person_id
-ORDER BY DT_UNIX
+ORDER BY DT_UNIX, VALUE
 `;
+
 
 async function getLabSqlExecutor(conn, binds) {
   console.time('label');
@@ -24,20 +28,30 @@ async function getLabSqlExecutor(conn, binds) {
   const lab = await conn.execute(GET_LABS_BY_PERSONID_SQL, binds);
   // lab = {"metadata":[], "rows":[]}
   let arr = lab['rows'];
-  let cgDictionary = categoryDictionary;
   console.log('lab size of current person', arr.length);
-  console.log('cgDictionary', cgDictionary);
-  for (const labRecord of arr) {
+  // console.log('cgDictionary', cgDictionary);
+
+  console.timeEnd('label');
+  result = getResult(arr);
+
+  return result;
+  // return cgDictionary;
+}
+
+function getResult(arr) {
+  let cgDictionary = {};
+  for (let c of categoryList) {
+    cgDictionary[c] = [];
+  }
+  for (let labRecord of arr) {
     // SINGLE_LABREPORT labRecord = {"PERSON_ID":...,"ORDER_ID":...,"DT_UTC":...,"EVENT_CD":...,"LAB":"...",...}
-    const categoryString = getCategory(labRecord.LAB);
+    let categoryString = getCategory(labRecord.LAB);
     if (categoryString !== null) {
       // only need "DT_UNIX" and "VALUE" in the labRecord
       cgDictionary[categoryString].push({'DT_UNIX': labRecord.DT_UNIX, 'VALUE': labRecord.VALUE*1});
       // cgDictionary[categoryString].push(labRecord)
     }
   }
-  console.timeEnd('label');
-
   return cgDictionary;
 }
 
@@ -175,5 +189,5 @@ const getLabV2 = database.withConnection(getLabSqlExecutorV2);
 
 module.exports = {
   getLab,
-  getLabV2,
+  getLabV2
 };

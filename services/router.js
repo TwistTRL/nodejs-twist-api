@@ -18,6 +18,8 @@ const {getRawHr} = require('../db_apis/get_raw_hr');
 const {getLab, getLabV2} = require('../db_apis/get_labs');
 
 const {testHr} = require('../test/test-vitals');
+const {testLabs} = require('../test/test-labs');
+
 
 // ````````````````````````````````````````````````````
 // apidoc folder is a static files folder
@@ -25,8 +27,14 @@ const {testHr} = require('../test/test-vitals');
 // ````````````````````````````````````````````````````
 router.use(express.static(__dirname + '/../apidoc'));
 router.get('/', function(req, res) {
-  res.type('text/html');
-  res.sendFile('/apidoc/index.html');
+  try {
+        res.type('text/html');
+    res.sendFile('/apidoc/index.html');
+  }
+
+  catch(e){
+    res.send("error");
+  }
 });
 
 
@@ -58,7 +66,7 @@ router.get('/', function(req, res) {
  */
 router.get('/person/:person_id/labs', async (req, res)=>{
   const person_id = parseFloat(req.params.person_id);
-  console.log('getting labs for %s ...', person_id);
+  console.log('/person/ %s /labs ...', person_id);
 
   const binds = {
     person_id,
@@ -569,7 +577,28 @@ router.get('/person/:person_id/vitals/hr/raw', async (req, res)=>{
  * @apiVersion 0.0.2
  * @apiName Test heart rate got from 2 APIs
  * @apiGroup _Test
- *
+ * @apiDescription Compare current 2 groups apis for getting hear rate data:
+ * 
+ * 1. [POST http://twist:3333/api/vitals] 
+ *    Binned api/vitals for heart rate only
+ * 
+ * or Calc api/vitals for heart rate only
+ * 
+ * or Raw api/vitals for heart rate only
+ * 
+ * 2. [GET http://twist:3333/api/person/:person_id/vitals/hr/binnedv2/:data_resolution]
+ * 
+ *    Binned Heart Rate V2 
+ * 
+ * or [GET http://twist:3333/api/person/:person_id/vitals/hr/calc/:data_resolution]
+ * 
+ *    Calc Heart Rate
+ * 
+ * or [GET http://twist:3333/api/person/:person_id/vitals/hr/raw?from=:from&to=:to]
+ * 
+ *    Raw Heart Rate
+ *  
+ * 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="hr"} vital_type Type of vital.
  * @apiParam {String="binned, calc"} data_type Type of data.
@@ -597,6 +626,62 @@ router.post('/test/hr', async (req, res) => {
   const query = req.body;
   try {
     const toSend = await testHr(query);
+    res.send(
+        toSend,
+    );
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
+});
+
+
+/**
+ * @api {post} /test/labs Test labs
+ * @apiVersion 0.0.2
+ * @apiName Test labs got from 2 APIs
+ * @apiGroup _Test
+ * @apiDescription Compare current 2 groups apis for getting labs data:
+ * 
+ * Only compare requested labs names in the POST json.
+ * 
+ * "lab_names" could be: [ "Albumin", "Alk Phos", "BNP", "HCO3", "BUN", "Cr", "D-dimer", "Lactate", "SvO2", "SaO2", "PaCO2", "pH", "PaO2", "TnI", "TnT" ]
+ *  * 
+ * 1. [POST http://twist:3300/api/labs] 
+ * 
+ *    Get Labs for patient
+ * 
+ * 2. [GET http://twist:3300/api/person/:person_id/labs]
+ * 
+ *    Get Patient Labs
+ *  
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String} lab_names Lab category name.
+ * @apiParamExample {json} POST json example
+        {
+            "person_id": 25796315,
+            "lab_names": 
+                [
+                    "SvO2",
+                    "PaCO2"
+                ]
+        }
+ * @apiSuccess {Number} str1Length Result from API1.
+ * @apiSuccess {Number} str2Length Result from API2.
+ * @apiSuccess {Number} sameNumber Count same number of chars of 2 results.
+ * @apiSuccessExample Success-Response:
+        ✔✔✔ Test success.
+        ✔ SvO2
+        ✔ PaCO2
+ *
+ */
+router.post('/test/labs', async (req, res) => {
+  const query = req.body;
+  try {
+    const toSend = await testLabs(query);
     res.send(
         toSend,
     );

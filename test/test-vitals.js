@@ -4,6 +4,8 @@ const {getVitalsQuery} = require("../db_apis/get-vitals-all");
 const getHrBinned = require("../db_apis/get_hr_binned_v2");
 const getHrCalc = require("../db_apis/get_hr_calc");
 const {InputInvalidError} = require("../utils/errors");  
+const {getRawHr} = require('../db_apis/get_raw_hr');
+
 
 const testHr = database.withConnection(async function(conn,query){
     if (!isJsonString(query)) {
@@ -62,7 +64,13 @@ const testHr = database.withConnection(async function(conn,query){
                 throw new InputInvalidError('"data_resolution" not valid. Should be one of "1D", "12H", "5H", "5M".');  
         }    
     } else {
-        throw new InputInvalidError('"data_type" not valid. Should be one of "binned", "calc".');  
+
+        binds = {
+            person_id:query.person_id,
+            from_: query.from,
+            to_: query.to,
+        };
+        string2 = JSON.stringify(await getRawHr(binds));        
     }  
 
     let sameCharNum = findSameCharNum(string1, string2);

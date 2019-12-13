@@ -33,13 +33,14 @@ const categoryList = [ALBUMIN, ALKPHOS, BNP,
 
 // add all the category to a dictionary,
 // each category is an array  
-var categoryDictionary = {};
+const categoryDictionary = {};
 
 categoryList.forEach(addToDictionary);
 
 function addToDictionary(item) {
   categoryDictionary[item] = [];
 }
+
 
 /**
  * just create a new dictionary for a timestamp
