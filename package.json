@@ -4,7 +4,8 @@
   "description": "API with Node.js and Oracle Database to get person/vitals infomatin",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "pm2 start index.js",
+    "dev": "nodemon index.js"
   },
   "keywords": [],
   "license": "Apache-2.0",

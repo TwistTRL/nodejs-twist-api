@@ -7,10 +7,10 @@ const defaultThreadPoolSize = 4;
 process.env.UV_THREADPOOL_SIZE = dbConfig.poolMax + defaultThreadPoolSize;
 
 async function startup() {
-  console.log('Starting application');
+  console.log('Starting application...');
 
   try {
-    console.log('Initializing database module');
+    console.log('  Initializing database module');
 
     await database.initialize();
   } catch (err) {
@@ -20,7 +20,7 @@ async function startup() {
   }
 
   try {
-    console.log('Initializing web server module');
+    console.log('  Initializing web server module');
 
     await webServer.initialize();
   } catch (err) {

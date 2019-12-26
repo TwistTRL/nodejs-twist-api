@@ -22,6 +22,7 @@ function initialize() {
     app.use(function(req, res, next) {
       //verify Ip Logic
       console.log("remoteAddress = ", req.connection.remoteAddress);
+      // console.log("remoteAddress = ", req.connection);
 
       if (!webServerConfig.ipWhiteList.includes(req.connection.remoteAddress)) {
         res.send("IP ADDRESS NOT ALLOWED.");
