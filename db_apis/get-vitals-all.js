@@ -1,6 +1,6 @@
 const database = require("../services/database");
 const {getSingleResult,getSingleRawResult,CAT_VITAL_TYPE_ARRAY,SQLVitalTypeDict} = require("../db_relation/vitals-db-relation");
-const {isJsonString} = require("../utils/isJson");
+const isValidJson = require("../utils/isJson");
 const {InputInvalidError} = require("../utils/errors");  
 const {getSingleVitalCALCResult} = require("../db_relation/vitals-calc-relation")
 
@@ -259,10 +259,10 @@ function _getQueryType(query) {
     throw new InputInvalidError('Input not valid, so query is empty.');
   }
 
-  if (!isJsonString(query)) {
-    console.warn("not json");
-    throw new InputInvalidError('Input not in json');
-  }
+  if (!isValidJson.validate_vitals_sampled(query) && !isValidJson.validate_vitals_raw(query)) {
+    console.warn(query + " : not json");
+    throw new InputInvalidError('Input not in valid json');  
+}
 
   if (!CAT_VITAL_TYPE_ARRAY.includes(query[catVitalType])) {
     console.warn("catVitalType no included: " + query[catVitalType]);

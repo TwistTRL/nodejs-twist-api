@@ -43,22 +43,22 @@ const query_cacl_2 = `
 }
 `
 
-describe('Vitals Query Binned', () => {
-    it('2 binned hr API should get the same results', async () => {
-      let result1 = await getVitalsQuery(query_binned_1);
-      let result2 = await getHr1Dv2(query_binned_1);  
-      assert.equal(result1, result2);
-    });
-  });
+// describe('Vitals Query Binned', () => {
+//     it('2 binned hr API should get the same results', async () => {
+//       let result1 = await getVitalsQuery(query_binned_1);
+//       let result2 = await getHr1Dv2(query_binned_1);  
+//       assert.equal(result1, result2);
+//     });
+//   });
 
 
-describe('Vitals Query Calc', () => {
-it('2 calc hr API should get the same results', async () => {
-    let result1 = await getVitalsQuery(query_cacl_1);
-    let result2 = await getHrCalc.getHrCalc1D(query_cacl_1);  
-    assert.equal(result1, result2);
-});
-});
+// describe('Vitals Query Calc', () => {
+// it('2 calc hr API should get the same results', async () => {
+//     let result1 = await getVitalsQuery(query_cacl_1);
+//     let result2 = await getHrCalc.getHrCalc1D(query_cacl_1);  
+//     assert.equal(result1, result2);
+// });
+// });
 
 
 

@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "pm2 start index.js",
-    "dev": "nodemon index.js"
+    "dev": "nodemon index.js",
+    "test": "mocha"
   },
   "keywords": [],
   "license": "Apache-2.0",
@@ -15,7 +16,8 @@
     "morgan": "^1.9.1",
     "oracledb": "^4.0.1",
     "relational-query-sql-builder": "file:../relational-query-sql-builder",
-    "update": "^0.7.4"
+    "update": "^0.7.4",
+    "is-my-json-valid": "^2.20.0"
   },
   "apidoc": {
     "title": "Twist API with Node.js-Oracle database",

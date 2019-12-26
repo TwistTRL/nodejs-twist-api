@@ -10,7 +10,7 @@
 
 const database = require("../services/database");
 const {categoryList, getCategory, categoryDictionary, getSingleTimeRecord,getLabNameFromLabCat} = require("../db_relation/labs-category-config");
-const {isJsonString} = require("../utils/isJson");
+const isValidJson = require("../utils/isJson");
 const {ResourceNotFoundError,InputInvalidError} = require("../utils/errors");  
 
 const catPersonId = "person_id";
@@ -98,9 +98,9 @@ const getLabsQuery = database.withConnection(async function(conn,query){
     throw new InputInvalidError('Input not valid, so query is empty.');
   }
 
-  if (!isJsonString(query)) {
+  if (!isValidJson.validate_labs(query)) {
     console.warn("not json");
-    throw new InputInvalidError('Input not in json');
+    throw new InputInvalidError('Input not in valid json');
 
   }
 

@@ -1,5 +1,5 @@
 const database = require("../services/database");
-const {isJsonString} = require("../utils/isJson");
+const isValidJson = require("../utils/isJson");
 const {getLabsQuery} = require("../db_apis/get-labs-all");
 const {getLab, getLabV2} = require('../db_apis/get_labs');
 
@@ -15,9 +15,9 @@ const testLabs = database.withConnection(async function(conn,query){
         throw new InputInvalidError('Input not valid, so query is empty.');
       }
 
-    if (!isJsonString(query)) {
-        console.warn("not json");
-        throw new InputInvalidError('Input not in json');  
+      if (!isValidJson.validate_labs(query)) {
+        console.warn(query + " : not json");
+        throw new InputInvalidError('Input not in valid json');  
     }
 
 

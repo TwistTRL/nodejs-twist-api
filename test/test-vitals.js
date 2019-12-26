@@ -1,5 +1,5 @@
 const database = require("../services/database");
-const {isJsonString} = require("../utils/isJson");
+const isValidJson = require("../utils/isJson");
 const {getVitalsQuery} = require("../db_apis/get-vitals-all");
 const getHrBinned = require("../db_apis/get_hr_binned_v2");
 const getHrCalc = require("../db_apis/get_hr_calc");
@@ -8,9 +8,9 @@ const {getRawHr} = require('../db_apis/get_raw_hr');
 
 
 const testHr = database.withConnection(async function(conn,query){
-    if (!isJsonString(query)) {
-        console.warn("not json");
-        throw new InputInvalidError('Input not in json');  
+    if (!isValidJson.validate_vitals_sampled(query) && !isValidJson.validate_vitals_raw(query)) {
+        console.warn(query + " : not json");
+        throw new InputInvalidError('Input not in valid json');  
     }
 
     if (query.vital_type != "hr"){

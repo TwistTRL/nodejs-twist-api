@@ -8,6 +8,7 @@ async function initialize() {
 
 async function close() {
   await oracledb.getPool().close();
+  console.log("database closed");
 }
 
 function withConnection(func) {
