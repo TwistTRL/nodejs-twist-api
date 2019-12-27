@@ -6,7 +6,7 @@
   "scripts": {
     "start": "pm2 start index.js",
     "dev": "nodemon index.js",
-    "docs": "apidoc -e node_modules -i ./ -o apidoc/",
+    "docs": "node replace-string.js && apidoc -e node_modules -i ./ -o apidoc/",
     "test": "mocha"
   },
   "keywords": [],
@@ -20,7 +20,8 @@
     "update": "^0.7.4",
     "is-my-json-valid": "^2.20.0",
     "apidoc": "^0.19.0",
-    "pm2": "^4.2.1"
+    "pm2": "^4.2.1",
+    "replace-in-file": "^5.0.2"
   },
   "apidoc": {
     "title": "Twist API with Node.js-Oracle database",

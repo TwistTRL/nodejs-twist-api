@@ -68,7 +68,7 @@ async function getIntermittentSqlExecutor(conn,binds){
 }
 
 
-function calculateInfusionsRecords(drugRecords, timeString) {
+function calculateInfusionsRecords(drugRecords) {
   var result = [];
   
   // drugRecords = {"metadata":[], "rows":[]}
@@ -81,10 +81,10 @@ function calculateInfusionsRecords(drugRecords, timeString) {
 
   for (let drugRecord of arr) {
     let singleResult = {};
+    singleResult.name = drugRecord.DRUG.toLowerCase();
+    singleResult.dose = drugRecord.INFUSION_RATE;
     singleResult.start = drugRecord.START_UNIX;
     singleResult.end = drugRecord.END_UNIX;
-    singleResult.name = drugRecord.DRUG;
-    singleResult.dose = drugRecord.INFUSION_RATE;
     result.push(singleResult);
   }
 
@@ -93,7 +93,7 @@ function calculateInfusionsRecords(drugRecords, timeString) {
 
 
 
-function calculateIntermittentRecords(drugRecords, timeString) {
+function calculateIntermittentRecords(drugRecords) {
   var result = [];
   
   // drugRecords = {"metadata":[], "rows":[]}
@@ -106,9 +106,9 @@ function calculateIntermittentRecords(drugRecords, timeString) {
 
   for (let drugRecord of arr) {
     let singleResult = {};
-    singleResult.start = drugRecord.DT_UNIX;
-    singleResult.name = drugRecord.DRUG;
+    singleResult.name = drugRecord.DRUG.toLowerCase();
     singleResult.dose = drugRecord.ADMIN_DOSAGE;
+    singleResult.start = drugRecord.DT_UNIX;
     result.push(singleResult);
   }
 

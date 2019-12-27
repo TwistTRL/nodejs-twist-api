@@ -15,7 +15,6 @@ const DRUG_INFUSIONS_LIST = ["DOPamine", "EPINEPHrine", "milrinone", "vasopressi
 
 const DRUG_INTERMITTENT_LIST = ["epinephrine", "calcium acetate", "hydrocortisone", "albumin human"];
 
-
 module.exports = {
   DRUG_INFUSIONS_LIST,
   DRUG_INTERMITTENT_LIST

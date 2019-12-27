@@ -94,7 +94,7 @@ router.get('/person/:person_id/labs', async (req, res)=>{
  * @apiParam {String[]} lab_names Array of lab's category name.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "lab_names": ["SvO2", "PaCO2"]
         }
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
@@ -411,16 +411,20 @@ router.get('/person/:person_id/vitals/hr/calc/5M', async (req, res)=>{
  * @apiVersion 0.0.1
  * @apiName Get Person Drug Intermittent
  * @apiGroup Person
+ * @apiDescription Current Drug Intermittent names:
+ *
+ * "epinephrine", "calcium acetate", "hydrocortisone", "albumin human"
+ * 
  * @apiParam {Number} person_id Patient unique ID.
- * @apiSuccess {String} name Drug name.
- * @apiSuccess {Number} DOSING_WEIGHT Value of this drug.
+ * @apiSuccess {String} drug Drug name.
+ * @apiSuccess {Number} admin_dosage Dose of this drug.
  * @apiSuccess {Number} timestamp timestamp of this drug.
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
       [
         {
-          "name": Drug,
-          "dose": DOSING_WEIGHT,
+          "name": drug,
+          "dose": admin_dosage,
           "start": timestamp
         },
         ...
@@ -435,7 +439,7 @@ router.get('/person/:person_id/drug/intermittent', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getDrugInfusions(binds),
+      await getDrugIntermittent(binds),
   );
 });
 
@@ -444,6 +448,10 @@ router.get('/person/:person_id/drug/intermittent', async (req, res)=>{
  * @apiVersion 0.0.1
  * @apiName Get Person Drug Infusions
  * @apiGroup Person
+ * @apiDescription Current Drug Infusions names:
+ *
+ * "DOPamine", "EPINEPHrine", "milrinone", "vasopressin", "norepinephrine"
+ * 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccess {String} drug name of this drug.
  * @apiSuccess {Number} infusion_rate Value of this drug.
@@ -471,7 +479,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getDrugIntermittent(binds),
+      await getDrugInfusions(binds),
   );
 });
 
@@ -491,7 +499,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res)=>{
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "data_type": "binned",
           "data_resolution": "1D"
@@ -534,7 +542,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res)=>{
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "data_type": "calc",
           "data_resolution": "1D"
@@ -571,7 +579,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res)=>{
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "from":1542014000,
           "to":1542018000
@@ -682,7 +690,7 @@ router.get('/person/:person_id/vitals/hr/raw', async (req, res)=>{
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-            "person_id": 25796315,
+            "person_id": EXAMPLE_PERSON_ID,
             "vital_type": "hr",
             "data_type": "binned",
             "data_resolution": "1D"
@@ -739,7 +747,7 @@ router.post('/test/hr', async (req, res) => {
  * @apiParam {String} lab_names Lab category name.
  * @apiParamExample {json} POST json example
         {
-            "person_id": 25796315,
+            "person_id": EXAMPLE_PERSON_ID,
             "lab_names": 
                 [
                     "SvO2",
