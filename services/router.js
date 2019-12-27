@@ -16,6 +16,7 @@ const {getHr12Hv2, getHr5Hv2, getHr1Dv2, getHr5Mv2} = require('../db_apis/get_hr
 const {getHrCalc12H, getHrCalc5H, getHrCalc1D, getHrCalc5M} = require('../db_apis/get_hr_calc');
 const {getRawHr} = require('../db_apis/get_raw_hr');
 const {getLab, getLabV2} = require('../db_apis/get_labs');
+const {getDrugInfusions,getDrugIntermittent} = require('../db_apis/get_drug');
 
 const {testHr} = require('../test/test-vitals');
 const {testLabs} = require('../test/test-labs');
@@ -401,6 +402,82 @@ router.get('/person/:person_id/vitals/hr/calc/5M', async (req, res)=>{
       await getHrCalc5M(binds),
   );
 });
+
+
+
+
+/**
+ * @api {get} /person/:person_id/drug/intermittent Drug Intermittent
+ * @apiVersion 0.0.1
+ * @apiName Get Person Drug Intermittent
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {String} name Drug name.
+ * @apiSuccess {Number} DOSING_WEIGHT Value of this drug.
+ * @apiSuccess {Number} timestamp timestamp of this drug.
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+      [
+        {
+          "name": Drug,
+          "dose": DOSING_WEIGHT,
+          "start": timestamp
+        },
+        ...
+      ]
+ *
+ */
+router.get('/person/:person_id/drug/intermittent', async (req, res)=>{
+  const person_id = parseFloat(req.params.person_id);
+  console.log('getting drug intermittent for %s ...', person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(
+      await getDrugInfusions(binds),
+  );
+});
+
+/**
+ * @api {get} /person/:person_id/drug/infusions Drug Infusions
+ * @apiVersion 0.0.1
+ * @apiName Get Person Drug Infusions
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {String} drug name of this drug.
+ * @apiSuccess {Number} infusion_rate Value of this drug.
+ * @apiSuccess {Number} from_timestamp start timestamp of this drug.
+ * @apiSuccess {Number} to_timestamp end timestamp of this drug.
+
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+      [
+        {
+          "name": drug,
+          "dose": infusion_rate,
+          "start": from_timestamp,
+          "end": to_timestamp
+        },
+        ...
+      ]
+ *
+ */
+router.get('/person/:person_id/drug/infusions', async (req, res)=>{
+  const person_id = parseFloat(req.params.person_id);
+  console.log('getting drug infusions for %s ...', person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(
+      await getDrugIntermittent(binds),
+  );
+});
+
+
+
+
 
 // ~~~~~~~~-----------------------------
 /**
