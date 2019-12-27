@@ -10,10 +10,6 @@ npm install
 npm run docs
 ```
 
-API documentation: web browser `twist:3300/api/`
-
-(port: process.env.HTTP_PORT || 3300)
-
 * run in dev using `nodemon`
 ```
 npm run dev
@@ -29,6 +25,9 @@ npm start
 npm test
 ```
 
+API documentation: web browser `twist:3300/api/`
+
+(port: process.env.HTTP_PORT || 3300)
  
 
 
