@@ -95,6 +95,8 @@ const testLabs = database.withConnection(async function(conn,query){
 });
 
 
+
+
 function findSameCharNum(string1,string2){
     var allNum = 0;
     var check = Math.min(string1.length, string2.length);
@@ -111,4 +113,3 @@ function findSameCharNum(string1,string2){
 module.exports = {
     testLabs
 };
-
