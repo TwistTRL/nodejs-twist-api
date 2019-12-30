@@ -92,7 +92,7 @@ function calculateInfusionsRecords(drugRecords) {
 
     if (drugRecord.DRUG.toLowerCase() != currentDrug) {
       currentDrug = drugRecord.DRUG.toLowerCase();
-
+      currentEndtime = 0;
       let dividor = "~ DRUG: " + drugRecord.DRUG.toLowerCase();
       result.push(dividor);
       continue;
@@ -117,8 +117,8 @@ function calculateInfusionsRecords(drugRecords) {
 
     currentEndtime = drugRecord.END_UNIX;
   }
-  result.push("overlap count : " + realOverlapCount);
-  result.push("close end-start time count : " + closeCount);
+  result.unshift(`close end-start time count : ${closeCount}`);
+  result.unshift(`overlap count : ${realOverlapCount}`);
 
   return result;
 }

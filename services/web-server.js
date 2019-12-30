@@ -7,9 +7,10 @@ const fs = require('fs')
 const path = require("path");
 var httpServer;
 
+const app = express();
+
 function initialize() {
   return new Promise((resolve, reject) => {
-    const app = express();
 
     // log only 4xx and 5xx responses to console
     app.use(morgan('dev', {
@@ -64,3 +65,4 @@ function close() {
 
 module.exports.initialize = initialize;
 module.exports.close = close;
+module.exports.app = app;
