@@ -2,24 +2,69 @@
 /* eslint-disable max-len */
 const express = require('express');
 const router = new express.Router();
-const {getRelationalQuery} = require('../db_apis/get-relational-query');
-const {getVitalsQuery} = require('../db_apis/get-vitals-all');
-const {getLabsQuery} = require('../db_apis/get-labs-all');
-const {getRespiratorySupportVariable} = require('../db_apis/get_respiratory_support_variables');
-const {getHeartRate} = require('../db_apis/get_heart_rate');
-const {getPerson} = require('../db_apis/get_person');
-const {getPersonel} = require('../db_apis/get_personel');
-const {getBed} = require('../db_apis/get_bed');
-const {getBedSurvey} = require('../db_apis/get_bed_survey');
-const {getHr12H, getHr5H, getHr1D, getHr5M} = require('../db_apis/get_hr_binned');
-const {getHr12Hv2, getHr5Hv2, getHr1Dv2, getHr5Mv2} = require('../db_apis/get_hr_binned_v2');
-const {getHrCalc12H, getHrCalc5H, getHrCalc1D, getHrCalc5M} = require('../db_apis/get_hr_calc');
-const {getRawHr} = require('../db_apis/get_raw_hr');
-const {getLab, getLabV2} = require('../db_apis/get_labs');
-const {getDrugInfusions,getDrugIntermittent} = require('../db_apis/get_drug');
+const {
+  getRelationalQuery
+} = require('../db_apis/get-relational-query');
+const {
+  getVitalsQuery
+} = require('../db_apis/get-vitals-all');
+const {
+  getLabsQuery
+} = require('../db_apis/get-labs-all');
+const {
+  getRespiratorySupportVariable
+} = require('../db_apis/get_respiratory_support_variables');
+const {
+  getHeartRate
+} = require('../db_apis/get_heart_rate');
+const {
+  getPerson
+} = require('../db_apis/get_person');
+const {
+  getPersonel
+} = require('../db_apis/get_personel');
+const {
+  getBed
+} = require('../db_apis/get_bed');
+const {
+  getBedSurvey
+} = require('../db_apis/get_bed_survey');
+const {
+  getHr12H,
+  getHr5H,
+  getHr1D,
+  getHr5M
+} = require('../db_apis/get_hr_binned');
+const {
+  getHr12Hv2,
+  getHr5Hv2,
+  getHr1Dv2,
+  getHr5Mv2
+} = require('../db_apis/get_hr_binned_v2');
+const {
+  getHrCalc12H,
+  getHrCalc5H,
+  getHrCalc1D,
+  getHrCalc5M
+} = require('../db_apis/get_hr_calc');
+const {
+  getRawHr
+} = require('../db_apis/get_raw_hr');
+const {
+  getLab,
+  getLabV2
+} = require('../db_apis/get_labs');
+const {
+  getDrugInfusions,
+  getDrugIntermittent
+} = require('../db_apis/get_drug');
 
-const {testHr} = require('../test/test-vitals');
-const {testLabs} = require('../test/test-labs');
+const {
+  testHr
+} = require('../test/test-vitals');
+const {
+  testLabs
+} = require('../test/test-labs');
 
 
 // ````````````````````````````````````````````````````
@@ -27,13 +72,11 @@ const {testLabs} = require('../test/test-labs');
 // user express.static to display this index.html
 // ````````````````````````````````````````````````````
 router.use(express.static(__dirname + '/../apidoc'));
-router.get('/', function(req, res) {
+router.get('/', function (req, res) {
   try {
-        res.type('text/html');
+    res.type('text/html');
     res.sendFile('/apidoc/index.html');
-  }
-
-  catch(e){
+  } catch (e) {
     res.send("error");
   }
 });
@@ -65,7 +108,7 @@ router.get('/', function(req, res) {
  *     }
  *
  */
-router.get('/person/:person_id/labs', async (req, res)=>{
+router.get('/person/:person_id/labs', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('/person/ %s /labs ...', person_id);
 
@@ -73,7 +116,7 @@ router.get('/person/:person_id/labs', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getLab(binds),
+    await getLab(binds),
   );
 });
 
@@ -94,7 +137,7 @@ router.get('/person/:person_id/labs', async (req, res)=>{
  * @apiParam {String[]} lab_names Array of lab's category name.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "lab_names": ["SvO2", "PaCO2"]
         }
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
@@ -114,12 +157,12 @@ router.get('/person/:person_id/labs', async (req, res)=>{
  *     }
  *
  */
-router.post('/labs', async (req, res)=>{
+router.post('/labs', async (req, res) => {
   const query = req.body;
   try {
     const toSend = await getLabsQuery(query);
     res.send(
-        toSend,
+      toSend,
     );
   } catch (e) {
     console.log(new Date());
@@ -161,7 +204,7 @@ router.post('/labs', async (req, res)=>{
  *
  */
 
-router.get('/person/:person_id/labsv2', async (req, res)=>{
+router.get('/person/:person_id/labsv2', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting labsV2 for %s ...', person_id);
 
@@ -169,7 +212,7 @@ router.get('/person/:person_id/labsv2', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getLabV2(binds),
+    await getLabV2(binds),
   );
 });
 
@@ -200,7 +243,7 @@ router.get('/person/:person_id/labsv2', async (req, res)=>{
  *
  */
 
-router.get('/person/:person_id/vitals/hr/binned/12H', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/binned/12H', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_12H for %s ...', person_id);
 
@@ -208,11 +251,11 @@ router.get('/person/:person_id/vitals/hr/binned/12H', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHr12H(binds),
+    await getHr12H(binds),
   );
 });
 
-router.get('/person/:person_id/vitals/hr/binned/5H', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/binned/5H', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_5H for %s ...', person_id);
 
@@ -220,11 +263,11 @@ router.get('/person/:person_id/vitals/hr/binned/5H', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHr5H(binds),
+    await getHr5H(binds),
   );
 });
 
-router.get('/person/:person_id/vitals/hr/binned/1D', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/binned/1D', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_1D for %s ...', person_id);
 
@@ -232,11 +275,11 @@ router.get('/person/:person_id/vitals/hr/binned/1D', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHr1D(binds),
+    await getHr1D(binds),
   );
 });
 
-router.get('/person/:person_id/vitals/hr/binned/5M', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/binned/5M', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_5M for %s ...', person_id);
 
@@ -244,7 +287,7 @@ router.get('/person/:person_id/vitals/hr/binned/5M', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHr5M(binds),
+    await getHr5M(binds),
   );
 });
 
@@ -281,7 +324,7 @@ router.get('/person/:person_id/vitals/hr/binned/5M', async (req, res)=>{
  *
  */
 
-router.get('/person/:person_id/vitals/hr/binnedv2/12H', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/binnedv2/12H', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_12H for %s ...', person_id);
 
@@ -289,11 +332,11 @@ router.get('/person/:person_id/vitals/hr/binnedv2/12H', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHr12Hv2(binds),
+    await getHr12Hv2(binds),
   );
 });
 
-router.get('/person/:person_id/vitals/hr/binnedv2/5H', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/binnedv2/5H', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_5H for %s ...', person_id);
 
@@ -301,11 +344,11 @@ router.get('/person/:person_id/vitals/hr/binnedv2/5H', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHr5Hv2(binds),
+    await getHr5Hv2(binds),
   );
 });
 
-router.get('/person/:person_id/vitals/hr/binnedv2/1D', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/binnedv2/1D', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_1D for %s ...', person_id);
 
@@ -313,11 +356,11 @@ router.get('/person/:person_id/vitals/hr/binnedv2/1D', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHr1Dv2(binds),
+    await getHr1Dv2(binds),
   );
 });
 
-router.get('/person/:person_id/vitals/hr/binnedv2/5M', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/binnedv2/5M', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_5M for %s ...', person_id);
 
@@ -325,7 +368,7 @@ router.get('/person/:person_id/vitals/hr/binnedv2/5M', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHr5Mv2(binds),
+    await getHr5Mv2(binds),
   );
 });
 
@@ -355,7 +398,7 @@ router.get('/person/:person_id/vitals/hr/binnedv2/5M', async (req, res)=>{
  */
 
 
-router.get('/person/:person_id/vitals/hr/calc/12H', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/calc/12H', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_12H for %s ...', person_id);
 
@@ -363,11 +406,11 @@ router.get('/person/:person_id/vitals/hr/calc/12H', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHrCalc12H(binds),
+    await getHrCalc12H(binds),
   );
 });
 
-router.get('/person/:person_id/vitals/hr/calc/5H', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/calc/5H', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_5H for %s ...', person_id);
 
@@ -375,11 +418,11 @@ router.get('/person/:person_id/vitals/hr/calc/5H', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHrCalc5H(binds),
+    await getHrCalc5H(binds),
   );
 });
 
-router.get('/person/:person_id/vitals/hr/calc/1D', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/calc/1D', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_1D for %s ...', person_id);
 
@@ -387,11 +430,11 @@ router.get('/person/:person_id/vitals/hr/calc/1D', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHrCalc1D(binds),
+    await getHrCalc1D(binds),
   );
 });
 
-router.get('/person/:person_id/vitals/hr/calc/5M', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/calc/5M', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting hr_5M for %s ...', person_id);
 
@@ -399,7 +442,7 @@ router.get('/person/:person_id/vitals/hr/calc/5M', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getHrCalc5M(binds),
+    await getHrCalc5M(binds),
   );
 });
 
@@ -431,7 +474,7 @@ router.get('/person/:person_id/vitals/hr/calc/5M', async (req, res)=>{
       ]
  *
  */
-router.get('/person/:person_id/drug/intermittent', async (req, res)=>{
+router.get('/person/:person_id/drug/intermittent', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting drug intermittent for %s ...', person_id);
 
@@ -439,7 +482,7 @@ router.get('/person/:person_id/drug/intermittent', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getDrugIntermittent(binds),
+    await getDrugIntermittent(binds),
   );
 });
 
@@ -471,7 +514,7 @@ router.get('/person/:person_id/drug/intermittent', async (req, res)=>{
       ]
  *
  */
-router.get('/person/:person_id/drug/infusions', async (req, res)=>{
+router.get('/person/:person_id/drug/infusions', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   console.log('getting drug infusions for %s ...', person_id);
 
@@ -479,7 +522,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res)=>{
     person_id,
   };
   res.send(
-      await getDrugInfusions(binds),
+    await getDrugInfusions(binds),
   );
 });
 
@@ -499,7 +542,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res)=>{
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "data_type": "binned",
           "data_resolution": "1D"
@@ -542,7 +585,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res)=>{
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "data_type": "calc",
           "data_resolution": "1D"
@@ -579,7 +622,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res)=>{
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "from":1542014000,
           "to":1542018000
@@ -603,7 +646,7 @@ router.post('/vitals', async (req, res) => {
   try {
     const toSend = await getVitalsQuery(query);
     res.send(
-        toSend,
+      toSend,
     );
   } catch (e) {
     console.log(new Date());
@@ -637,10 +680,10 @@ router.post('/vitals', async (req, res) => {
  *
  */
 
-router.get('/person/:person_id/vitals/hr/raw', async (req, res)=>{
+router.get('/person/:person_id/vitals/hr/raw', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
-  const from = parseFloat(req.query.from) || Date.now()/1000 - 600;
-  const to = parseFloat(req.query.to) || Date.now()/1000;
+  const from = parseFloat(req.query.from) || Date.now() / 1000 - 600;
+  const to = parseFloat(req.query.to) || Date.now() / 1000;
   console.log('Date.now():', Date.now());
   const binds = {
     person_id,
@@ -649,7 +692,7 @@ router.get('/person/:person_id/vitals/hr/raw', async (req, res)=>{
   };
   console.log('getting raw hr for %s from %d to %d ...', binds.person_id, binds.from_, binds.to_);
   res.send(
-      await getRawHr(binds),
+    await getRawHr(binds),
   );
 });
 
@@ -690,7 +733,7 @@ router.get('/person/:person_id/vitals/hr/raw', async (req, res)=>{
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-            "person_id": EXAMPLE_PERSON_ID,
+            "person_id": 25796315,
             "vital_type": "hr",
             "data_type": "binned",
             "data_resolution": "1D"
@@ -712,7 +755,7 @@ router.post('/test/hr', async (req, res) => {
   try {
     const toSend = await testHr(query);
     res.send(
-        toSend,
+      toSend,
     );
   } catch (e) {
     console.log(new Date());
@@ -747,7 +790,7 @@ router.post('/test/hr', async (req, res) => {
  * @apiParam {String} lab_names Lab category name.
  * @apiParamExample {json} POST json example
         {
-            "person_id": EXAMPLE_PERSON_ID,
+            "person_id": 25796315,
             "lab_names": 
                 [
                     "SvO2",
@@ -768,7 +811,7 @@ router.post('/test/labs', async (req, res) => {
   try {
     const toSend = await testLabs(query);
     res.send(
-        toSend,
+      toSend,
     );
   } catch (e) {
     console.log(new Date());
@@ -783,7 +826,7 @@ router.post('/test/labs', async (req, res) => {
 // api from Lingyu Zhou
 // 
 // ```````````````````````
-router.get('/person/:person_id/RSS', async (req, res)=>{
+router.get('/person/:person_id/RSS', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   const from = parseFloat(req.query.from) || 0;
   const to = parseFloat(req.query.to) || Date.now();
@@ -793,11 +836,11 @@ router.get('/person/:person_id/RSS', async (req, res)=>{
     to_: to,
   };
   res.send(
-      await getRespiratorySupportVariable(binds),
+    await getRespiratorySupportVariable(binds),
   );
 });
 
-router.get('/person/:person_id/HR', async (req, res)=>{
+router.get('/person/:person_id/HR', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   const from = parseFloat(req.query.from) || 0;
   const to = parseFloat(req.query.to) || Date.now();
@@ -807,7 +850,7 @@ router.get('/person/:person_id/HR', async (req, res)=>{
     to_: to,
   };
   res.send(
-      await getHeartRate(binds),
+    await getHeartRate(binds),
   );
 });
 
@@ -821,9 +864,63 @@ router.get('/HeartRate', async (req, res) => {
     to_: to,
   };
   res.send(
-      await getHeartRate(binds),
+    await getHeartRate(binds),
   );
 });
+
+
+
+
+
+/**
+ * @api {get} /person/:person_id Basic Person Information
+ * @apiVersion 0.0.1
+ * @apiName Get Person Basic Information
+ * @apiGroup Person
+ * @apiDescription "0" : basic information.
+ * 
+ * "NAMES": Current and Alternate names of person.
+ * 
+ * "MRNS" and "PHONES" are not available now. (null)
+
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {String} name_string Patient first/middle/last name.
+ * @apiSuccess {String} sex_string Patient sex.
+ * @apiSuccess {Number} person_id Patient unique ID.
+ * @apiSuccess {Number} unix_time Unix Second Time.
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+            
+      {
+        "0": {
+          "PERSON_ID": person_id,
+          "NAME_FIRST": name_string,
+          "NAME_MIDDLE": name_string,
+          "NAME_LAST": name_string,
+          "SEX": sex_string,
+          "BIRTH_UNIX_TS": unix_time,
+          "DECEASED_UNIX_TS": unix_time
+        },
+        "NAMES": [
+          {
+            "NAME_FIRST": name_string,
+            "NAME_MIDDLE": name_string,
+            "NAME_LAST": name_string,
+            "NAME_TYPE": "Current"
+          },
+          {
+            "NAME_FIRST": name_string,
+            "NAME_MIDDLE": name_string,
+            "NAME_LAST": name_string,
+            "NAME_TYPE": "Alternate"
+          },
+          ...
+        ],
+        "MRNS": null,
+        "PHONES": null
+      }
+ *
+ */
 
 router.get('/Person/:person_id', async (req, res) => {
   const person_id = parseInt(req.params.person_id);
@@ -831,7 +928,7 @@ router.get('/Person/:person_id', async (req, res) => {
     person_id,
   };
   res.send(
-      await getPerson(binds),
+    await getPerson(binds),
   );
 });
 
@@ -841,7 +938,7 @@ router.get('/Personel/:chb_prsnl_id', async (req, res) => {
   //   chb_prsnl_id,
   // };
   res.send(
-      await getPersonel(chb_prsnl_id),
+    await getPersonel(chb_prsnl_id),
   );
 });
 
@@ -851,7 +948,7 @@ router.get('/survey/bed_space', async (req, res) => {
     at_unix_ts: at,
   };
   res.send(
-      await getBedSurvey(binds),
+    await getBedSurvey(binds),
   );
 });
 
@@ -861,7 +958,7 @@ router.get('/Bed/:bed_cd', async (req, res) => {
     bed_cd,
   };
   res.send(
-      await getBed(binds),
+    await getBed(binds),
   );
 });
 
@@ -870,7 +967,7 @@ router.get('/Bed/:bed_cd', async (req, res) => {
 // FHIR like API
 // relational-query
 // ~~~~~~~~~~~~~~~~~~~~~
-router.get('/RespiratorySupportVariable', async (req, res)=>{
+router.get('/RespiratorySupportVariable', async (req, res) => {
   const person_id = parseFloat(req.query.person_id);
   const from = parseFloat(req.query.from) || 0;
   const to = parseFloat(req.query.to) || Date.now();
@@ -880,7 +977,7 @@ router.get('/RespiratorySupportVariable', async (req, res)=>{
     to_: to,
   };
   res.send(
-      await getRespiratorySupportVariable(binds),
+    await getRespiratorySupportVariable(binds),
   );
 });
 
@@ -889,7 +986,7 @@ router.post('/relational-query', async (req, res) => {
   try {
     const toSend = await getRelationalQuery(query);
     res.send(
-        toSend,
+      toSend,
     );
   } catch (e) {
     console.log(new Date());
@@ -905,4 +1002,3 @@ router.post('/relational-query', async (req, res) => {
 
 
 module.exports = router;
-
