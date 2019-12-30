@@ -5,7 +5,7 @@ const options = {
   to: process.env.TEST_PERSON_ID,
 };
 
-async function start() {
+async function startReplacing() {
   try {
     const results = await replace(options)
     console.log('Replacement results:', results);
@@ -13,7 +13,7 @@ async function start() {
 
     if (results[0].hasChanged) {
       console.log("restart ");
-      start();
+      startReplacing();
     }
 
   }
@@ -22,4 +22,7 @@ async function start() {
   }
 }
 
-start();
+if (process.env.TEST_PERSON_ID != null) {
+  startReplacing();
+}
+
