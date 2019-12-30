@@ -18,7 +18,8 @@ const {
   getHeartRate
 } = require('../db_apis/get_heart_rate');
 const {
-  getPerson
+  getPerson,
+  getPersonFromMRN
 } = require('../db_apis/get_person');
 const {
   getPersonel
@@ -142,7 +143,7 @@ router.get('/person/:person_id/labs', async (req, res) => {
  * @apiParam {String[]} lab_names Array of lab's category name.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "lab_names": ["SvO2", "PaCO2"]
         }
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
@@ -547,7 +548,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "data_type": "binned",
           "data_resolution": "1D"
@@ -590,7 +591,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "data_type": "calc",
           "data_resolution": "1D"
@@ -627,7 +628,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "from":1542014000,
           "to":1542018000
@@ -738,7 +739,7 @@ router.get('/person/:person_id/vitals/hr/raw', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-            "person_id": EXAMPLE_PERSON_ID,
+            "person_id": 25796315,
             "vital_type": "hr",
             "data_type": "binned",
             "data_resolution": "1D"
@@ -796,7 +797,7 @@ router.post('/test/hr', async (req, res) => {
  * @apiParam {String} lab_names Lab category name.
  * @apiParamExample {json} POST json example
         {
-            "person_id": EXAMPLE_PERSON_ID,
+            "person_id": 25796315,
             "lab_names": 
                 [
                     "SvO2",
@@ -837,6 +838,43 @@ router.get('/test/drug/infusions/:person_id', async (req, res) => {
   };
   res.send(
     await testDrugInfusions(binds),
+  );
+});
+
+
+
+
+
+
+/**
+ * @api {get} /person/mrn/:mrn Person ID From MRN
+ * @apiVersion 0.0.1
+ * @apiName Get Person ID From MRN
+ * @apiGroup Person
+
+ * @apiParam {Number} MRN Patient MRN.
+ * @apiSuccess {String} name_string Patient first/middle/last name.
+ * @apiSuccess {String} sex_string Patient sex.
+ * @apiSuccess {Number} person_id Patient unique ID.
+ * @apiSuccess {Number} unix_time Unix Second Time.
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+            
+      {
+        "0": {
+          "PERSON_ID": person_id
+        }
+      }
+ *
+ */
+
+router.get('/person/mrn/:mrn', async (req, res) => {
+  const mrn = parseInt(req.params.mrn);
+  const binds = {
+    mrn,
+  };
+  res.send(
+    await getPersonFromMRN(binds),
   );
 });
 
@@ -941,7 +979,7 @@ router.get('/HeartRate', async (req, res) => {
  *
  */
 
-router.get('/Person/:person_id', async (req, res) => {
+router.get('/person/:person_id', async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   const binds = {
     person_id,

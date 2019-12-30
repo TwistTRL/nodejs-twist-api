@@ -53,10 +53,21 @@ FROM PERSON_PHONE
 WHERE PERSON_ID = :person_id
 `
 
+// Given a mrn, get person_id
+const GET_PERSON_ID_SQL =
+`
+SELECT
+  DISTINCT PERSON_ID
+FROM CHB_MRN
+WHERE MRN = :mrn
+`
+
 async function getPersonSqlExecutor(conn,binds){
   let person_basics = await conn.execute(GET_PERSON_BASICS_SQL,binds).then( res=>res.rows );
   let person_names = await conn.execute(GET_PERSON_NAMES_SQL,binds).then( res=>res.rows );
-  let person_mrns = null;//aawait conn.execute(GET_PERSON_MRNS_SQL,binds).then( res=>res.rows );
+  // let person_mrns = null;//aawait conn.execute(GET_PERSON_MRNS_SQL,binds).then( res=>res.rows );
+  let person_mrns = await conn.execute(GET_PERSON_MRNS_SQL,binds).then( res=>res.rows );
+
   let person_phones = null;//await conn.execute(GET_PERSON_PHONES_SQL,binds).then( res=>res.rows );
   if (person_basics.length != 1) {
     return null;
@@ -78,12 +89,24 @@ async function getManyPersonSqlExecutor(conn,binds){
   return persons;
 }
 
+async function getPersonFromMRNSqlExecutor(conn,binds){
+  let person_ids = await conn.execute(GET_PERSON_ID_SQL,binds).then( res=>res.rows );
+  if (person_ids == null || person_ids.length == 0) {
+    return null;
+  }
+  
+  return person_ids;
+}
+
 const getPerson = database.withConnection(getPersonSqlExecutor);
 const getManyPerson = database.withConnection(getManyPersonSqlExecutor);
+const getPersonFromMRN = database.withConnection(getPersonFromMRNSqlExecutor);
+
 
 module.exports = {
   getPersonSqlExecutor,
   getManyPersonSqlExecutor,
   getPerson,
-  getManyPerson
+  getManyPerson,
+  getPersonFromMRN
 };
