@@ -66,6 +66,10 @@ const {
   testLabs
 } = require('../test/test-labs');
 
+const {
+  testDrugInfusions
+} = require('../test/test_drug_overlap');
+
 
 // ````````````````````````````````````````````````````
 // apidoc folder is a static files folder
@@ -794,17 +798,7 @@ router.post('/test/hr', async (req, res) => {
             "lab_names": 
                 [
                     "SvO2",
-                    "PaCO2"
-                ]
-        }
- * @apiSuccess {Number} str1Length Result from API1.
- * @apiSuccess {Number} str2Length Result from API2.
- * @apiSuccess {Number} sameNumber Count same number of chars of 2 results.
- * @apiSuccessExample Success-Response:
-        ✔✔✔ Test success.
-        ✔ SvO2
-        ✔ PaCO2
- *
+                    "PaCO2"post
  */
 router.post('/test/labs', async (req, res) => {
   const query = req.body;
@@ -819,6 +813,29 @@ router.post('/test/labs', async (req, res) => {
     res.status(400);
     res.send(e.toString());
   }
+});
+
+
+
+/**
+ * @api {get} /test/drug/infusions/:person_id Test drug infusions overlap
+ * @apiVersion 0.0.1
+ * @apiName Test drug infusions overlap
+ * @apiGroup _Test
+ 
+ * @apiParam {Number} person_id Patient unique ID.
+
+ */
+router.get('/test/drug/infusions/:person_id', async (req, res) => {
+  const person_id = parseFloat(req.params.person_id);
+  console.log('testing drug infusions for %s ...', person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(
+    await testDrugInfusions(binds),
+  );
 });
 
 
@@ -981,6 +998,112 @@ router.get('/RespiratorySupportVariable', async (req, res) => {
   );
 });
 
+
+
+
+/**
+ * @api {post} /relational-query Relational Query
+ * @apiVersion 0.0.1
+ * @apiName Relational Query API
+ * @apiGroup _Legacy
+ * @apiDescription API from Lingyu
+ * 
+ *  See example.
+ * 
+ * @apiParam {json} input JSON for query.
+
+ * @apiParamExample {json} POST json example
+  {
+    "select": {
+        "PATIENT": {
+            "NAME_FIRST": null,
+            "NAME_LAST": null
+        },
+        "PATIENT_MRN": {
+            "MRN": null
+        },
+        "PATIENT_ENCOUNTER": {
+            "ARRIVE_UNIX_TS": null,
+            "DEPART_UNIX_TS": null
+        },
+        "PATIENT_BED_ASSIGNMENT": {
+            "START_UNIX_TS": null,
+            "END_UNIX_TS": null
+        },
+        "BED": {}
+    },
+    "filter": {
+        "op": "AND",
+        "filters": [
+            {
+                "op": "=",
+                "variables": [
+                    {
+                        "entity": "NURSE_UNIT",
+                        "attribute": "NAME"
+                    },
+                    "08 South"
+                ]
+            },
+            {
+                "op": "BETWEEN",
+                "variables": [
+                    1544497302.796,
+                    {
+                        "entity": "PATIENT_BED_ASSIGNMENT",
+                        "attribute": "START_UNIX_TS"
+                    },
+                    {
+                        "entity": "PATIENT_BED_ASSIGNMENT",
+                        "attribute": "END_UNIX_TS"
+                    }
+                ]
+            }
+        ]
+    }
+  }
+
+
+ * @apiSuccessExample Success-Response:
+    {
+      "PATIENT": [
+        {
+            "NAME_FIRST": name_string,
+            "NAME_LAST": name_string,
+            "__ID__": id_number
+        },
+        ...
+      "PATIENT_MRN": [
+        {
+            "MRN": mrn_number,
+            "__ID__": id_number,
+            "__REF__PATIENT": patient_number
+        },
+        ...
+      "PATIENT_ENCOUNTER": [
+        {
+            "ARRIVE_UNIX_TS": unix_time,
+            "DEPART_UNIX_TS": unix_time,
+            "__ID__": id_number,
+            "__REF__PATIENT": patient_number
+        },
+        ...
+      "PATIENT_BED_ASSIGNMENT": [
+        {
+            "START_UNIX_TS": unix_time,
+            "END_UNIX_TS": unix_time,
+            "__ID__": id_number,
+            "__REF__PATIENT_ENCOUNTER": patient_encounter_number,
+            "__REF__BED": bed_number
+        },
+        ...
+      "BED": [
+        {
+            "__ID__": bed_number
+        },
+        ...
+ *
+ */
 router.post('/relational-query', async (req, res) => {
   const query = req.body;
   try {

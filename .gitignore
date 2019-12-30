@@ -2,4 +2,6 @@ node_modules/
 .vscode
 apidoc/
 temp/
-services/access.log
+*.log
+services/*.log
+
