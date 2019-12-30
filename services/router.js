@@ -521,8 +521,16 @@ router.get('/person/:person_id/drug/intermittent', async (req, res) => {
  *
  */
 router.get('/person/:person_id/drug/infusions', async (req, res) => {
-  const person_id = parseFloat(req.params.person_id);
+  const person_id = parseInt(req.params.person_id);
   console.log('getting drug infusions for %s ...', person_id);
+
+
+  if (!Number.isInteger(person_id)) {
+    res.send(
+      "Invalid person_id, should be integer."
+    );    
+    return;
+  }
 
   const binds = {
     person_id,
@@ -852,29 +860,22 @@ router.get('/test/drug/infusions/:person_id', async (req, res) => {
  * @apiName Get Person ID From MRN
  * @apiGroup Person
 
- * @apiParam {Number} MRN Patient MRN.
- * @apiSuccess {String} name_string Patient first/middle/last name.
- * @apiSuccess {String} sex_string Patient sex.
+ * @apiParam {Number} mrn Patient MRN.
  * @apiSuccess {Number} person_id Patient unique ID.
- * @apiSuccess {Number} unix_time Unix Second Time.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
-            
       {
-        "0": {
-          "PERSON_ID": person_id
-        }
+        "PERSON_ID": person_id        
       }
  *
  */
 
 router.get('/person/mrn/:mrn', async (req, res) => {
+
   const mrn = parseInt(req.params.mrn);
-  const binds = {
-    mrn,
-  };
+  console.log("mrn is: " + mrn);
+
   res.send(
-    await getPersonFromMRN(binds),
+    await getPersonFromMRN(mrn),
   );
 });
 
@@ -981,11 +982,16 @@ router.get('/HeartRate', async (req, res) => {
 
 router.get('/person/:person_id', async (req, res) => {
   const person_id = parseInt(req.params.person_id);
-  const binds = {
-    person_id,
-  };
+  console.log("router person_id is: " + person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send(
+      "Invalid person_id. Should be integer.",
+    );
+    return;
+  }
+
   res.send(
-    await getPerson(binds),
+    await getPerson(person_id),
   );
 });
 

@@ -13,10 +13,27 @@ async function close() {
 
 function withConnection(func) {
   return async function(...args){
-    let conn = await oracledb.getConnection();
-    let result = await func(conn,...args);
-    await conn.close();
-    return result;
+
+    try {
+      let conn = await oracledb.getConnection();
+      let result = await func(conn,...args);
+      await conn.close();
+      return result;
+    } catch (e) {
+      var e_string = e.message.toString();
+      console.log(e_string + "\n");
+      // if (e_string.includes("ORA-00904")) {
+      //   console.log("ORA-00904" + "\n");
+      //   process.exit(10);
+      // }
+
+      if (e_string.includes("NJS-040")) {
+        console.log("NJS-040" + "\n");
+        process.exit(10);
+      } 
+
+    }
+
   }
 }
 

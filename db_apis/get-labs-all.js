@@ -101,6 +101,7 @@ const getLabsQuery = database.withConnection(async function(conn,query){
   if (!isValidJson.validate_labs(query)) {
     console.warn("not json");
     throw new InputInvalidError('Input not in valid json');
+    const query = req.body;
 
   }
 

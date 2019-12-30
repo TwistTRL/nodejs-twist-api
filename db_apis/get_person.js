@@ -15,8 +15,7 @@ SELECT
   DECEASED_UNIX_TS
 FROM PERSON
   JOIN SEX_CODE USING(SEX_CD)
-WHERE PERSON_ID = :person_id
-`
+WHERE PERSON_ID = `
 
 // Given a person, get all person names
 const GET_PERSON_NAMES_SQL = 
@@ -28,8 +27,7 @@ SELECT
   NAME_TYPE_CODE.VALUE AS NAME_TYPE
 FROM PERSON_NAME
   JOIN NAME_TYPE_CODE USING(NAME_TYPE_CD)
-WHERE PERSON_ID = :person_id
-`
+WHERE PERSON_ID = `
 
 // Given a person, get all person mrns
 const GET_PERSON_MRNS_SQL =
@@ -39,8 +37,7 @@ SELECT
   BEG_EFFECTIVE_UNIX_TS,
   END_EFFECTIVE_UNIX_TS
 FROM CHB_MRN
-WHERE PERSON_ID = :person_id
-`
+WHERE PERSON_ID = `
 
 // Given a person, get all person phone numbers
 const GET_PERSON_PHONES_SQL = 
@@ -50,8 +47,7 @@ SELECT
   PHONE_TYPE_CODE.VALUE AS PHONE_TYPE
 FROM PERSON_PHONE
   JOIN PHONE_TYPE_CODE USING(PHONE_TYPE_CD)
-WHERE PERSON_ID = :person_id
-`
+WHERE PERSON_ID = `
 
 // Given a mrn, get person_id
 const GET_PERSON_ID_SQL =
@@ -59,16 +55,16 @@ const GET_PERSON_ID_SQL =
 SELECT
   DISTINCT PERSON_ID
 FROM CHB_MRN
-WHERE MRN = :mrn
-`
+WHERE MRN = `
 
-async function getPersonSqlExecutor(conn,binds){
-  let person_basics = await conn.execute(GET_PERSON_BASICS_SQL,binds).then( res=>res.rows );
-  let person_names = await conn.execute(GET_PERSON_NAMES_SQL,binds).then( res=>res.rows );
-  // let person_mrns = null;//aawait conn.execute(GET_PERSON_MRNS_SQL,binds).then( res=>res.rows );
-  let person_mrns = await conn.execute(GET_PERSON_MRNS_SQL,binds).then( res=>res.rows );
+async function getPersonSqlExecutor(conn,person_id){
+  var personId = parseInt(person_id);
+  console.log("person_id is: " + personId);
 
-  let person_phones = null;//await conn.execute(GET_PERSON_PHONES_SQL,binds).then( res=>res.rows );
+  let person_basics = await conn.execute(GET_PERSON_BASICS_SQL + personId).then( res=>res.rows );
+  let person_names = await conn.execute(GET_PERSON_NAMES_SQL + personId).then( res=>res.rows );
+  let person_mrns = await conn.execute(GET_PERSON_MRNS_SQL + personId).then( res=>res.rows );
+  let person_phones = null;//await conn.execute(GET_PERSON_PHONES_SQL + personId).then( res=>res.rows );
   if (person_basics.length != 1) {
     return null;
   }
@@ -76,8 +72,7 @@ async function getPersonSqlExecutor(conn,binds){
   let person = {...person_basics};
   person["NAMES"] = person_names;
   person["MRNS"] = person_mrns;
-  person["PHONES"] = person_phones;
-  
+  person["PHONES"] = person_phones;  
   return person;
 }
 
@@ -89,8 +84,10 @@ async function getManyPersonSqlExecutor(conn,binds){
   return persons;
 }
 
-async function getPersonFromMRNSqlExecutor(conn,binds){
-  let person_ids = await conn.execute(GET_PERSON_ID_SQL,binds).then( res=>res.rows );
+async function getPersonFromMRNSqlExecutor(conn,mrn){
+  console.log("mrn is: " + mrn);
+
+  let person_ids = await conn.execute(GET_PERSON_ID_SQL + `'` + mrn + `'`).then( res=>res.rows[0] );
   if (person_ids == null || person_ids.length == 0) {
     return null;
   }
