@@ -11,7 +11,7 @@
 const database = require("../services/database");
 const {categoryList, getCategory, categoryDictionary, getSingleTimeRecord,getLabNameFromLabCat} = require("../db_relation/labs-category-config");
 const isValidJson = require("../utils/isJson");
-const {ResourceNotFoundError,InputInvalidError} = require("../utils/errors");  
+const InputInvalidError = require("../utils/errors").InputInvalidError;  
 
 const catPersonId = "person_id";
 const catLabNames = "lab_names";

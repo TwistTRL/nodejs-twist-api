@@ -3,7 +3,7 @@ const isValidJson = require("../utils/isJson");
 const {getLabsQuery} = require("../db_apis/get-labs-all");
 const {getLab, getLabV2} = require('../db_apis/get_labs');
 
-const {InputInvalidError} = require("../utils/errors");  
+const InputInvalidError = require("../utils/errors").InputInvalidError;  
 
 const catPersonId = "person_id";
 const catLabNames = "lab_names";

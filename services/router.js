@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 /* eslint-disable max-len */
 const express = require('express');
+const path = require('path');
 const router = new express.Router();
 const {
   getRelationalQuery
@@ -76,17 +77,8 @@ const {
 // apidoc folder is a static files folder
 // user express.static to display this index.html
 // ````````````````````````````````````````````````````
-router.use(express.static(__dirname + '/../apidoc'));
-router.get('/', function (req, res) {
-  try {
-    res.type('text/html');
-    res.status(200);
-    res.sendFile('/apidoc/index.html');
-  } catch (e) {
-    res.send("error");
-  }
-});
-
+router.use('/', express.static(__dirname + '/../docs/apidoc'));
+router.use('/apidoc2', express.static(__dirname + '/../docs/apidoc2'));
 
 // ``````````````````````````````````````````````
 //         api start
@@ -143,7 +135,7 @@ router.get('/person/:person_id/labs', async (req, res) => {
  * @apiParam {String[]} lab_names Array of lab's category name.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "lab_names": ["SvO2", "PaCO2"]
         }
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
@@ -301,7 +293,7 @@ router.get('/person/:person_id/vitals/hr/binned/5M', async (req, res) => {
 /**
  * @api {get} /person/:person_id/vitals/hr/binnedv2/:data_resolution Binned Heart Rate V2
  * @apiVersion 0.0.2
- * @apiName Get Person Hr Binned V2
+ * @apiName Get Person Hr Binned PersonnelV2
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
@@ -556,7 +548,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "data_type": "binned",
           "data_resolution": "1D"
@@ -599,7 +591,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "data_type": "calc",
           "data_resolution": "1D"
@@ -636,7 +628,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "from":1542014000,
           "to":1542018000
@@ -747,7 +739,7 @@ router.get('/person/:person_id/vitals/hr/raw', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-            "person_id": 25796315,
+            "person_id": EXAMPLE_PERSON_ID,
             "vital_type": "hr",
             "data_type": "binned",
             "data_resolution": "1D"
@@ -805,7 +797,7 @@ router.post('/test/hr', async (req, res) => {
  * @apiParam {String} lab_names Lab category name.
  * @apiParamExample {json} POST json example
         {
-            "person_id": 25796315,
+            "person_id": EXAMPLE_PERSON_ID,
             "lab_names": 
                 [
                     "SvO2",
@@ -855,10 +847,10 @@ router.get('/test/drug/infusions/:person_id', async (req, res) => {
 
 
 /**
- * @api {get} /person/mrn/:mrn Person ID From MRN
+ * @api {get} /mrn/:mrn Person ID From MRN
  * @apiVersion 0.0.1
- * @apiName Get Person ID From MRN
- * @apiGroup Person
+ * @apiName Get Patient Person ID From MRN
+ * @apiGroup MRN
 
  * @apiParam {Number} mrn Patient MRN.
  * @apiSuccess {Number} person_id Patient unique ID.
@@ -869,7 +861,7 @@ router.get('/test/drug/infusions/:person_id', async (req, res) => {
  *
  */
 
-router.get('/person/mrn/:mrn', async (req, res) => {
+router.get('/mrn/:mrn', async (req, res) => {
 
   const mrn = parseInt(req.params.mrn);
   console.log("mrn is: " + mrn);
@@ -884,6 +876,21 @@ router.get('/person/mrn/:mrn', async (req, res) => {
 // api from Lingyu Zhou
 // 
 // ```````````````````````
+
+
+/**
+ * @api {get} /person/:person_id/RSS RSS For Person
+ * @apiVersion 0.0.1
+ * @apiName Get Person RSS Information
+ * @apiGroup _Legacy
+ * @apiDescription Legacy API
+
+ * @apiParam {Number} person_id Person ID.
+
+ * @apiSuccessExample Success-Response:
+ *    not available
+ *
+ */
 router.get('/person/:person_id/RSS', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   const from = parseFloat(req.query.from) || 0;
@@ -935,7 +942,9 @@ router.get('/HeartRate', async (req, res) => {
  * @apiVersion 0.0.1
  * @apiName Get Person Basic Information
  * @apiGroup Person
- * @apiDescription "0" : basic information.
+ * @apiDescription Legacy API
+ * 
+ * "0" : basic information.
  * 
  * "NAMES": Current and Alternate names of person.
  * 
@@ -995,7 +1004,21 @@ router.get('/person/:person_id', async (req, res) => {
   );
 });
 
-router.get('/Personel/:chb_prsnl_id', async (req, res) => {
+
+/**
+ * @api {get} /personel/:chb_prsnl_id Personnel Information
+ * @apiVersion 0.0.1
+ * @apiName Get Personnel Information
+ * @apiGroup _Legacy
+ * @apiDescription Legacy API
+
+ * @apiParam {Number} chb_prsnl_id Personnel ID.
+
+ * @apiSuccessExample Success-Response:
+ *    not available
+ *
+ */
+router.get('/personel/:chb_prsnl_id', async (req, res) => {
   const chb_prsnl_id = parseInt(req.params.chb_prsnl_id);
   // const binds = {
   //   chb_prsnl_id,
@@ -1015,7 +1038,22 @@ router.get('/survey/bed_space', async (req, res) => {
   );
 });
 
-router.get('/Bed/:bed_cd', async (req, res) => {
+
+
+/**
+ * @api {get} /bed/:bed_cd Bed Information
+ * @apiVersion 0.0.1
+ * @apiName Get Bed Information
+ * @apiGroup _Legacy
+ * @apiDescription Legacy API
+
+ * @apiParam {Number} bed_cd Bed ID.
+
+ * @apiSuccessExample Success-Response:
+ *    not available
+ *
+ */
+router.get('/bed/:bed_cd', async (req, res) => {
   const bed_cd = parseFloat(req.params.bed_cd);
   const binds = {
     bed_cd,

@@ -1,7 +1,7 @@
 const database = require("../services/database");
 const {getSingleResult,getSingleRawResult,CAT_VITAL_TYPE_ARRAY,SQLVitalTypeDict} = require("../db_relation/vitals-db-relation");
 const isValidJson = require("../utils/isJson");
-const {InputInvalidError} = require("../utils/errors");  
+const InputInvalidError = require("../utils/errors").InputInvalidError;  
 const {getSingleVitalCALCResult} = require("../db_relation/vitals-calc-relation")
 
 const cat2 = "data_type";

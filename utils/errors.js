@@ -26,7 +26,16 @@ class InputInvalidError extends Error {
   }
 }
 
+class DatabaseError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = this.constructor.name;
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
 module.exports = {
   // ResourceNotFoundError,
-  InputInvalidError
+  InputInvalidError,
+  DatabaseError
 };

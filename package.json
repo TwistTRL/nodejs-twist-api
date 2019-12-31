@@ -6,7 +6,7 @@
   "scripts": {
     "start": "pm2 start index.js",
     "dev": "nodemon index.js",
-    "docs": "node replace-string.js && apidoc -e node_modules -i ./ -o apidoc/",
+    "docs": "node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
     "test": "node replace-pre-push.js && mocha"
   },
   "keywords": [],
@@ -23,15 +23,6 @@
     "replace-in-file": "^5.0.2",
     "update": "^0.7.4"
   },
-  "apidoc": {
-    "title": "Twist API with Node.js-Oracle database",
-    "url": "http://twist:3300/api",
-    "sampleUrl": "http://twist:3300/api",
-    "header": {
-      "title": "Introduction",
-      "filename": "apidoc-header.md"
-    }
-  },
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
@@ -45,6 +36,7 @@
   },
   "husky": {
     "hooks": {
+      "pre-commit": "npm test",
       "pre-push": "npm test"
     }
   }

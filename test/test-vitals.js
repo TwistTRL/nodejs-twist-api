@@ -3,7 +3,7 @@ const isValidJson = require("../utils/isJson");
 const {getVitalsQuery} = require("../db_apis/get-vitals-all");
 const getHrBinned = require("../db_apis/get_hr_binned_v2");
 const getHrCalc = require("../db_apis/get_hr_calc");
-const {InputInvalidError} = require("../utils/errors");  
+const InputInvalidError = require("../utils/errors").InputInvalidError;  
 const {getRawHr} = require('../db_apis/get_raw_hr');
 
 
