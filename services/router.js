@@ -151,7 +151,7 @@ router.get('/person/:person_id/labs', async (req, res) => {
  * @apiParam {String[]} lab_names Array of lab's category name.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "lab_names": ["SvO2", "PaCO2"]
         }
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
@@ -564,7 +564,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "data_type": "binned",
           "data_resolution": "1D"
@@ -607,7 +607,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "data_type": "calc",
           "data_resolution": "1D"
@@ -644,7 +644,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "from":1542014000,
           "to":1542018000
@@ -755,7 +755,7 @@ router.get('/person/:person_id/vitals/hr/raw', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-            "person_id": 25796315,
+            "person_id": EXAMPLE_PERSON_ID,
             "vital_type": "hr",
             "data_type": "binned",
             "data_resolution": "1D"
@@ -813,7 +813,7 @@ router.post('/test/hr', async (req, res) => {
  * @apiParam {String} lab_names Lab category name.
  * @apiParamExample {json} POST json example
         {
-            "person_id": 25796315,
+            "person_id": EXAMPLE_PERSON_ID,
             "lab_names": 
                 [
                     "SvO2",
