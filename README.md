@@ -29,6 +29,7 @@ API documentation: web browser `twist:3300/api/`
 
 (port: process.env.HTTP_PORT || 3300)
  
+![example](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/flowchart.iuml)
 
 
 ## Special Thanks
