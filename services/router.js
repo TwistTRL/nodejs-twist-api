@@ -79,9 +79,11 @@ const {
 
 const {
   getPersonnelForPatient
-} = require('../db_apis/get_personnel_for_patient');
+} = require('../db_apis/cross_tables/get_personnel_for_patient');
 
-
+const {
+  getRoomTime
+} = require('../db_apis/cross_tables/get_room_time');
 
 
 const test_crash = require('../test/test-crash');
@@ -149,7 +151,7 @@ router.get('/person/:person_id/labs', async (req, res) => {
  * @apiParam {String[]} lab_names Array of lab's category name.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "lab_names": ["SvO2", "PaCO2"]
         }
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
@@ -562,7 +564,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "data_type": "binned",
           "data_resolution": "1D"
@@ -605,7 +607,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "data_type": "calc",
           "data_resolution": "1D"
@@ -642,7 +644,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "from":1542014000,
           "to":1542018000
@@ -753,7 +755,7 @@ router.get('/person/:person_id/vitals/hr/raw', async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-            "person_id": EXAMPLE_PERSON_ID,
+            "person_id": 25796315,
             "vital_type": "hr",
             "data_type": "binned",
             "data_resolution": "1D"
@@ -811,7 +813,7 @@ router.post('/test/hr', async (req, res) => {
  * @apiParam {String} lab_names Lab category name.
  * @apiParamExample {json} POST json example
         {
-            "person_id": EXAMPLE_PERSON_ID,
+            "person_id": 25796315,
             "lab_names": 
                 [
                     "SvO2",
@@ -951,6 +953,39 @@ router.get('/person/:person_id/personnel', async (req, res) => {
   };
   res.send(
     await getPersonnelForPatient(binds),
+  );
+});
+
+
+
+/**
+ * @api {get} /person/:person_id/room Room For Patient
+ * @apiVersion 0.0.1
+ * @apiName Get Room Time For Patient
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {String} room_name Room name for patient.
+ * @apiSuccess {Number} timestamp Timestamp of this room.
+
+ * @apiSuccessExample Success-Response:
+      {
+        "ROOM_NAME": room_name,
+        "start": timestamp,
+        "end": timestamp        
+      }
+ *
+ */
+
+router.get('/person/:person_id/room', async (req, res) => {
+
+  const person_id = parseInt(req.params.person_id);
+  console.log('getting room information for %s ...', person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(
+    await getRoomTime(binds),
   );
 });
 

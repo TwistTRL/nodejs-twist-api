@@ -1,5 +1,5 @@
-const database = require("../services/database");
-const SQL_MODEL = require("../db_relation/converted-database"); 
+const database = require("../../services/database");
+const SQL_MODEL = require("../../db_relation/converted-database"); 
 
 const SQL_PART1 = `
 TEMP AS(
