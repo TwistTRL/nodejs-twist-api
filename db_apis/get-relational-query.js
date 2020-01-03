@@ -2,6 +2,8 @@ const database = require("../services/database");
 const sqlBuilder = require("../services/relational-query-sql-builder");
 
 async function relationalQuerySQLExecutor(conn,query){
+  console.time('relationalQuery');
+
   let ret = {};
   let querySQL = "";
   try {
@@ -20,6 +22,7 @@ async function relationalQuerySQLExecutor(conn,query){
     let res = await conn.execute(sql,binds).then( res=>res.rows );
     ret[entity] = res;
   }
+  console.timeEnd('relationalQuery');
   return ret;
 }
 

@@ -29,8 +29,11 @@ API documentation: web browser `twist:3300/api/`
 
 (port: process.env.HTTP_PORT || 3300)
  
-![example](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/flowchart.iuml)
+![flow](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/flowchart.iuml)
 
+## Airflow Created Database Tables
+
+![db](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/database-diagram.iuml)
 
 ## Special Thanks
 This repo starts from a clone of the code here:

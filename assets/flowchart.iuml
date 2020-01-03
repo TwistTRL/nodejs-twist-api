@@ -1,31 +1,36 @@
-@startuml flowchart
+@startuml flow chart
 :git clone https://github.com/TwistTRL/nodejs-twist-api.git;
 :cd nodejs-twist-api/;
-: npm install;
-: npm run docs;
-note right
-generate apidoc documentation
-end note
+:npm install;
+
 split
+  :npm run devdocs;
+  note left
+  dev
+  end note
   :npm run dev;
-note left
-nodemon
-end note
-split again
-  :npm start;
-note right
-pm2
-end note
+  note left
+    nodemon
+  end note
 split again
   :npm test;
-note right
-mocha
-end note
+  note right
+    mocha
+  end note
   stop
+split again
+  : npm run docs;
+  note right
+    production
+  end note
+  :npm start;
+  note right
+    pm2
+  end note
 end split
-:twist:3300/api/|
+
+:twist:3333/api/|
 note right
-web browser
-port: process.env.HTTP_PORT || 3300
+  open in web browser
 end note
 @enduml

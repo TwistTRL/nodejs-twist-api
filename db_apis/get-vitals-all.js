@@ -111,7 +111,9 @@ ORDER BY DTUNIX
  * @param {*} query 
  */
 async function vitalsRawQuerySQLExecutor(conn, query) {
-  console.time('getVitalRaw');
+  let timestamp =  new Date();
+
+  console.time('getVitalRaw' + timestamp);
   let vitalType = SQLVitalTypeDict[query[catVitalType]];
 
   let SQL_GET_RAW = SQL_GET_RAW_PART1 + vitalType +
@@ -119,9 +121,13 @@ async function vitalsRawQuerySQLExecutor(conn, query) {
     SQL_GET_RAW_PART4 + query[catTo] * 1 + SQL_GET_RAW_PART5;
 
   console.log("get raw sql: ", SQL_GET_RAW);
+  console.time('getVitalRaw-sql' + timestamp);
+
   let rawRecord = await conn.execute(SQL_GET_RAW);
+  console.timeEnd('getVitalRaw-sql' + timestamp);
+
   let jsonString = _calculateRawRecords(rawRecord, vitalType);
-  console.timeEnd('getVitalRaw');
+  console.timeEnd('getVitalRaw' + timestamp);
   return jsonString;
 }
 
@@ -164,11 +170,13 @@ function _calculateRawRecords(rawRecord, vitalType) {
  * @returns
  */
 async function vitalsBinnedQuerySQLExecutor(conn, query) {
-  console.time('getVitalBinned');
+  let timestamp =  new Date();
+  console.time('getVitalBinned' + timestamp);
 
   let sqlDict = SQL_GET_DICT + "'" + SQLVitalTypeDict[query[catVitalType]] + "'";
   console.log("sqlDict = ", sqlDict);
   let dictRecord = await conn.execute(sqlDict);
+
   let dictResult = {};
   let maxBinId = 0;
   let minBinId = Number.MAX_SAFE_INTEGER;
@@ -189,17 +197,22 @@ async function vitalsBinnedQuerySQLExecutor(conn, query) {
 
   let sqlQuery = SQL_PART1 + sqlTable + SQL_PART2 + person_id + ` AND BIN_ID >= ` + minBinId + ` AND BIN_ID <= ` + maxBinId + SQL_PART3;
   console.log("sqlQuery = ", sqlQuery);
+  console.time('getVitalBinned-sql' + timestamp);
   let vitalsRecords = await conn.execute(sqlQuery);
+  console.timeEnd('getVitalBinned-sql' + timestamp);
+
   let jsonString = _calculateRecords(dictResult, vitalsRecords, query[cat3]);
 
-  console.timeEnd('getVitalBinned');
+  console.timeEnd('getVitalBinned' + timestamp);
   return jsonString;
 
 }
 
 
 async function vitalsCalcQuerySQLExecutor(conn, query) {
-  console.time('getVitalCalc');
+  let timestamp =  new Date();
+
+  console.time('getVitalCalc-total' + timestamp);
   let sqlTable = _getSqlTable(query);
   console.log("calc sqlTable = ", sqlTable);
   let person_id = query[catPersonId];
@@ -207,7 +220,10 @@ async function vitalsCalcQuerySQLExecutor(conn, query) {
 
   let sqlQuery = SQL_CALC_PART1 + sqlTable + SQL_CALC_PART2 + person_id + SQL_CALC_PART3 + vitalType + SQL_CALC_PART4;
   console.log("sqlQuery = ", sqlQuery);
+
+  console.time('getVitalCalc-sql' + timestamp);
   let vitalsRecords = await conn.execute(sqlQuery);
+  console.timeEnd('getVitalCalc-sql' + timestamp);
 
   var result = [];
   var timeInterval;
@@ -252,7 +268,7 @@ async function vitalsCalcQuerySQLExecutor(conn, query) {
     result.push(singleResult);
   }
 
-  console.timeEnd('getVitalCalc');
+  console.timeEnd('getVitalCalc-total' + timestamp);
   return result;
 
 }

@@ -87,6 +87,7 @@ const {
 
 
 const test_crash = require('../test/test-crash');
+const {testAbnormalMRN} = require('../test/test_abnormal_mrn');
 
 
 // ````````````````````````````````````````````````````
@@ -900,6 +901,18 @@ router.put('/test/crash', async (req, res) => {
   );
 });
 
+/**
+ * @api {put} /test/abnormal-mrn Get Abnormal MRN
+ * @apiVersion 0.0.1
+ * @apiName Test mrn
+
+ * @apiGroup _Test
+ */
+router.put('/test/abnormal-mrn', async (req, res) => {
+  res.send(
+    await testAbnormalMRN(),
+  );
+});
 
 
 

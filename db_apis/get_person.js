@@ -85,14 +85,15 @@ async function getManyPersonSqlExecutor(conn,binds){
 }
 
 async function getPersonFromMRNSqlExecutor(conn,mrn){
-  console.log("mrn is: " + mrn);
-
-  let person_ids = await conn.execute(GET_PERSON_ID_SQL + `'` + mrn + `'`).then( res=>res.rows[0] );
+  let person_ids = await conn.execute(GET_PERSON_ID_SQL + `'` + mrn + `'`).then( res=>res.rows );
   if (person_ids == null || person_ids.length == 0) {
     return null;
   }
-  
-  return person_ids;
+  var result = [];
+  for (let person_id of person_ids) {
+    result.push(person_id);
+  }
+  return result;
 }
 
 const getPerson = database.withConnection(getPersonSqlExecutor);

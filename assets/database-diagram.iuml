@@ -1,0 +1,104 @@
+@startuml airflow_created_db
+!define Table(name,desc) class name as "desc" << (T,#FFAAAA) >>
+' we use bold for primary key
+' green color for unique
+' and underscore for not_null
+!define primary_key(x) <b>x</b>
+!define unique(x) <color:green>x</color>
+!define not_null(x) <u>x</u>
+' other tags available:
+' <i></i>
+' <back:COLOR></color>, where color is a color name or html color code
+' (#FFAACC)
+' see: http://plantuml.com/classes.html#More
+hide methods
+hide stereotypes
+
+' entities
+Table(person, "person\n(person in system)") {
+ primary_key(PERSON_ID)     NUMBER[38]
+ NAME_FIRST					    VARCHAR2[128]
+ NAME_MIDDLE					    VARCHAR2[128]
+ NAME_LAST					    VARCHAR2[128]
+ SEX_CD					    NUMBER[38]
+ BIRTH_UNIX_TS					    NUMBER[38]
+ DECEASED_UNIX_TS					    NUMBER[38]
+
+}
+
+Table(encounter, "encounter\n(encounter for patient)") {
+primary_key(ENCNTR_ID) NUMBER[38]
+PERSON_ID					    NUMBER[38]
+ ENCNTR_TYPE_CD 				    NUMBER[38]
+ ARRIVE_UNIX_TS 				    FLOAT[126]
+ DEPART_UNIX_TS 				    FLOAT[126]
+}
+
+Table(encntr_bed_space, "encntr_bed_space\n(bed_assignment)") {
+primary_key(ENCNTR_BED_SPACE_ID) NUMBER[38]
+ENCNTR_ID					    NUMBER[38]
+ BED_CD 					    NUMBER[38]
+ START_UNIX_TS					    FLOAT[126]
+ END_UNIX_TS					    FLOAT[126]
+
+}
+
+Table(bed_code, "bed_code\n(bed)") {
+primary_key(BED_CD) NUMBER[38]
+ROOM_CD					    NUMBER[38]
+ VALUE						    VARCHAR2[128]
+
+}
+
+Table(room_code, "room_code\n(room)") {
+primary_key(ROOM_CD) NUMBER[38]
+NURSE_UNIT_CD					    NUMBER[38]
+ VALUE						    VARCHAR2[128]
+}
+
+Table(nurse_unit_code, "nurse_unit_code\n(nurse unit)") {
+primary_key(NURSE_UNIT_CD) NUMBER[38]
+ VALUE						    VARCHAR2[128]
+}
+
+Table(chb_mrn, "chb_mrn\n(patient mrn)") {
+primary_key(CHB_MRN_ID) NUMBER[38]
+PERSON_ID					    NUMBER[38]
+ MRN						    VARCHAR2[128]
+ BEG_EFFECTIVE_UNIX_TS				    FLOAT[126]
+ END_EFFECTIVE_UNIX_TS				    FLOAT[126]
+}
+
+
+Table(chb_prsnl, "chb_prsnl\n(personnel)") {
+primary_key(CHB_PRSNL_ID) NUMBER[38]
+PERSON_ID					    NUMBER[38]
+}
+
+Table(chb_trk_bed_assign, "chb_trk_bed_assign\n(bed assign)") {
+primary_key(BED_ASSIGN_ID) NUMBER[38]
+ ASSIGN_ID					    NUMBER[38]
+ BED_CD 					    NUMBER[38] 
+}
+
+Table(chb_trk_assign, "chb_trk_bed_assign\n(bed assign)") {
+primary_key(ASSIGN_ID) NUMBER[38]
+ASSIGN_TYPE_CD 				    NUMBER[38]
+ CHB_PRSNL_ID					    NUMBER[38]
+ START_UNIX_TS					    FLOAT[126]
+ END_UNIX_TS					    FLOAT[126]
+}
+
+
+' relationships
+person "1"--> "*" encounter : "A patient may have\n many encounters"
+encounter "1"--> "*" encntr_bed_space : "An encounter may have many\n bed assignments"
+encntr_bed_space "*" <-- "1" bed_code : "A bed may be \nin many bed assignments"
+room_code "1"--> "*" bed_code : "A room may \ncontain many beds"
+nurse_unit_code "1"--> "*" room_code : "A nurse unit may \ncontain many rooms"
+person "1"--> "*" chb_mrn : "A patient may have\n many mrn"
+person "1" -- "1" chb_prsnl : "A personnel have\n one person id"
+chb_trk_bed_assign "*"--> "1" bed_code : "A bed may be\nin assigned by many personnels"
+chb_trk_bed_assign "1" -- "1" chb_trk_assign : "A personnel assignment\nhas one bed assignment"
+
+@enduml

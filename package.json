@@ -20,7 +20,7 @@
     "morgan": "^1.9.1",
     "oracledb": "^4.1.0",
     "pm2": "^4.2.1",
-    "relational-query-sql-builder": "../relational-query-sql-builder",
+    "relational-query-sql-builder": "github:TwistTRL/relational-query-sql-builder",
     "replace-in-file": "^5.0.2",
     "update": "^0.7.4"
   },
