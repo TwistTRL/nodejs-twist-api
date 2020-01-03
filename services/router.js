@@ -1208,7 +1208,9 @@ router.get('/RespiratorySupportVariable', async (req, res) => {
  * @apiVersion 0.0.1
  * @apiName Relational Query API
  * @apiGroup _Legacy
- * @apiDescription API from Lingyu
+ * @apiDescription API from Lingyu Zhou.
+ * 
+ * Query should be a valid JSON, contains "SELECT" field to specify what need to be retrived and "FILTER" field to specify filters
  * 
  *  See example.
  * 
@@ -1220,13 +1222,6 @@ router.get('/RespiratorySupportVariable', async (req, res) => {
         "PATIENT": {
             "NAME_FIRST": null,
             "NAME_LAST": null
-        },
-        "PATIENT_MRN": {
-            "MRN": null
-        },
-        "PATIENT_ENCOUNTER": {
-            "ARRIVE_UNIX_TS": null,
-            "DEPART_UNIX_TS": null
         },
         "PATIENT_BED_ASSIGNMENT": {
             "START_UNIX_TS": null,
@@ -1275,21 +1270,6 @@ router.get('/RespiratorySupportVariable', async (req, res) => {
             "__ID__": id_number
         },
         ...
-      "PATIENT_MRN": [
-        {
-            "MRN": mrn_number,
-            "__ID__": id_number,
-            "__REF__PATIENT": patient_number
-        },
-        ...
-      "PATIENT_ENCOUNTER": [
-        {
-            "ARRIVE_UNIX_TS": unix_time,
-            "DEPART_UNIX_TS": unix_time,
-            "__ID__": id_number,
-            "__REF__PATIENT": patient_number
-        },
-        ...
       "PATIENT_BED_ASSIGNMENT": [
         {
             "START_UNIX_TS": unix_time,
@@ -1303,7 +1283,8 @@ router.get('/RespiratorySupportVariable', async (req, res) => {
         {
             "__ID__": bed_number
         },
-        ...
+        ...query
+    }
  *
  */
 router.post('/relational-query', async (req, res) => {

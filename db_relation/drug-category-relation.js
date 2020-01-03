@@ -1,4 +1,3 @@
-
 /**
  * CONFIG DRUG CATEGORY
  * 
@@ -12,7 +11,16 @@
 // will updating for more
 
 const DRUG_INFUSIONS_LIST = ["DOPamine", "EPINEPHrine", "milrinone", "vasopressin", "norepinephrine"];
-const DRUG_INTERMITTENT_LIST = ["epinephrine", "calcium acetate", "hydrocortisone", "albumin human"];
+const DRUG_INTERMITTENT_LIST = [
+  "epinephrine",
+  "calcium chloride",
+  "calcium gluconate",
+  "calcium gluconate (calcium GLUCONATE dose (PIV))",
+  "hydrocortisone",
+  "albumin human",
+  "albumin human (albumin human 5% intravenous solution)",
+  "albumin human (albumin human 25% intravenous solution)"
+];
 
 
 /**

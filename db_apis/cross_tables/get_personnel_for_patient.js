@@ -30,8 +30,6 @@ async function getPersonnelForPatientSqlExecutor(conn,binds){
   + `,` + SQL_MODEL.SQL_MODEL_PERSONNEL_BED_ASSIGNMENT
   + `,` + SQL_MODEL.SQL_MODEL_PERSONNEL
   + `,` + SQL_PART1
-
-  // + SQL_PART1;
   + SQL_PART2;
 
 

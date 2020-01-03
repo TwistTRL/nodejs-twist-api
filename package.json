@@ -7,6 +7,7 @@
     "start": "pm2 start index.js",
     "dev": "nodemon index.js",
     "docs": "node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
+    "devdocs": "apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
     "test": "node replace-pre-push.js && mocha"
   },
   "keywords": [],
@@ -19,7 +20,7 @@
     "morgan": "^1.9.1",
     "oracledb": "^4.1.0",
     "pm2": "^4.2.1",
-    "relational-query-sql-builder": "github:TwistTRL/relational-query-sql-builder",
+    "relational-query-sql-builder": "../relational-query-sql-builder",
     "replace-in-file": "^5.0.2",
     "update": "^0.7.4"
   },
