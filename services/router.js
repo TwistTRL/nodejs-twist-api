@@ -820,9 +820,20 @@ router.post('/test/hr', async (req, res) => {
             "person_id": EXAMPLE_PERSON_ID,
             "lab_names": 
                 [
-                    "SvO2",
-                    "PaCO2"post
+                     "SvO2",
+                    "PaCO2"
+                ]
+        }
+ * @apiSuccess {Number} str1Length Result from API1.
+ * @apiSuccess {Number} str2Length Result from API2.
+ * @apiSuccess {Number} sameNumber Count same number of chars of 2 results.
+ * @apiSuccessExample Success-Response:
+        ✔✔✔ Test success.
+        ✔ SvO2
+        ✔ PaCO2
+ *
  */
+
 router.post('/test/labs', async (req, res) => {
   const query = req.body;
   try {
