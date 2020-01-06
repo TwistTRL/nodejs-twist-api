@@ -21,7 +21,8 @@ Table(person, "person\n(person in system)") {
  NAME_MIDDLE					    VARCHAR2[128]
  NAME_LAST					    VARCHAR2[128]
  SEX_CD					    NUMBER[38]
- BIRTH_UNIX_TS					    NUMBER[38]
+ BIRTH_UNIX_TS					    NUMBER[38]    try{
+
  DECEASED_UNIX_TS					    NUMBER[38]
 
 }

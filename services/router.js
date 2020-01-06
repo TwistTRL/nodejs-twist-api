@@ -82,7 +82,7 @@ const {
 } = require('../db_apis/cross_tables/get_personnel_for_patient');
 
 const {
-  getRoomTime
+  getNUTime
 } = require('../db_apis/cross_tables/get_room_time');
 
 
@@ -972,33 +972,33 @@ router.get('/person/:person_id/personnel', async (req, res) => {
 
 
 /**
- * @api {get} /person/:person_id/room Room For Patient
+ * @api {get} /person/:person_id/nurse-unit Nurse Unit For Patient
  * @apiVersion 0.0.1
- * @apiName Get Room Time For Patient
+ * @apiName Get Nurse Unit Time For Patient
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
- * @apiSuccess {String} room_name Room name for patient.
+ * @apiSuccess {String} Nurse_Unit_Name Nurse Unit name for patient.
  * @apiSuccess {Number} timestamp Timestamp of this room.
 
  * @apiSuccessExample Success-Response:
       {
-        "ROOM_NAME": room_name,
+        "name": Nurse_Unit_Name,
         "start": timestamp,
         "end": timestamp        
       }
  *
  */
 
-router.get('/person/:person_id/room', async (req, res) => {
+router.get('/person/:person_id/nurse-unit', async (req, res) => {
 
   const person_id = parseInt(req.params.person_id);
-  console.log('getting room information for %s ...', person_id);
+  console.log('getting nurse unit information for %s ...', person_id);
 
   const binds = {
     person_id,
   };
   res.send(
-    await getRoomTime(binds),
+    await getNUTime(binds),
   );
 });
 
@@ -1015,17 +1015,36 @@ router.get('/person/:person_id/room', async (req, res) => {
  * @apiName Get Person RSS Information
  * @apiGroup _Legacy
  * @apiDescription Legacy API
+ * 
+ * example timestamp: 1530000000
 
  * @apiParam {Number} person_id Person ID.
+ * @apiParam {Number} from UNIX Timestamp from.
+ * @apiParam {Number} to UNIX Timestamp to.
 
  * @apiSuccessExample Success-Response:
- *    not available
+ *    
+ * [
+    {
+        "ID": id_number,
+        "PERSON_ID": person_id,
+        "TIME": timstamp,
+        "AIRWAY_ASSESSMENT": null,
+        "APRV_PHIGH": null,
+        "APRV_PLOW": null,
+        ...
+        "RSS": rss_score
+    },
+    ...
+  ]
+        
+ * 
  *
  */
 router.get('/person/:person_id/RSS', async (req, res) => {
   const person_id = parseFloat(req.params.person_id);
   const from = parseFloat(req.query.from) || 0;
-  const to = parseFloat(req.query.to) || Date.now();
+  const to = parseFloat(req.query.to) || Math.ceil(Date.now()/1000);
   const binds = {
     person_id,
     from_: from,

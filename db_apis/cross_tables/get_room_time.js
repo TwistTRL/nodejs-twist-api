@@ -1,5 +1,6 @@
 const database = require("../../services/database");
 const SQL_MODEL = require("../../db_relation/converted-database"); 
+const {NURSE_UNIT_DICTIONARY} = require("../../db_relation/nurse-unit-abbr");
 
 const SQL_PART1 = `
 TEMP AS(
@@ -12,16 +13,17 @@ FROM
 
 const SQL_PART2 = `
 SELECT 
-  ROOM.NAME, TEMP.START_UNIX_TS, TEMP.END_UNIX_TS
+NURSE_UNIT.NAME, TEMP.START_UNIX_TS, TEMP.END_UNIX_TS
 FROM
   TEMP JOIN BED USING(BED_CD)
   JOIN ROOM USING(ROOM_CD)
-ORDER BY TEMP.START_UNIX_TS, ROOM.NAME 
+  JOIN NURSE_UNIT USING(NURSE_UNIT_CD)
+ORDER BY TEMP.START_UNIX_TS, NURSE_UNIT.NAME
 `;
 
 
-async function getRoomTimeSqlExecutor(conn,binds){
-  console.time('get Room for patient');
+async function getNUTimeSqlExecutor(conn,binds){
+  console.time('get Nurse unit for patient');
 
   let SQL_GET_ROOM_TIME = `
   WITH`
@@ -30,6 +32,7 @@ async function getRoomTimeSqlExecutor(conn,binds){
   + `,` + SQL_MODEL.SQL_MODEL_PATIENT_BED_ASSIGNMENT
   + `,` + SQL_MODEL.SQL_MODEL_BED
   + `,` + SQL_MODEL.SQL_MODEL_ROOM
+  + `,` + SQL_MODEL.SQL_MODEL_NURSE_UNIT
   + `,` + SQL_PART1
   + SQL_PART2;
 
@@ -37,27 +40,46 @@ async function getRoomTimeSqlExecutor(conn,binds){
   console.log(" sql: " + SQL_GET_ROOM_TIME);
 
 
-  let roomRecords = await conn.execute(SQL_GET_ROOM_TIME, binds);
+  let NUrecords = await conn.execute(SQL_GET_ROOM_TIME, binds);
   let result = [];
-  // roomRecords = {"metadata":[], "rows":[]}
-  var arr = roomRecords.rows;
+  // NUrecords = {"metadata":[], "rows":[]}
+  var arr = NUrecords.rows;
   console.log("record size :", arr.length);
   if (arr.length < 1) {
     return ["Empty results"];
   }
 
-  for (let roomRecord of arr) {
+  let pendingResult;
+  for (let NUrecord of arr) {
+    let singleResult = {};
+    console.log("NUrecord.NAME = [" + NUrecord.NAME + "]");
 
-    result.push(roomRecord);
+    singleResult.name = NURSE_UNIT_DICTIONARY[NUrecord.NAME];
+    console.log("singleResult.name = ", singleResult.name);
+    singleResult.start = NUrecord.START_UNIX_TS;
+    singleResult.end = NUrecord.END_UNIX_TS;
+    if (pendingResult == null) {
+      pendingResult = singleResult;
+      continue;
+    }
+
+    if (pendingResult.name == singleResult.name && pendingResult.end == singleResult.start) {
+      pendingResult.end = singleResult.end;
+      continue;
+    }
+    
+    result.push(pendingResult);
+    pendingResult = singleResult;
+
   }  
 
 
-  console.timeEnd('get Room for patient');
+  console.timeEnd('get Nurse unit for patient');
   return result;
 }
 
-const getRoomTime = database.withConnection(getRoomTimeSqlExecutor);
+const getNUTime = database.withConnection(getNUTimeSqlExecutor);
 
 module.exports = {
-  getRoomTime
+  getNUTime
 };
