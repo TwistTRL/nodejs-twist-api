@@ -111,7 +111,7 @@ ORDER BY DTUNIX
  * @param {*} query 
  */
 async function vitalsRawQuerySQLExecutor(conn, query) {
-  let timestamp =  new Date();
+  let timestamp =  new Date().getTime();
 
   console.time('getVitalRaw' + timestamp);
   let vitalType = SQLVitalTypeDict[query[catVitalType]];
@@ -177,7 +177,7 @@ function _calculateRawRecords(rawRecord, vitalType) {
  * @returns
  */
 async function vitalsBinnedQuerySQLExecutor(conn, query) {
-  let timestamp =  new Date();
+  let timestamp =  new Date().getTime();
   console.time('getVitalBinned' + timestamp);
 
   let sqlDict = SQL_GET_DICT + "'" + SQLVitalTypeDict[query[catVitalType]] + "'";
@@ -217,7 +217,7 @@ async function vitalsBinnedQuerySQLExecutor(conn, query) {
 
 
 async function vitalsCalcQuerySQLExecutor(conn, query) {
-  let timestamp =  new Date();
+  let timestamp =  new Date().getTime();
 
   console.time('getVitalCalc-total' + timestamp);
   let sqlTable = _getSqlTable(query);
@@ -323,8 +323,10 @@ function _getQueryType(query) {
   let year2000Time = 946684800;
   if (query[catFrom] == null || query[catFrom] > currentTime + 10 || query[catFrom] < year2000Time) {
     throw new InputInvalidError('Timestamp "from" is not valid');
-  } else if (query[catTo] == null || query[catTo] > currentTime + 10 || query[catTo] < query[catFrom]) {
+  } else if (query[catTo] == null || query[catTo] < query[catFrom]) {
     throw new InputInvalidError('Timestamp "to" is not valid');
+  } else if (query[catTo] > currentTime + 10) {
+    query[catTo] = currentTime;
   }
   console.log("type: get raw");
   return DATATYPE.RAW;
