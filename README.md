@@ -5,29 +5,29 @@
 ```
 git clone https://github.com/TwistTRL/nodejs-twist-api.git
 cd nodejs-twist-api/
-
 npm install
-npm run docs
 ```
 
-* run in dev using `nodemon`
+* Devlopment environment
 ```
+npm run devdocs
 npm run dev
 ```
 
-* run in production using `pm2`
+* Production environment
 ```
+npm run docs
 npm start
 ```
 
-* run test using `mocha`
+* Test
 ```
 npm test
 ```
 
-API documentation: web browser `twist:3300/api/`
+API documentation: web browser `twist:3333/api/`
 
-(port: process.env.HTTP_PORT || 3300)
+(port: process.env.HTTP_PORT || 3333)
  
 ![flow](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/flowchart.iuml)
 

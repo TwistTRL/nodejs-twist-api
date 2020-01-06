@@ -21,8 +21,7 @@ Table(person, "person\n(person in system)") {
  NAME_MIDDLE					    VARCHAR2[128]
  NAME_LAST					    VARCHAR2[128]
  SEX_CD					    NUMBER[38]
- BIRTH_UNIX_TS					    NUMBER[38]    try{
-
+ BIRTH_UNIX_TS					    NUMBER[38]
  DECEASED_UNIX_TS					    NUMBER[38]
 
 }
@@ -83,12 +82,31 @@ primary_key(BED_ASSIGN_ID) NUMBER[38]
 }
 
 Table(chb_trk_assign, "chb_trk_bed_assign\n(bed assign)") {
-primary_key(ASSIGN_ID) NUMBER[38]
+primary_key(LAB_ID) NUMBER[38]
 ASSIGN_TYPE_CD 				    NUMBER[38]
  CHB_PRSNL_ID					    NUMBER[38]
  START_UNIX_TS					    FLOAT[126]
  END_UNIX_TS					    FLOAT[126]
 }
+
+Table(labs, "labs\n(patient labs)") {
+primary_key(ASSIGN_ID) NUMBER[38]
+PERSON_ID               NUMBER
+ORDER_ID                NUMBER
+DT_UTC                  DATE
+EVENT_CD                NUMBER
+LAB                     VARCHAR2[200]
+VALUE                   VARCHAR2[200]
+UNITS                   VARCHAR2[200]
+NORMAL_LOW              VARCHAR2[200]
+NORMAL_HIGH             VARCHAR2[200]
+CRITICAL_LOW            VARCHAR2[200]
+CRITICAL_HIGH           VARCHAR2[200]
+CREATED_DT_TM           DATE
+DT_UNIX                 NUMBER
+}
+
+
 
 
 ' relationships
@@ -101,5 +119,8 @@ person "1"--> "*" chb_mrn : "A patient may have\n many mrn"
 person "1" -- "1" chb_prsnl : "A personnel have\n one person id"
 chb_trk_bed_assign "*"--> "1" bed_code : "A bed may be\nin assigned by many personnels"
 chb_trk_bed_assign "1" -- "1" chb_trk_assign : "A personnel assignment\nhas one bed assignment"
+chb_trk_assign "*" --> "1" chb_prsnl : "A personnel can has\n many personnel assignments"
+person "1"--> "*" labs : "A patient may have\n many labs"
+
 
 @enduml
