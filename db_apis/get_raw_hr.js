@@ -44,6 +44,10 @@ function calculateRecords(rawRecord) {
   for (let singleHr of arr) {
     //example singleHr = {"HR_EKG": 100, "DTUNIX": "1524700800"}
 
+    if (singleHr.HR_EKG == null) {
+      // skip null value record;
+      continue;
+    }
     let singleResult = getSingleRawHr();
     singleResult.time = singleHr.DTUNIX;
     singleResult.value = singleHr.HR_EKG;

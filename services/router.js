@@ -638,6 +638,8 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiName Get Vitals Raw
  * @apiGroup Vitals
  * @apiDescription Request vitals raw data from POST json
+ * 
+ * null value vital records are skiped.
  *
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
@@ -685,6 +687,7 @@ router.post('/vitals', async (req, res) => {
  * @api {get} /person/:person_id/vitals/hr/raw?from=:from&to=:to Raw Heart Rate
  * @apiVersion 0.0.1
  * @apiName Get Person Hr Raw
+ * @apiDescription getting Hear rate at timestamp. null value records are skipped.
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {Number} from from timestamp in UNIX seconds.

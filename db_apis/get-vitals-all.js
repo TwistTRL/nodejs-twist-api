@@ -144,6 +144,13 @@ function _calculateRawRecords(rawRecord, vitalType) {
 
   for (let row of arr) {
     //example row = {"HR_EKG": 100, "DTUNIX": "1524700800"}
+
+
+    if (row[vitalType] == null) {
+      // skip null value vital records;
+      continue;
+    }
+
     let singleResult = getSingleRawResult();
     singleResult.time = row.DTUNIX;
     singleResult.value = row[vitalType];
@@ -270,13 +277,10 @@ async function vitalsCalcQuerySQLExecutor(conn, query) {
 
   console.timeEnd('getVitalCalc-total' + timestamp);
   return result;
-
 }
 
 
-
 function _getQueryType(query) {
-
   if (Object.entries(query).length === 0 && query.constructor === Object) {
     console.error("query empty");
     throw new InputInvalidError('Input not valid, so query is empty.');
