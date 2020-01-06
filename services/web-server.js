@@ -1,4 +1,5 @@
 const express = require('express');
+const timeout = require('connect-timeout')
 const webServerConfig = require('../config/web-server-config.js');
 const rootRouter = require('./router');
 const cors = require('cors');
@@ -34,9 +35,23 @@ function initialize() {
 
     // Middleware
     app.use(cors());
+    app.use(timeout('6s'));
     app.use(express.json());
+    // note the use of haltOnTimedout after every middleware;
+    // it will stop the request flow on a timeout
+    app.use(haltOnTimedout);
+
     // Mount the router at /api so all its routes start with /api
     app.use('/api', rootRouter);
+    app.use(haltOnTimedout);
+
+    function haltOnTimedout (req, res, next) {
+      if (!req.timedout) {
+        next();
+      } else {
+        res.send("Timeout. > 6s");
+      }
+    }
 
     httpServer = app.listen(webServerConfig.port)
     

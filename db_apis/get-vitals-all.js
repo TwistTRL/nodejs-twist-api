@@ -98,6 +98,8 @@ const SQL_GET_RAW_PART5 = `
 ORDER BY DTUNIX
 `
 
+var timeLable = 0;
+
 /**
  * query:
  * {
@@ -111,7 +113,7 @@ ORDER BY DTUNIX
  * @param {*} query 
  */
 async function vitalsRawQuerySQLExecutor(conn, query) {
-  let timestamp =  new Date().getTime();
+  let timestamp =  timeLable++;
 
   console.time('getVitalRaw' + timestamp);
   let vitalType = SQLVitalTypeDict[query[catVitalType]];
@@ -177,7 +179,7 @@ function _calculateRawRecords(rawRecord, vitalType) {
  * @returns
  */
 async function vitalsBinnedQuerySQLExecutor(conn, query) {
-  let timestamp =  new Date().getTime();
+  let timestamp =  timeLable++;
   console.time('getVitalBinned' + timestamp);
 
   let sqlDict = SQL_GET_DICT + "'" + SQLVitalTypeDict[query[catVitalType]] + "'";
@@ -217,7 +219,7 @@ async function vitalsBinnedQuerySQLExecutor(conn, query) {
 
 
 async function vitalsCalcQuerySQLExecutor(conn, query) {
-  let timestamp =  new Date().getTime();
+  let timestamp =  timeLable++;
 
   console.time('getVitalCalc-total' + timestamp);
   let sqlTable = _getSqlTable(query);
