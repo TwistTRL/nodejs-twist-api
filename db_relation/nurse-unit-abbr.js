@@ -30,28 +30,31 @@ const NURSE_UNIT_NAME = [
     "11 South ICP"
 ]
 
+
+
+// every nurse unit except "8s" or "8e" will be "other"
 const NURSE_UNIT_DICTIONARY = {
-    "09 South ICP" :            "9SICP",
-    "10GM GENERAL MEDICINE":    "10G",
-    "07 West":                  "7W",
-    "10 South":                 "10S",
-    "07 North":                 "7N",
-    "11 MICU":                  "11M",
-    "07 South":                 "7S",
-    "09 NorthWest":             "9N",
-    "09 South":                 "9S",
-    "03 MANDELL":               "3M",
-    "06 NE HEME/ONC/RESEARCH":  "6NE",
-    "10 East":                  "10E",
-    "10 NorthWest":             "10N",
-    "05 Bader":                 "5B",
-    "06 East":                  "6E",    
-    "08 South":                 "8S",
-    "09 East":                  "9E",
-    "06 West":                  "6W",
-    "06 North":                 "6N",
-    "08 East":                  "8E",
-    "11 South ICP":             "11SICP"
+    "09 South ICP" :            "other",
+    "10GM GENERAL MEDICINE":    "other",
+    "07 West":                  "other",
+    "10 South":                 "other",
+    "07 North":                 "other",
+    "11 MICU":                  "other",
+    "07 South":                 "other",
+    "09 NorthWest":             "other",
+    "09 South":                 "other",
+    "03 MANDELL":               "other",
+    "06 NE HEME/ONC/RESEARCH":  "other",
+    "10 East":                  "other",
+    "10 NorthWest":             "other",
+    "05 Bader":                 "other",
+    "06 East":                  "other",    
+    "08 South":                 "8s",
+    "09 East":                  "other",
+    "06 West":                  "other",
+    "06 North":                 "other",
+    "08 East":                  "8e",
+    "11 South ICP":             "other"
 }
 
 

@@ -38,10 +38,7 @@ async function getNUTimeSqlExecutor(conn,binds){
 
 
   console.log(" sql: " + SQL_GET_ROOM_TIME);
-
-
   let NUrecords = await conn.execute(SQL_GET_ROOM_TIME, binds);
-  let result = [];
   // NUrecords = {"metadata":[], "rows":[]}
   var arr = NUrecords.rows;
   console.log("record size :", arr.length);
@@ -49,13 +46,22 @@ async function getNUTimeSqlExecutor(conn,binds){
     return ["Empty results"];
   }
 
+  let results = getRoomTimeResults(arr);
+  console.timeEnd('get Nurse unit for patient');
+  return results;
+}
+
+function getRoomTimeResults(arr) {
+  let results = [];
   let pendingResult;
+  var resultId = 0;
+
   for (let NUrecord of arr) {
     let singleResult = {};
-    console.log("NUrecord.NAME = [" + NUrecord.NAME + "]");
+    // console.log("NUrecord.NAME = [" + NUrecord.NAME + "]");
 
     singleResult.name = NURSE_UNIT_DICTIONARY[NUrecord.NAME];
-    console.log("singleResult.name = ", singleResult.name);
+    // console.log("singleResult.name = ", singleResult.name);
     singleResult.start = NUrecord.START_UNIX_TS;
     singleResult.end = NUrecord.END_UNIX_TS;
     if (pendingResult == null) {
@@ -67,15 +73,41 @@ async function getNUTimeSqlExecutor(conn,binds){
       pendingResult.end = singleResult.end;
       continue;
     }
-    
-    result.push(pendingResult);
+
+    if (pendingResult.end > singleResult.start) {
+      console.log("error on result time: ", pendingResult.end);
+    } else if (pendingResult.end == singleResult.start){
+      pendingResult.id = resultId;
+      results.push(pendingResult);  
+
+    } else if (pendingResult.end < singleResult.start){
+
+      pendingResult.id = resultId;
+      results.push(pendingResult);
+      resultId++;
+      let homeResult = {};
+      homeResult.name = "home";
+      homeResult.start = pendingResult.end;
+      homeResult.end = singleResult.start;
+      homeResult.id = resultId;
+      results.push(homeResult);
+
+    } else {
+      console.log("error on time: ", pendingResult.end);
+    }
+
     pendingResult = singleResult;
+    resultId++;
+  } 
 
-  }  
+  // last one
+  if (pendingResult != null) {
+    pendingResult.id = resultId;
+    results.push(pendingResult);
+  }
 
 
-  console.timeEnd('get Nurse unit for patient');
-  return result;
+  return results; 
 }
 
 const getNUTime = database.withConnection(getNUTimeSqlExecutor);
