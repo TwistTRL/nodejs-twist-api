@@ -3,7 +3,7 @@
  * @apiVersion 0.0.1
  * @apiName Get Nurse Unit Time For Patient
  * @apiGroup Person
- * @apiDescription
+ * @apiDescription 0.0.1 version
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccess {String} Nurse_Unit_Name Nurse Unit name for patient.
  * @apiSuccess {Number} timestamp Timestamp of this room.

@@ -64,8 +64,36 @@ ORDER BY VALID_FROM_DT_TM ASC
 `
 
 async function getRespiratorySupportVariableSqlExecutor(conn,binds){
-  let rss = await conn.execute(GET_RESPIRATORY_SUPPORT_VARIABLE_SQL,binds).then( ret=>ret.rows );
-  return rss;
+  let arr = await conn.execute(GET_RESPIRATORY_SUPPORT_VARIABLE_SQL,binds).then( ret=>ret.rows );
+
+  console.log("arr size: ", arr.length);
+
+  let result = [];
+  for (let row of arr) {
+    for (let property in row){
+      let num = row[property];
+
+      if (property == "RSS" || num == null || isNaN(num) || Number.isInteger(num)) {
+        continue;
+      }
+
+      if ((num + "").split(".")[1] == null) {
+      } else if ((num + "").split(".")[1].length > 2) {
+        row[property] = Math.round(num * 100) / 100;
+        console.log("~~ id = ", row.ID);
+
+      }      
+    }
+    result.push(row);
+  }
+  return result;
+}
+
+function precision(a) {
+  if (!isFinite(a)) return 0;
+  var e = 1, p = 0;
+  while (Math.round(a * e) / e !== a) { e *= 10; p++; }
+  return p;
 }
 
 const getRespiratorySupportVariable =  database.withConnection(getRespiratorySupportVariableSqlExecutor);
