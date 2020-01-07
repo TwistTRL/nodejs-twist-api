@@ -430,7 +430,7 @@ function _calculateRecords(dictResult, vitalsRecords, timeString) {
         result.push(singleResult);
       } else {
         // the first record
-        console.log("start pushing into array...");
+        // console.log("start pushing into array...");
       }
       currentStartTM = vitalsRecord.START_TM;
       singleResult = getSingleResult(dictResult, currentStartTM, (currentStartTM * 1 + timeInterval) + "");

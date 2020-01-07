@@ -86,7 +86,7 @@ function getRoomTimeResults(arr) {
       results.push(pendingResult);
       resultId++;
       let homeResult = {};
-      homeResult.name = "home";
+      homeResult.name = "alone";
       homeResult.start = pendingResult.end;
       homeResult.end = singleResult.start;
       homeResult.id = resultId;

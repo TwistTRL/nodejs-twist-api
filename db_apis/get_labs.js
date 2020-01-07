@@ -91,7 +91,7 @@ async function getLabSqlExecutorV2(conn, binds) {
         if (currentTime != 0) {
           cgArrayV2.push(singleSimpleRecord);
         } else {
-          console.log('start pushing into array...');
+          // console.log('start pushing into array...');
         }
         currentTime = labRecord.DT_UNIX;
         singleSimpleRecord = getSingleTimeRecord(currentTime);

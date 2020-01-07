@@ -80,8 +80,6 @@ async function getRespiratorySupportVariableSqlExecutor(conn,binds){
       if ((num + "").split(".")[1] == null) {
       } else if ((num + "").split(".")[1].length > 2) {
         row[property] = Math.round(num * 100) / 100;
-        console.log("~~ id = ", row.ID);
-
       }      
     }
     result.push(row);
