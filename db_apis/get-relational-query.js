@@ -1,8 +1,11 @@
 const database = require("../services/database");
 const sqlBuilder = require("../services/relational-query-sql-builder");
 
+var timeCount = 0;
+
 async function relationalQuerySQLExecutor(conn,query){
-  console.time('relationalQuery');
+  let consoleTimeCount = timeCount++;
+  console.time(`relationalQuery ${consoleTimeCount}`);
 
   let ret = {};
   let querySQL = "";
@@ -22,7 +25,7 @@ async function relationalQuerySQLExecutor(conn,query){
     let res = await conn.execute(sql,binds).then( res=>res.rows );
     ret[entity] = res;
   }
-  console.timeEnd('relationalQuery');
+  console.timeEnd(`relationalQuery ${consoleTimeCount}`);
   return ret;
 }
 

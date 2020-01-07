@@ -28,6 +28,7 @@ function initialize() {
 
       if (!webServerConfig.ipWhiteList.includes(req.connection.remoteAddress)) {
         res.send("IP ADDRESS NOT ALLOWED.");
+        console.log("ip address not allowed...")
       } else{
         next();
       }
