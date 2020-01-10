@@ -36,7 +36,7 @@ function initialize() {
 
     // Middleware
     app.use(cors());
-    app.use(timeout('6s'));
+    app.use(timeout('30s'));
     app.use(express.json());
     // note the use of haltOnTimedout after every middleware;
     // it will stop the request flow on a timeout
@@ -50,7 +50,7 @@ function initialize() {
       if (!req.timedout) {
         next();
       } else {
-        res.send("Timeout. > 6s");
+        res.send("Timeout. > 30s");
       }
     }
 

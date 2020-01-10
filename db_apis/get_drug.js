@@ -1,13 +1,15 @@
 /**
  * API FUNCTIONS FOR GETTING DRUG
  * 
+ * getOrangeDrug = get paralytics drug
+ * 
  * PENG 
  * 12/27/19
  * 
  */
 
 const database = require("../services/database");
-const {DRUG_INFUSIONS_LIST,DRUG_INTERMITTENT_LIST} = require("../db_relation/drug-category-relation");
+const {DRUG_INFUSIONS_LIST,DRUG_INTERMITTENT_LIST,ORANGE_DRUG_LIST} = require("../db_relation/drug-category-relation");
 
 
 const SQL_INFUSIONS_PART1 = `
@@ -20,6 +22,23 @@ SELECT
 FROM DRUG_INFUSIONS
 WHERE (1=0`
 
+const SQL_INFUSIONS_PART2 = `) AND PERSON_ID = :person_id
+ORDER BY START_UNIX, DRUG`
+
+
+const SQL_ORANGE_INFUSIONS_PART1 = `
+SELECT 
+  START_UNIX,
+  END_UNIX,
+  DRUG
+FROM DRUG_INFUSIONS
+WHERE (1=0`
+
+const SQL_ORANGE_INFUSIONS_PART2 = `) AND PERSON_ID = :person_id
+ORDER BY START_UNIX, DRUG`
+
+
+
 const SQL_INTERMITTENT_PART1 = `
 SELECT 
   DT_UNIX,
@@ -29,9 +48,6 @@ SELECT
   DOSAGE_UNITS
 FROM DRUG_INTERMITTENT
 WHERE (1=0`
-
-const SQL_INFUSIONS_PART2 = `) AND PERSON_ID = :person_id
-ORDER BY START_UNIX, DRUG`
 
 const SQL_INTERMITTENT_PART2 = `) AND PERSON_ID = :person_id
 ORDER BY DT_UNIX, DRUG`
@@ -52,6 +68,24 @@ async function getInfusionsSqlExecutor(conn,binds){
   console.timeEnd('getDrugInfusions');
   return jsonString;
 }
+
+async function getOrangeDrugSqlExecutor(conn,binds){
+  console.time('getOrangeDrug');
+  var SQL_Orange_Infusions = ``;
+
+  ORANGE_DRUG_LIST.forEach(function(item) {
+    SQL_Orange_Infusions += ` OR DRUG = '` + item + `'`; 
+  });
+
+  let SQL_ORANGE = SQL_ORANGE_INFUSIONS_PART1 + SQL_Orange_Infusions + SQL_ORANGE_INFUSIONS_PART2;
+  console.log("SQL_ORANGE = " + SQL_ORANGE);
+
+  let drugRecords = await conn.execute(SQL_ORANGE, binds);    
+  let jsonString = calculateOrangeDrugRecords(drugRecords);
+  console.timeEnd('getOrangeDrug');
+  return jsonString;
+}
+
 
 async function getIntermittentSqlExecutor(conn,binds){
   console.time('getDrugIntermittent');
@@ -95,6 +129,40 @@ function calculateInfusionsRecords(drugRecords) {
   return result;
 }
 
+function calculateOrangeDrugRecords(drugRecords) {
+  var result = [];
+  
+  // drugRecords = {"metadata":[], "rows":[]}
+  var arr = drugRecords.rows;
+  console.log("record size :", arr.length);
+
+  if (arr.length < 1) {
+    return [];
+  }
+
+  var start = 0;
+  var end = 0;
+  for (let drugRecord of arr) {
+    if (start == 0) {
+      start = drugRecord.START_UNIX;
+      end = drugRecord.END_UNIX;
+    } else {
+      if (end + 1 >= drugRecord.START_UNIX) {
+        // combine
+        end = Math.max(end, drugRecord.END_UNIX);
+      } else {
+        // seperated
+        result.push({"start" : start, "end" : end});
+        start = drugRecord.START_UNIX;
+        end = drugRecord.END_UNIX;
+      } 
+    }
+  }  
+  // last one
+  result.push({"start" : start, "end" : end});
+  return result;
+}
+
 
 
 function calculateIntermittentRecords(drugRecords) {
@@ -123,6 +191,7 @@ function calculateIntermittentRecords(drugRecords) {
 
 const getDrugInfusions = database.withConnection(getInfusionsSqlExecutor);
 const getDrugIntermittent = database.withConnection(getIntermittentSqlExecutor);
+const getOrangeDrug = database.withConnection(getOrangeDrugSqlExecutor);
 
 
 
@@ -135,5 +204,6 @@ const getDrugIntermittent = database.withConnection(getIntermittentSqlExecutor);
 
 module.exports = {
   getDrugInfusions,
+  getOrangeDrug,
   getDrugIntermittent
 };

@@ -58,6 +58,7 @@ const {
 } = require('../db_apis/get_labs');
 const {
   getDrugInfusions,
+  getOrangeDrug,
   getDrugIntermittent
 } = require('../db_apis/get_drug');
 
@@ -515,6 +516,7 @@ router.get('/person/:person_id/drug/intermittent', async (req, res) => {
  * @apiSuccess {Number} infusion_rate Value of this drug.
  * @apiSuccess {Number} from_timestamp start timestamp of this drug.
  * @apiSuccess {Number} to_timestamp end timestamp of this drug.
+ * @apiSuccess {String} unit_string unit string this drug.
 
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
@@ -523,7 +525,8 @@ router.get('/person/:person_id/drug/intermittent', async (req, res) => {
           "name": drug,
           "dose": infusion_rate,
           "start": from_timestamp,
-          "end": to_timestamp
+          "end": to_timestamp,
+          "unit": unit_string
         },
         ...
       ]
@@ -548,6 +551,57 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
     await getDrugInfusions(binds),
   );
 });
+
+
+/**
+ * @api {get} /person/:person_id/drug/paralytics Drug Paralytics
+ * @apiVersion 0.0.1
+ * @apiName Get Person Paralytics Drug Information
+ * @apiGroup Person
+ * @apiDescription Current Paralytics Drug names:
+ *
+[  "cisatracurium",
+  "vecuronium",
+  "pancuronium",
+  "rocuronium",
+  "atracurium" ];
+
+  Different paralytics drugs at the same (continuous) time will be combined.
+
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {Number} from_timestamp start timestamp of paralytics drugs.
+ * @apiSuccess {Number} to_timestamp end timestamp of paralytics drugs.
+
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+      [
+        {
+          "start": from_timestamp,
+          "end": to_timestamp
+        },
+        ...
+      ]
+ *
+ */
+router.get('/person/:person_id/drug/paralytics', async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log('getting paralytics drug infusions for %s ...', person_id);
+
+  if (!Number.isInteger(person_id)) {
+    res.send(
+      "Invalid person_id, should be integer."
+    );    
+    return;
+  }
+
+  const binds = {
+    person_id,
+  };
+  res.send(
+    await getOrangeDrug(binds),
+  );
+});
+
 
 
 
@@ -1348,8 +1402,8 @@ router.post('/relational-query', async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(500);
-    res.send(e.toString());
+    // res.status(500);
+    // res.send(e.toString());
   }
 });
 
