@@ -890,9 +890,13 @@ router.post('/vitals', async (req, res) => {
  * @apiGroup Vitals
  * @apiDescription Request vitals raw data from POST json
  * 
- * from table `VITAL_TST`
+ * data get from table `VITAL_TST`
  * 
  * null value vital records are skiped.
+ * 
+ * start timestamp >= 946684800 ( i.e. year 2000)
+ * 
+ * end timestamp <= new Date().getTime() / 1000 (i.e. current time)
  *
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
