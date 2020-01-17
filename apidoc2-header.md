@@ -37,8 +37,11 @@ Vitals type category list:
 
 SQL_COLUNM_NAME_FOR_CAT_VITAL_TYPE_ARRAY:
 
-
 `["MBP1", "SBP1", "DBP1", "SPO2_1", "HR_EKG","CVPM","RAP","LAPM","RR","TEMP1","TEMPCORE1"]`
+
+SQL_COLUNM_NAME_2ND_CHOICE:
+
+`["NBPM", "NBPS", "NBPD", null, null, null, null, null, null, null, null]`
 
 Table DEF_VITALS_LMT: 
 
@@ -49,9 +52,9 @@ Table DEF_VITALS_LMT:
 |...|...|...|...
 
 
-BIN_ID: Number from 1 to 106
+BIN_ID: Number from 1 to 271
 
-VITAL_TYPE: SQL_COLUNM_NAME_FOR_CAT_VITAL_TYPE_ARRAY
+VITAL_TYPE: SQL_COLUNM_NAME_FOR_CAT_VITAL_TYPE_ARRAY and SQL_COLUNM_NAME_2ND_CHOICE
 
 LMT_ST: number
 

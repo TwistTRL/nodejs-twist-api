@@ -910,6 +910,7 @@ router.post('/vitals', async (req, res) => {
         }
 
   * @apiSuccess {String} bin_id BIN_ID in Table 'DEF_VITALS_LMT' in DWTST-Schema.
+  * @apiSuccess {String} vital_type_string Vital type name such as "SBP1".
   * @apiSuccess {Number} lmt_st LMT_ST in Table 'DEF_VITALS_LMT' in DWTST-Schema.
   * @apiSuccess {Number} lmt_end LMT_END in Table 'DEF_VITALS_LMT' in DWTST-Schema.
   * @apiSuccess {Number} value Value number of this BIN_ID lab during from and to timestamps.
@@ -926,6 +927,7 @@ router.post('/vitals', async (req, res) => {
             {
               bin_id: value,
               ...
+              "name": vital_type_string,
               "from" : from_timestamp,
               "to" : to_timestamp,
               "time" : average_timestamp
@@ -962,6 +964,7 @@ router.post('/vitals', async (req, res) => {
 
  * @apiSuccess {String} perc Percentile String such as "perc25".
  * @apiSuccess {Number} perc_value Value of this percentile.
+ * @apiSuccess {String} vital_type_string Vital type name such as "SBP1".
  * @apiSuccess {Number} mean_value Value of VAL_MEAN.
  * @apiSuccess {Number} timestamp UNIX timestamp seconds of average start and end time.
  * @apiSuccessExample Success-Response:
@@ -970,6 +973,7 @@ router.post('/vitals', async (req, res) => {
           {
             perc: perc_value,
             ...
+            "name": vital_type_string,
             "mean": mean_value,
             "time": timestamp
           },
@@ -1004,12 +1008,14 @@ router.post('/vitals', async (req, res) => {
           "from":1542014000,
           "to":1542018000
         }
+ * @apiSuccess {String} vital_type_string Vital type name such as "SBP1".
  * @apiSuccess {Number} value Vitals raw data.
  * @apiSuccess {Number} timestamp time in Unix seconds.
  * @apiSuccessExample Success-Response:
  *     HTTP/1.1 200 OK
       [
         {
+          "name": vital_type_string,
           "value": value,
           "time": timestamp
         },
