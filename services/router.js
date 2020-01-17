@@ -883,6 +883,101 @@ router.post('/vitals', async (req, res) => {
 });
 
 
+
+/**
+ * @api {post} /vitalsv2 V2 Binned vitals
+ * @apiVersion 0.0.2
+ * @apiName Get Vitals Binned From STAGING_VITALS_BIN_XX
+ * @apiGroup Vitals
+ * @apiDescription Combined two sources for `mbp`, `sbp`, and `dbp`:
+ * 
+ * 1. `mbp`: `MBP1` first, if no data then check `NBPM`
+ * 
+ * 2. `sbp`: `SBP1` first, if no data then check `NBPS`
+ * 
+ * 3. `dbp`: `DBP1` first, if no data then check `NBPD`
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
+ * @apiParam {String="binned"} data_type Type of data.
+ * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
+ * @apiParamExample {json} POST json example
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "vital_type": "mbp",
+          "data_type": "binned",
+          "data_resolution": "1D"
+        }
+
+  * @apiSuccess {String} bin_id BIN_ID in Table 'DEF_VITALS_LMT' in DWTST-Schema.
+  * @apiSuccess {Number} lmt_st LMT_ST in Table 'DEF_VITALS_LMT' in DWTST-Schema.
+  * @apiSuccess {Number} lmt_end LMT_END in Table 'DEF_VITALS_LMT' in DWTST-Schema.
+  * @apiSuccess {Number} value Value number of this BIN_ID lab during from and to timestamps.
+  * @apiSuccess {Number} from_timestamp UNIX timestamp seconds for start time.
+  * @apiSuccess {Number} to_timestamp UNIX timestamp seconds for end time.
+  * @apiSuccess {Number} average_timestamp UNIX timestamp seconds for average of start and end time.
+  * @apiSuccessExample Success-Response:
+  *     HTTP/1.1 200 OK
+  *     [
+            {
+              bin_id : [lmt_st, lmt_end],
+              ...
+            },
+            {
+              bin_id: value,
+              ...
+              "from" : from_timestamp,
+              "to" : to_timestamp,
+              "time" : average_timestamp
+            }
+        ]
+
+  *
+  */
+
+/**
+ * @api {post} /vitalsv2 V2 Calc vitals
+ * @apiVersion 0.0.2
+ * @apiName Get Vitals Calc From STAGING_VITALS_CALC_XX
+ * @apiGroup Vitals
+ * @apiDescription Combined two sources for `mbp`, `sbp`, and `dbp`:
+ * 
+ * 1. `mbp`: `MBP1` first, if no data then check `NBPM`
+ * 
+ * 2. `sbp`: `SBP1` first, if no data then check `NBPS`
+ * 
+ * 3. `dbp`: `DBP1` first, if no data then check `NBPD`
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
+ * @apiParam {String="calc"} data_type Type of data.
+ * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
+ * @apiParamExample {json} POST json example
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "vital_type": "mbp",
+          "data_type": "calc",
+          "data_resolution": "1D"
+        }
+
+ * @apiSuccess {String} perc Percentile String such as "perc25".
+ * @apiSuccess {Number} perc_value Value of this percentile.
+ * @apiSuccess {Number} mean_value Value of VAL_MEAN.
+ * @apiSuccess {Number} timestamp UNIX timestamp seconds of average start and end time.
+ * @apiSuccessExample Success-Response:
+ *     HTTP/1.1 200 OK
+ *     [
+          {
+            perc: perc_value,
+            ...
+            "mean": mean_value,
+            "time": timestamp
+          },
+          ...
+       ]
+ *
+ */
+
 /**
  * @api {post} /vitalsv2 V2 Raw Vitals
  * @apiVersion 0.0.2
