@@ -29,6 +29,12 @@ const TNT = "TnT";
 const categoryList = [ALBUMIN, ALKPHOS, BNP,
   HCO3, BUN, CR, DDIMER, LACTATE, SVO2,
   SAO2, PACO2, PH, PAO2, TNI, TNT];
+
+
+const ABG_LIST = [PH, PACO2, PAO2, HCO3, SAO2];
+
+
+
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 // add all the category to a dictionary,
@@ -261,5 +267,6 @@ module.exports = {
   getCategory,
   categoryDictionary,
   getSingleTimeRecord,
-  getLabNameFromLabCat
+  getLabNameFromLabCat,
+  ABG_LIST
 }

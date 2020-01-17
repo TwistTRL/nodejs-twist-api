@@ -9,7 +9,7 @@
  */
 
 const database = require('../services/database');
-const {categoryList, getCategory, categoryDictionary, getSingleTimeRecord, getLabNameFromLabCat} = require('../db_relation/labs-category-config');
+const {categoryList, getCategory, categoryDictionary, getSingleTimeRecord, getLabNameFromLabCat, ABG_LIST} = require('../db_relation/labs-category-config');
 
 const GET_LABS_BY_PERSONID_SQL = `
 SELECT 
@@ -118,6 +118,108 @@ const getLab = database.withConnection(getLabSqlExecutor);
 const getLabV2 = database.withConnection(getLabSqlExecutorV2);
 
 
+
+
+
+
+
+
+
+const GET_ABG_BY_PERSONID_SQL_PART1 = `
+SELECT 
+  LAB,
+  DT_UNIX,
+  VALUE
+FROM LABS
+WHERE PERSON_ID = :person_id AND (1=0 `
+
+const GET_ABG_BY_PERSONID_SQL_PART2 = 
+`)
+ORDER BY DT_UNIX
+`;
+
+
+const getABGLab = () => {
+  var ABG_LAB_SQL = '';
+  ABG_LIST.forEach(function(item) {
+    getLabNameFromLabCat(item).forEach(function(labname) {
+      ABG_LAB_SQL += (` OR LAB = '` + labname + `'`);
+    })
+  })
+  return ABG_LAB_SQL;
+}
+
+
+
+async function getABGSqlExecutor(conn, binds) {
+  console.time('abg');
+  let SQL_TOTAL = GET_ABG_BY_PERSONID_SQL_PART1 + getABGLab() + GET_ABG_BY_PERSONID_SQL_PART2;
+  console.log("getABGSql = ",SQL_TOTAL);
+
+  const lab = await conn.execute(SQL_TOTAL, binds);
+  let result = [];
+
+  // lab = {"metadata":[], "rows":[]}
+  let arr = lab['rows'];
+  console.log('ABG size of current person', arr.length);
+  if (arr.length < 1) {
+    return null;
+  }
+
+  let currentTime = 0;
+  for (const labRecord of arr) {
+    // SINGLE_LABREPORT labRecord = {"PERSON_ID":...,"ORDER_ID":...,"DT_UTC":...,"EVENT_CD":...,"LAB":"...",...}
+    const categoryString = getCategory(labRecord.LAB);
+    if (categoryString !== null) {
+      // Since we only need "DT_UNIX" and "VALUE" in the labRecord
+      // an example for singleSimpleRecord:
+      // {
+      //   "time": 1524725340,
+      //   "SvO2": "69",
+      //   "Lactate": "4.5"
+      // }
+      var singleSimpleRecord;
+
+      // time was sorted when sql query done.
+      // for a currentTime same with last record, add all categoryString to this singleSimpleRecord
+      // for a new currentTime, create a new dictionary with timestamp
+
+      if (currentTime != labRecord.DT_UNIX) {
+        if (currentTime != 0) {
+          result.push(singleSimpleRecord);
+        } else {
+          // console.log('start pushing into array...');
+        }
+        currentTime = labRecord.DT_UNIX;
+        singleSimpleRecord = getSingleTimeRecord(currentTime);
+      }
+
+      singleSimpleRecord[categoryString] = labRecord.VALUE*1;
+    }
+  }
+  // last item
+  if (result[result.length - 1] != singleSimpleRecord) {
+    result.push(singleSimpleRecord);
+  }
+  console.timeEnd('abg');
+
+
+
+  return result;
+}
+
+
+
+
+
+
+
+
+
+
+const getABG = database.withConnection(getABGSqlExecutor);
+
+
 /**
  *
  * getLab:
@@ -189,5 +291,6 @@ const getLabV2 = database.withConnection(getLabSqlExecutorV2);
 
 module.exports = {
   getLab,
-  getLabV2
+  getLabV2,
+  getABG
 };
