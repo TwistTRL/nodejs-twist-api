@@ -72,7 +72,7 @@ async function getPersonSqlExecutor(conn,person_id){
   let person = {...person_basics};
   person["NAMES"] = person_names;
   person["MRNS"] = person_mrns;
-  person["PHONES"] = person_phones;  
+  // person["PHONES"] = person_phones;  
   return person;
 }
 
@@ -87,7 +87,7 @@ async function getManyPersonSqlExecutor(conn,binds){
 async function getPersonFromMRNSqlExecutor(conn,mrn){
   let person_ids = await conn.execute(GET_PERSON_ID_SQL + `'` + mrn + `'`).then( res=>res.rows );
   if (person_ids == null || person_ids.length == 0) {
-    return null;
+    return [];
   }
   var result = [];
   for (let person_id of person_ids) {

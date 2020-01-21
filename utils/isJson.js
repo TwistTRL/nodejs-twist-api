@@ -1,6 +1,12 @@
+/*
+ * @Author: Peng 
+ * @Date: 12/26/19
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-01-21 15:08:49
+ */
 /**
  * PENG 
- * 12/26/19
+ * 
  * 
  */
 
@@ -122,18 +128,19 @@ var validate_inout = validator({
       type: 'number'
     },
     from: {
-      required: true,
+      required: false,
       type: 'number'
     },
     to: {
-      required: true,
+      required: false,
+      type: 'number'
+    },
+    resolution: {
+      required: false,
       type: 'number'
     }
   }
 });
-
-
-
 
 module.exports = {
   validate_vitals_sampled,

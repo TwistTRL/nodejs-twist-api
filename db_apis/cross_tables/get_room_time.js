@@ -13,7 +13,7 @@ FROM
 
 const SQL_PART2 = `
 SELECT 
-NURSE_UNIT.NAME, TEMP.START_UNIX_TS, TEMP.END_UNIX_TS
+NURSE_UNIT.NAME AS NAME, TEMP.START_UNIX_TS, TEMP.END_UNIX_TS, ROOM.NAME AS ROOM_NAME, BED.NAME AS BED_NAME
 FROM
   TEMP JOIN BED USING(BED_CD)
   JOIN ROOM USING(ROOM_CD)
@@ -56,12 +56,16 @@ function getRoomTimeResults(arr) {
   let pendingResult;
   var resultId = 0;
 
+
   for (let NUrecord of arr) {
+    // console.log("location: ", NUrecord);
+
     let singleResult = {};
     // console.log("NUrecord.NAME = [" + NUrecord.NAME + "]");
 
-    singleResult.name = NURSE_UNIT_DICTIONARY[NUrecord.NAME];
-    // console.log("singleResult.name = ", singleResult.name);
+    singleResult.name = NUrecord.NAME;
+    singleResult.room_name = NUrecord.ROOM_NAME;
+    singleResult.bed_name = NUrecord.BED_NAME;
     singleResult.start = NUrecord.START_UNIX_TS;
     singleResult.end = NUrecord.END_UNIX_TS;
     if (pendingResult == null) {
@@ -69,7 +73,10 @@ function getRoomTimeResults(arr) {
       continue;
     }
 
-    if (pendingResult.name == singleResult.name && pendingResult.end == singleResult.start) {
+    if (pendingResult.name == singleResult.name 
+      && pendingResult.room_name == singleResult.room_name 
+      && pendingResult.bed_name == singleResult.bed_name
+      && pendingResult.end == singleResult.start) {
       pendingResult.end = singleResult.end;
       continue;
     }
@@ -77,6 +84,7 @@ function getRoomTimeResults(arr) {
     if (pendingResult.end > singleResult.start) {
       console.log("error on result time: ", pendingResult.end);
     } else if (pendingResult.end == singleResult.start){
+
       pendingResult.id = resultId;
       results.push(pendingResult);  
 
@@ -87,6 +95,8 @@ function getRoomTimeResults(arr) {
       resultId++;
       let homeResult = {};
       homeResult.name = "unknown";
+      homeResult.room_name = "";
+      homeResult.bed_name = "";
       homeResult.start = pendingResult.end;
       homeResult.end = singleResult.start;
       homeResult.id = resultId;
@@ -105,7 +115,6 @@ function getRoomTimeResults(arr) {
     pendingResult.id = resultId;
     results.push(pendingResult);
   }
-
 
   return results; 
 }

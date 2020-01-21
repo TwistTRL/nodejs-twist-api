@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:33:57 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-21 10:48:29
+ * @Last Modified time: 2020-01-21 17:18:38
  */
 
 
@@ -551,9 +551,9 @@ const inOutCodesJSON =
 
 const inOutCodes = inOutCodesJSON[0];
 
-inOutDict = {};
+IN_OUT_DICT = {};
 inOutCodesJSON.forEach((item) => {
-  inOutDict[item.EVENT_CD] = item;
+  IN_OUT_DICT[item.EVENT_CD] = item;
 })
 
-module.exports = inOutDict;
+module.exports = IN_OUT_DICT;

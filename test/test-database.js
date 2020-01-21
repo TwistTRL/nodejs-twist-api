@@ -10,7 +10,7 @@ const { expect } = chai;
 chai.use(chaiHttp);
 
 
-describe('application test', function() {
+describe('API test', function() {
     var date;
     this.timeout(5000);
 

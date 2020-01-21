@@ -1,5 +1,10 @@
-/* eslint-disable camelcase */
-/* eslint-disable max-len */
+/*
+ * @Author: Mingyu/Peng 
+ * @Date: 
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-01-21 15:58:03
+ */
+
 const express = require('express');
 const path = require('path');
 const router = new express.Router();
@@ -101,12 +106,12 @@ const {
 } = require('../test/test_abnormal_mrn');
 
 
-// ````````````````````````````````````````````````````
+// ------------------------------------------------------------------------
 // apidoc folder is a static files folder
 // user express.static to display this index.html
-// ````````````````````````````````````````````````````
 router.use('/', express.static(__dirname + '/../docs/apidoc'));
 router.use('/apidoc2', express.static(__dirname + '/../docs/apidoc2'));
+// ------------------------------------------------------------------------
 
 // ``````````````````````````````````````````````
 //         api start
@@ -121,7 +126,7 @@ router.use('/apidoc2', express.static(__dirname + '/../docs/apidoc2'));
  * @apiSuccess {Number} timestamp UNIX Timestamp seconds of the lab.
  * @apiSuccess {Number} labValue Value of this lab.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
  *     {
  *       labName: [
  *                    {
@@ -177,7 +182,7 @@ router.get('/person/:person_id/labs', async (req, res) => {
  * @apiSuccess {Number} timestamp UNIX Timestamp seconds of the lab.
  * @apiSuccess {Number} labValue Value of this lab.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
  *     {
  *       labName: [
  *                    {
@@ -217,7 +222,7 @@ router.post('/labs', async (req, res) => {
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
  * @apiSuccess {Number} labValue Value of this lab.
  * @apiSuccessExample Success-Response:
- *    HTTP/1.1 200 OK
+ *     
       {
         "keys":
           [
@@ -319,7 +324,7 @@ router.get('/person/:person_id/abg', async (req, res) => {
  * @apiSuccess {Number} to_timestamp UNIX timestamp seconds for end time.
  * @apiSuccess {Number} average_timestamp UNIX timestamp seconds for average of start and end time.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
       [
         {
           range: value,
@@ -420,7 +425,7 @@ router.get('/person/:person_id/vitals/hr/binned/5M', async (req, res) => {
  * @apiSuccess {Number} to_timestamp UNIX timestamp seconds for end time.
  * @apiSuccess {Number} average_timestamp UNIX timestamp seconds for average of start and end time.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
       [
         {
           bin_id : [lmt_st, lmt_end],
@@ -521,7 +526,7 @@ router.get('/person/:person_id/vitals/hr/binnedv2/5M', async (req, res) => {
  * @apiSuccess {Number} mean_value Value of VAL_MEAN.
  * @apiSuccess {Number} timestamp UNIX timestamp seconds of average start and end time.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
       [
         {
           perc: perc_value,
@@ -624,7 +629,7 @@ router.get('/person/:person_id/vitals/hr/calc/5M', async (req, res) => {
  * @apiSuccess {Number} admin_dosage Dose of this drug.
  * @apiSuccess {Number} timestamp timestamp of this drug.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
       [
         {
           "name": drug,
@@ -670,7 +675,7 @@ router.get('/person/:person_id/drug/intermittent', async (req, res) => {
  * @apiSuccess {String} unit_string unit string this drug.
 
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
       [
         {
           "name": drug,
@@ -722,7 +727,7 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
  * @apiSuccess {Number} to_timestamp end timestamp of paralytics drugs.
 
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
       [
         {
           "start": from_timestamp,
@@ -769,13 +774,15 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
  * if type = `2`, value is negotive (out)
  *
  * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {Number} from Start timestamp.
- * @apiParam {Number} to End timestamp.
+ * @apiParam {Number} [from=0] Start timestamp.
+ * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
+ * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
           "person_id": EXAMPLE_PERSON_ID,
           "from":1542014000,
-          "to":1542018000
+          "to":1542018000,
+          "resolution":3600
         }
  * @apiSuccess {String} io_cat_string Name of IO category.
  * @apiSuccess {Number} timestamp time in Unix seconds.
@@ -790,8 +797,8 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
           "name": io_cat_string,
           "time": timestamp,
           "type": type_number,
-          "eventDef": event_string,
-          "subName": io_subcat_string,
+          "event_def": event_string,
+          "sub_cat": io_subcat_string,
           "value": value
         },
         ...
@@ -849,7 +856,7 @@ router.post('/inout', async (req, res) => {
   * @apiSuccess {Number} to_timestamp UNIX timestamp seconds for end time.
   * @apiSuccess {Number} average_timestamp UNIX timestamp seconds for average of start and end time.
   * @apiSuccessExample Success-Response:
-  *     HTTP/1.1 200 OK
+  *      
   *     [
             {
               bin_id : [lmt_st, lmt_end],
@@ -889,7 +896,7 @@ router.post('/inout', async (req, res) => {
  * @apiSuccess {Number} mean_value Value of VAL_MEAN.
  * @apiSuccess {Number} timestamp UNIX timestamp seconds of average start and end time.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
  *     [
           {
             perc: perc_value,
@@ -927,7 +934,7 @@ router.post('/inout', async (req, res) => {
  * @apiSuccess {Number} value Vitals raw data.
  * @apiSuccess {Number} timestamp time in Unix seconds.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
       [
         {
           "value": value,
@@ -989,7 +996,7 @@ router.post('/vitals', async (req, res) => {
   * @apiSuccess {Number} to_timestamp UNIX timestamp seconds for end time.
   * @apiSuccess {Number} average_timestamp UNIX timestamp seconds for average of start and end time.
   * @apiSuccessExample Success-Response:
-  *     HTTP/1.1 200 OK
+  *      
   *     [
             {
               bin_id : [lmt_st, lmt_end],
@@ -1039,7 +1046,7 @@ router.post('/vitals', async (req, res) => {
  * @apiSuccess {Number} mean_value Value of VAL_MEAN.
  * @apiSuccess {Number} timestamp UNIX timestamp seconds of average start and end time.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
  *     [
           {
             perc: perc_value,
@@ -1083,7 +1090,7 @@ router.post('/vitals', async (req, res) => {
  * @apiSuccess {Number} value Vitals raw data.
  * @apiSuccess {Number} timestamp time in Unix seconds.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
       [
         {
           "name": vital_type_string,
@@ -1124,7 +1131,7 @@ router.post('/vitalsv2', async (req, res) => {
  * @apiSuccess {Number} data_value Heart rate raw data.
  * @apiSuccess {Number} timestamp time in Unix seconds.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
       [
         {
           "value": data_value,
@@ -1203,7 +1210,7 @@ router.get('/person/:person_id/vitals/hr/raw', async (req, res) => {
  * @apiSuccess {Number} str2Length Result from API2.
  * @apiSuccess {Number} sameNumber Count same number of chars of 2 results.
  * @apiSuccessExample Success-Response:
-        HTTP/1.1 200 OK
+         
         Test success.
         207613: 'POST /vitals' get characters length.
         207613: 'GET /person/:person_id/vitals/hr/calc' get characters length.
@@ -1440,20 +1447,27 @@ router.get('/person/:person_id/personnel', async (req, res) => {
 
 /**
  * @api {get} /person/:person_id/nurse-unit Nurse Unit For Patient
- * @apiVersion 0.0.2
+ * @apiVersion 0.0.3
  * @apiName Get Nurse Unit Time For Patient
  * @apiGroup Person
- * @apiDescription Only keep `8s` or `8e` for nurse unit name. others are `other` if other nurse units or `home` if empty. 
+ * @apiDescription 
+ * 
+ * Only keep `08 South` or `08 East` for nurse unit name. Others are `other` if other nurse units or `unknow` if empty. 
+ * When nurse unit name is `unknow`, room name and bed name are `` (empty). 
  * 
  * add `id` for each record.
  * @apiParam {Number} person_id Patient unique ID.
- * @apiSuccess {String} Nurse_Unit_Name Nurse Unit name for patient.
+ * @apiSuccess {String} nurse_unit_Name Nurse Unit name for patient.
+ * @apiSuccess {String} room_name Room name for patient.
+ * @apiSuccess {String} bed_name Bed name for patient.
  * @apiSuccess {Number} timestamp Timestamp of this room.
  * @apiSuccess {Number} id_number count id for results.
 
  * @apiSuccessExample Success-Response:
       {
-        "name": Nurse_Unit_Name,
+        "name": nurse_unit_Name,
+        "room_name": room_name,
+        "bed_name": bed_name,
         "start": timestamp,
         "end": timestamp,
         "id": id_number       
@@ -1602,7 +1616,7 @@ router.get('/HeartRate', async (req, res) => {
  * @apiSuccess {Number} person_id Patient unique ID.
  * @apiSuccess {Number} unix_time Unix Second Time.
  * @apiSuccessExample Success-Response:
- *     HTTP/1.1 200 OK
+ *      
             
       {
         "0": {
