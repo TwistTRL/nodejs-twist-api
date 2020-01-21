@@ -37,6 +37,7 @@ API documentation: web browser `twist:3333/api/`
 
 ## File Structure
 
+```bash
 .
 ├── apidoc2-header.md
 ├── apidoc-header.md
@@ -114,7 +115,7 @@ API documentation: web browser `twist:3333/api/`
     ├── errors.js
     ├── isJson.js
     └── relationalJSON.js
-
+```
 
 ## Special Thanks
 This repo starts from a clone of the code here:
