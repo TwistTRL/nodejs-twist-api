@@ -1,3 +1,7 @@
+/**
+ * 
+ */
+
 const database = require("../services/database");
 const {
   getSingleBinnedResult,
@@ -80,7 +84,6 @@ function _getQueryType(query) {
   }
   console.log("v2 type: get raw");
   return DATATYPE.RAW;
-
 }
 
 function _getSqlTable(query) {
@@ -131,7 +134,6 @@ function _getSqlTable(query) {
 
 
 //~~~~~~~~~~~~~~~~~~~~~ raw ~~~~~~~~~~~~
-
 // get raw vitals between two timestamp
 const SQL_GET_RAW_PART1 = `
 SELECT
@@ -273,7 +275,6 @@ function combine2RawResults(rawRecord, vitalType, rawRecord2nd, vitalType2nd) {
   }
 
   // the rest of arr1 or arr2
-
   while (h2 < arr2.length) {
     let singleResult = {};
     singleResult.name = vitalType2nd;
@@ -416,11 +417,18 @@ function _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, vitalType
     let count2nd = 0;
     let currentStartTM = 0;
     var singleResult;
+    let records_start_time = Math.min(arr1[0].START_TM, arr2[0].START_TM);
     //example one record = {"START_TM": "1524657600", "END_TM": "1524700800", "BIN_ID": "9", "VAL": 9}
 
     let h1 = 0; // index of arr1
     let h2 = 0; // index of arr2
     while (h1 < arr1.length && h2 < arr2.length) {
+
+
+      // todo remove this later
+      if ( !(arr2[h2].START_TM - records_start_time) % timeInterval) {
+        console.warn("Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+      }
 
       if (arr1[h1].START_TM == arr2[h2].START_TM) {
         // both at this time, keep data from arr1
@@ -486,7 +494,7 @@ function _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, vitalType
       if (arr2[h2].END_TM * 1 - arr2[h2].START_TM * 1 != timeInterval) {
         console.warn("Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
       }
-      
+
       if (currentStartTM != arr2[h2].START_TM) {
         if (currentStartTM != 0) {
           result.push(singleResult);
@@ -675,11 +683,18 @@ function combine2CalcResults(vitalsRecords, vitalType, vitalsRecords2nd, vitalTy
   let arr2 = vitalsRecords2nd.rows;
   console.log("vitals calc record size :", arr1.length);
   console.log("vitals calc2 record size :", arr2.length);
+  let records_start_time = Math.min(arr1[0].START_TM, arr2[0].START_TM);
 
   let h1 = 0; // index of arr1
   let h2 = 0; // index of arr2
   let count2nd = 0;
   while (h1 < arr1.length && h2 < arr2.length) {
+
+    if ( !(arr2[h2].START_TM - records_start_time) % timeInterval) {
+      console.warn("Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+    }
+
+
     if (arr1[h1].END_TM * 1 - arr1[h1].START_TM * 1 != timeInterval) {
       console.log("Error for " + vitalType + " with " + arr1[h1].START_TM + ", " + arr1[h1].END_TM);
     }

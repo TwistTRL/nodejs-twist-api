@@ -67,6 +67,10 @@ const {
 } = require('../db_apis/get_drug');
 
 const {
+  getInOutQuery
+} = require('../db_apis/get-in-out');
+
+const {
   testHr
 } = require('../test/test-vitals');
 const {
@@ -750,6 +754,73 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
 
 
 
+/**
+ * @api {post} /inout In-Out for Patient
+ * @apiVersion 0.0.2
+ * @apiName Get in-out for patient
+ * @apiGroup Person
+ * @apiDescription Request in-out data from POST json
+ * 
+ * from table `INTAKE_OUTPUT`
+ * 
+ * null value records are skiped.
+ * 
+ * if type = `1`, value is positive (in);
+ * if type = `2`, value is negotive (out)
+ *
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {Number} from Start timestamp.
+ * @apiParam {Number} to End timestamp.
+ * @apiParamExample {json} Example of request in-out data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from":1542014000,
+          "to":1542018000
+        }
+ * @apiSuccess {String} io_cat_string Name of IO category.
+ * @apiSuccess {Number} timestamp time in Unix seconds.
+ * @apiSuccess {Number} type_number 1 (in) or 2 (out).
+ * @apiSuccess {Number} value IO value.
+ * @apiSuccess {String} io_subcat_string Name of IO sub-category.
+ * @apiSuccess {String} event_string Defination of event.
+
+ * @apiSuccessExample Success-Response:
+ *    [
+        {
+          "name": io_cat_string,
+          "time": timestamp,
+          "type": type_number,
+          "eventDef": event_string,
+          "subName": io_subcat_string,
+          "value": value
+        },
+        ...
+      ]
+ *
+ */
+
+router.post('/inout', async (req, res) => {
+  const query = req.body;
+  const person_id = query.person_id;
+  if (!Number.isInteger(person_id)) {
+    res.send(
+      "Invalid person_id, should be integer."
+    );
+    return;
+  }
+
+  try {
+    const toSend = await getInOutQuery(query);
+    res.send(
+      toSend,
+    );
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
+});
 
 
 // ~~~~~~~~-----------------------------

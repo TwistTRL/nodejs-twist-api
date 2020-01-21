@@ -35,6 +35,8 @@ function withConnection(func) {
         process.exit(10);
       } 
 
+      return e_string;
+
     }
 
   }

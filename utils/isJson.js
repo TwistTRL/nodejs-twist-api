@@ -104,10 +104,40 @@ var validate_labs = validator({
   }
 });
 
+/**
+ * 
+ * 
+ * {
+    "person_id": 11111111,
+    "from": 1542014000,
+    "to": 1542018000
+}
+ */
+var validate_inout = validator({
+  required: true,
+  type: 'object',
+  properties: {
+    person_id: {
+      required: true,
+      type: 'number'
+    },
+    from: {
+      required: true,
+      type: 'number'
+    },
+    to: {
+      required: true,
+      type: 'number'
+    }
+  }
+});
+
+
 
 
 module.exports = {
   validate_vitals_sampled,
   validate_vitals_raw,
-  validate_labs
+  validate_labs,
+  validate_inout
 }
