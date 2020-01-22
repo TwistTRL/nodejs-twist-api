@@ -20,6 +20,27 @@ for (let i = 0; i < VITAL_TYPE_COUNT; i++) {
 }
 
 
+
+/**
+ * 
+ * @param {*} dictResult  
+ * @param {*} START_TM 
+ * @param {*} END_TM 
+ */
+function getSingleResult(dictResult, START_TM, END_TM) {
+  let binDict = {};
+  for (var key in dictResult) {
+    binDict[key] = 0;
+  }
+
+  binDict["from"] = START_TM*1;
+  binDict["to"] = END_TM*1;
+  binDict["time"] = START_TM/2 + END_TM/2;
+
+  return binDict;
+}
+
+
 /**
  * 
  * @param {*} dictResult  
@@ -48,6 +69,7 @@ function getSingleRawResult() {
 }
 
 module.exports = {
+  getSingleResult,
   getSingleBinnedResult,
   getSingleRawResult,
   CAT_VITAL_TYPE_ARRAY,

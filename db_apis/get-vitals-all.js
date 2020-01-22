@@ -1,6 +1,6 @@
 const database = require("../services/database");
 const {
-  getSingleBinnedResult,
+  getSingleResult,
   getSingleRawResult,
   CAT_VITAL_TYPE_ARRAY,
   SQLVitalTypeDict
@@ -433,7 +433,7 @@ function _calculateRecords(dictResult, vitalsRecords, timeString) {
         // console.log("start pushing into array...");
       }
       currentStartTM = vitalsRecord.START_TM;
-      singleResult = getSingleBinnedResult(dictResult, currentStartTM, (currentStartTM * 1 + timeInterval) + "");
+      singleResult = getSingleResult(dictResult, currentStartTM, (currentStartTM * 1 + timeInterval) + "");
       // console.log("singleResult = ", singleResult);
     }
 
