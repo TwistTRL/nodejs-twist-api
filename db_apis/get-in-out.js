@@ -2,13 +2,21 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:12:26 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-21 17:17:46
+ * @Last Modified time: 2020-01-22 16:43:36
  */
 
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
-const IN_OUT_DICT = require("../db_relation/in-out-db-relation");
+const {
+  EVENT_CD_DICT,
+  SL_TO_LABEL,
+  SL_TO_SUBCAT,
+  SL_TO_CAT,
+  SL_TO_CALCS,
+  IN_OUT_COLOR_MAP,
+  CAT_CAP_TO_LOWER_MAP,
+} = require("../db_relation/in-out-db-relation");
 
 
 // get raw in-out between two timestamp
@@ -22,9 +30,9 @@ FROM INTAKE_OUTPUT
 WHERE PERSON_ID = `
 
 const SQL_GET_IN_OUT_PART2 = `
-AND DT_UNIX > `
+AND DT_UNIX >= `
 
-const SQL_GET_IN_OUT_PART3 = ` AND DT_UNIX < `
+const SQL_GET_IN_OUT_PART3 = ` AND DT_UNIX <= `
 
 const SQL_GET_IN_OUT_PART4 = ` 
 ORDER BY DT_UNIX
@@ -77,6 +85,9 @@ function _calculateRawRecords(rawRecord, timeInterval) {
     return [];
   }
 
+  // 1. set currentTime, put all the records have the same time or in the same time slot with currentTime into an array
+  // 2. using handelSameTimeArray() to calculate the array and push to result array
+  // 3. continue step 1.
   let currentSameTimeArray = [];
   let currentTime = 0;
 
@@ -93,6 +104,8 @@ function _calculateRawRecords(rawRecord, timeInterval) {
       console.log("row.IO_CALCS error");
     }
 
+    row.SHORT_LABEL = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
+
     // first item or new array
     if (currentSameTimeArray.length == 0) {
       currentSameTimeArray.push(row);
@@ -101,20 +114,24 @@ function _calculateRawRecords(rawRecord, timeInterval) {
     }
 
     // if same time with previous record, combine to category
-    if (currentTime == row.DT_UNIX) {
+    if (currentTime + timeInterval > row.DT_UNIX ) {
       currentSameTimeArray.push(row);
       continue;
     } 
 
+    // if not same time, push the calculated previous array and start with this new one
     if (currentSameTimeArray != null && currentSameTimeArray.length != 0) {
-      let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray);
+      let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);
       result.push(...combinedSameTimeArray);
     }
-    currentSameTimeArray = [];
+
+    currentSameTimeArray.push(row);
+    currentTime = row.DT_UNIX; 
+  
   }
 
   if (currentSameTimeArray != null && currentSameTimeArray.length != 0) {
-    let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray);
+    let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);
     result.push(...combinedSameTimeArray);
   }
 
@@ -122,48 +139,59 @@ function _calculateRawRecords(rawRecord, timeInterval) {
   return result;
 }
 
-
-function handelSameTimeArray(array) {
+/**
+ * 
+ * 
+ * @param {*} array 
+ * @param {*} timeOfArray 
+ * @param {*} timeInterval timeInterval would be 3600 * n. if timeInterval === 3600, will return
+ *                         record include short_label ==''. If timeInterval != 3600, won't return 
+ *                         record include short_label ==''.
+ */
+function handelSameTimeArray(array, timeOfArray, timeInterval) {
   let dict = {};
   let resultSameTime = [];
-  let timeOfArray = array[0].DT_UNIX;
 
   for (let row of array) {
-    //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "IO_CALCS": 1, "VALUE": 0.9}
+    //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "IO_CALCS": 1, "VALUE": 0.9, "SHORT_LABEL": "VAC"}
 
     // todo, now combined with event cd
     // color not working
 
     let value;
-    if (row.EVENT_CD in dict) {
+    if (row.SHORT_LABEL in dict) {
       if (row.IO_CALCS == 2) {
         value = Math.abs(row.VALUE) * -1;
       } else {
         value = Math.abs(row.VALUE) * 1;
       }
-      dict[row.EVENT_CD] += value;
+      dict[row.SHORT_LABEL] += value;
     } else {
       if (row.IO_CALCS == 2) {
         value = Math.abs(row.VALUE) * -1;
       } else {
         value = Math.abs(row.VALUE) * 1;
       }
-      dict[row.EVENT_CD] = value;
+      dict[row.SHORT_LABEL] = value;
     }
   }
 
-  // {"2798974": 0.9, "2798975": 1.1}
+  // {"VAC": 0.9, "PIG1": 1.1}
   for (let key in dict) {
-    let singleResult = {};
-    let singleEventMap = IN_OUT_DICT[key];
-    singleResult.value = dict[key];
-    singleResult.cat = singleEventMap.IO_CAT;
-    singleResult.sub_cat = singleEventMap.Subcat;
-    singleResult.label = singleEventMap.LABEL;
-    singleResult.short_label = singleEventMap.SHORT_LABEL;
-    singleResult.color = "green";
-    singleResult.time = timeOfArray;
-    resultSameTime.push(singleResult);
+    // skip for (timeInterval != 3600 and short_label is empty)
+    if (timeInterval == 3600 || key !='') {
+      let singleResult = {};
+      // console.log("key: ", key);
+      singleResult.value = dict[key];
+      singleResult.cat = CAT_CAP_TO_LOWER_MAP[SL_TO_CAT[key]];
+      singleResult.sub_cat = SL_TO_SUBCAT[key];
+      singleResult.label = SL_TO_LABEL[key];
+      singleResult.short_label = key;
+      singleResult.color = IN_OUT_COLOR_MAP[singleResult.cat] || "#fafafa";
+      singleResult.time = timeOfArray;
+      singleResult.type = SL_TO_CALCS[key];
+      resultSameTime.push(singleResult);
+    }
   }
   return resultSameTime;
 }
@@ -181,6 +209,14 @@ const getInOutQuery = database.withConnection(async function (conn, query) {
     from: query.from || 0,
     to: query.to || new Date().getTime() / 1000,
     resolution: query.resolution || 3600
+  }
+
+  if (new_query.resolution <= 0) {
+    throw new InputInvalidError('"resolution" must be >= 3600');
+  }
+
+  if (new_query.resolution % 3600 != 0) {
+    throw new InputInvalidError('"resolution" must be 3600 * n (n ∈ N)');
   }
 
   return await inOutQuerySQLExecutor(conn, new_query); 
