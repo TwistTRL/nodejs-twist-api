@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:12:26 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-23 13:44:43
+ * @Last Modified time: 2020-01-23 14:33:09
  */
 
 const database = require("../services/database");
@@ -120,6 +120,11 @@ function _calculateRawRecords(rawRecord, timeInterval) {
         result.push(...combinedSameTimeArray);
         currentSameTimeArray = [];
       }
+
+      if (timeInterval != 3600) {
+        continue;
+      }
+      
       let singleType0Result = {};
       singleType0Result.value = row.VALUE;
       singleType0Result.cat = EVENT_CD_DICT[row.EVENT_CD].IO_CAT;
