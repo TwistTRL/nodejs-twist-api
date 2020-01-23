@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:12:26 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-23 10:00:18
+ * @Last Modified time: 2020-01-23 11:58:10
  */
 
 const database = require("../services/database");
@@ -63,8 +63,7 @@ async function inOutQuerySQLExecutor(conn, query) {
 
   let SQL_GET_IN_OUT = SQL_GET_IN_OUT_PART1 + query[PERSON_ID] + SQL_GET_IN_OUT_PART2 + query[FROM] * 1 +
   SQL_GET_IN_OUT_PART3 + query[TO] * 1 + SQL_GET_IN_OUT_PART4;
-
-  console.log("get in-out: ", SQL_GET_IN_OUT);
+  console.log("SQL for in-out: ", SQL_GET_IN_OUT);
   console.time('getInOUt-sql' + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT);
   console.timeEnd('getInOUt-sql' + timestampLable);
@@ -79,11 +78,11 @@ function _calculateRawRecords(rawRecord, timeInterval) {
   var countNull = 0;
   // rawRecord = {"metadata":[], "rows":[]}
   var arr = rawRecord.rows;
-  console.log("In-OUt Raw record size :", arr.length);
 
-  if (arr.length < 1) {
+  if (!arr || arr.length < 1) {
     return [];
   }
+  console.log("In-OUt Raw record size :", arr.length);
 
   // 1. set currentTime, put all the records have the same time or in the same time slot with currentTime into an array
   // 2. using handelSameTimeArray() to calculate the array and push to result array
@@ -97,7 +96,6 @@ function _calculateRawRecords(rawRecord, timeInterval) {
     // skip null value vital records;
     if (row.VALUE == null) {
       countNull++;
-      continue;
     }
 
     if (row.IO_CALCS != 0 && row.IO_CALCS != 1 && row.IO_CALCS != 2) {
@@ -121,20 +119,18 @@ function _calculateRawRecords(rawRecord, timeInterval) {
 
     // if not same time, push the calculated previous array and start with this new one
     if (currentSameTimeArray != null && currentSameTimeArray.length != 0) {
-      let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);
+      let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);      
       result.push(...combinedSameTimeArray);
+      currentSameTimeArray = [];
     }
-
     currentSameTimeArray.push(row);
-    currentTime = row.DT_UNIX; 
-  
+    currentTime = row.DT_UNIX;   
   }
 
   if (currentSameTimeArray != null && currentSameTimeArray.length != 0) {
     let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);
     result.push(...combinedSameTimeArray);
   }
-
   console.log("null value number: ", countNull);
   return result;
 }
@@ -149,6 +145,7 @@ function _calculateRawRecords(rawRecord, timeInterval) {
  *                         record include short_label ==''.
  */
 function handelSameTimeArray(array, timeOfArray, timeInterval) {
+
   let dict = {};
   let resultSameTime = [];
 
@@ -209,6 +206,11 @@ const getInOutQuery = database.withConnection(async function (conn, query) {
     from: query.from || 0,
     to: query.to || new Date().getTime() / 1000,
     resolution: query.resolution || 3600
+  }
+
+
+  if (new_query.from > new_query.to) {
+    throw new InputInvalidError('start time must >= end time');
   }
 
   if (new_query.resolution <= 0) {

@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-23 09:37:46
+ * @Last Modified time: 2020-01-23 11:33:55
  */
 
 const express = require('express');
@@ -771,7 +771,9 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
  * 
  * type == `2` ⟹ value is negative (out);
  * 
- * display data when type == `0` ⟺ `resolution` == 3600
+ * type == `0` ⟹ value is 0, short_label = '';
+ *
+ * display data when type == `0` ⟺ `resolution` == 3600 * 
  * 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {Number} [from=0] Start timestamp.
@@ -789,7 +791,7 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
  * @apiSuccess {String} sub_cat Name of IO sub-category.
  * @apiSuccess {String} label Name of IO label.
  * @apiSuccess {String} short_label Name of IO short_label.
- * @apiSuccess {String} color # code of color.
+ * @apiSuccess {String} color `#` code of color.
  * @apiSuccess {Number} time Unix seconds as the record's start timestamp.
  * @apiSuccess {String} type value of IO_CALCs.
 
