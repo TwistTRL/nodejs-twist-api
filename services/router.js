@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-21 15:58:03
+ * @Last Modified time: 2020-01-23 09:37:46
  */
 
 const express = require('express');
@@ -756,23 +756,23 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
   );
 });
 
-
-
-
 /**
  * @api {post} /inout In-Out for Patient
  * @apiVersion 0.0.2
  * @apiName Get in-out for patient
  * @apiGroup Person
- * @apiDescription Request in-out data from POST json
+ * @apiDescription 
+ * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, 
+ * binned time resolution `resolution`, from table `INTAKE_OUTPUT`
  * 
- * from table `INTAKE_OUTPUT`
+ * Value accumulated by `short_label` and records with timestamp during `resolution` time.
  * 
- * null value records are skiped.
+ * type == `1` ⟹ value is positive (in);
  * 
- * if type = `1`, value is positive (in);
- * if type = `2`, value is negotive (out)
- *
+ * type == `2` ⟹ value is negative (out);
+ * 
+ * display data when type == `0` ⟺ `resolution` == 3600
+ * 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {Number} [from=0] Start timestamp.
  * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
@@ -784,22 +784,26 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
           "to":1542018000,
           "resolution":3600
         }
- * @apiSuccess {String} io_cat_string Name of IO category.
- * @apiSuccess {Number} timestamp time in Unix seconds.
- * @apiSuccess {Number} type_number 1 (in) or 2 (out).
  * @apiSuccess {Number} value IO value.
- * @apiSuccess {String} io_subcat_string Name of IO sub-category.
- * @apiSuccess {String} event_string Defination of event.
+ * @apiSuccess {String} cat Name of IO category.
+ * @apiSuccess {String} sub_cat Name of IO sub-category.
+ * @apiSuccess {String} label Name of IO label.
+ * @apiSuccess {String} short_label Name of IO short_label.
+ * @apiSuccess {String} color # code of color.
+ * @apiSuccess {Number} time Unix seconds as the record's start timestamp.
+ * @apiSuccess {String} type value of IO_CALCs.
 
  * @apiSuccessExample Success-Response:
  *    [
         {
-          "name": io_cat_string,
-          "time": timestamp,
-          "type": type_number,
-          "event_def": event_string,
-          "sub_cat": io_subcat_string,
-          "value": value
+          "value": -8,
+          "cat": "UOP",
+          "sub_cat": "Foley",
+          "label": "FOLEY",
+          "short_label": "FOL",
+          "color": "#e5c124",
+          "time": 1541016000,
+          "type": "2"
         },
         ...
       ]
