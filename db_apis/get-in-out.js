@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:12:26 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-23 11:58:10
+ * @Last Modified time: 2020-01-23 13:44:43
  */
 
 const database = require("../services/database");
@@ -62,7 +62,7 @@ async function inOutQuerySQLExecutor(conn, query) {
   console.time('getInOUt' + timestampLable);
 
   let SQL_GET_IN_OUT = SQL_GET_IN_OUT_PART1 + query[PERSON_ID] + SQL_GET_IN_OUT_PART2 + query[FROM] * 1 +
-  SQL_GET_IN_OUT_PART3 + query[TO] * 1 + SQL_GET_IN_OUT_PART4;
+    SQL_GET_IN_OUT_PART3 + query[TO] * 1 + SQL_GET_IN_OUT_PART4;
   console.log("SQL for in-out: ", SQL_GET_IN_OUT);
   console.time('getInOUt-sql' + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT);
@@ -102,38 +102,68 @@ function _calculateRawRecords(rawRecord, timeInterval) {
       console.log("row.IO_CALCS error");
     }
 
+    //if current DISPLAY_IO != '1', finish CurrentSameTimeArray 
+    if (EVENT_CD_DICT[row.EVENT_CD].DISPLAY_IO != '1') {
+      if (currentSameTimeArray.length != 0) {
+        let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);
+        result.push(...combinedSameTimeArray);
+        currentSameTimeArray = [];
+      }
+      continue;
+    }
+
+    //if current SHORT_LABEL == '', finish CurrentSameTimeArray and push current record to result 
     row.SHORT_LABEL = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
+    if (row.SHORT_LABEL == '') {
+      if (currentSameTimeArray.length != 0) {
+        let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);
+        result.push(...combinedSameTimeArray);
+        currentSameTimeArray = [];
+      }
+      let singleType0Result = {};
+      singleType0Result.value = row.VALUE;
+      singleType0Result.cat = EVENT_CD_DICT[row.EVENT_CD].IO_CAT;
+      singleType0Result.sub_cat = EVENT_CD_DICT[row.EVENT_CD].Subcat;
+      singleType0Result.label = EVENT_CD_DICT[row.EVENT_CD].LABEL;
+      singleType0Result.short_label = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
+      singleType0Result.color = "#fafafa";
+      singleType0Result.time = row.DT_UNIX;
+      singleType0Result.type = row.IO_CALCS;
+      result.push(singleType0Result);
+      continue;
+    }
 
     // first item or new array
     if (currentSameTimeArray.length == 0) {
       currentSameTimeArray.push(row);
       currentTime = row.DT_UNIX;
-      continue;    
+      continue;
     }
 
     // if same time with previous record, combine to category
-    if (currentTime + timeInterval > row.DT_UNIX ) {
+    if (currentTime + timeInterval > row.DT_UNIX) {
       currentSameTimeArray.push(row);
       continue;
-    } 
+    }
 
     // if not same time, push the calculated previous array and start with this new one
-    if (currentSameTimeArray != null && currentSameTimeArray.length != 0) {
-      let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);      
+    if (currentSameTimeArray.length != 0) {
+      let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);
       result.push(...combinedSameTimeArray);
       currentSameTimeArray = [];
     }
     currentSameTimeArray.push(row);
-    currentTime = row.DT_UNIX;   
+    currentTime = row.DT_UNIX;
   }
 
-  if (currentSameTimeArray != null && currentSameTimeArray.length != 0) {
+  if (currentSameTimeArray.length != 0) {
     let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);
     result.push(...combinedSameTimeArray);
   }
   console.log("null value number: ", countNull);
   return result;
 }
+
 
 /**
  * 
@@ -176,7 +206,7 @@ function handelSameTimeArray(array, timeOfArray, timeInterval) {
   // {"VAC": 0.9, "PIG1": 1.1}
   for (let key in dict) {
     // skip for (timeInterval != 3600 and short_label is empty)
-    if (timeInterval == 3600 || key !='') {
+    if (timeInterval == 3600 || key != '') {
       let singleResult = {};
       // console.log("key: ", key);
       singleResult.value = dict[key];
@@ -221,7 +251,7 @@ const getInOutQuery = database.withConnection(async function (conn, query) {
     throw new InputInvalidError('"resolution" must be 3600 * n (n ∈ N)');
   }
 
-  return await inOutQuerySQLExecutor(conn, new_query); 
+  return await inOutQuerySQLExecutor(conn, new_query);
 });
 
 module.exports = {

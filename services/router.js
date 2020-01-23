@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-23 11:33:55
+ * @Last Modified time: 2020-01-23 12:02:21
  */
 
 const express = require('express');
@@ -773,7 +773,7 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
  * 
  * type == `0` ⟹ value is 0, short_label = '';
  *
- * display data when type == `0` ⟺ `resolution` == 3600 * 
+ * display data when type == `0` ⟺ `resolution` == 3600 
  * 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {Number} [from=0] Start timestamp.
