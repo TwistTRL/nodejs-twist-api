@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-27 09:44:23 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-27 15:39:12
+ * @Last Modified time: 2020-01-27 17:13:58
  */
 
 const database = require("../services/database");
@@ -250,7 +250,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
 function _updateRowToDict(currentTime, row) {
 
-  let newValue = row.IO_CALCS == '1' ? row.VALUE : -1 * row.VALUE;
+  let newValue = row.IO_CALCS == '2' ? -1 * row.VALUE : row.VALUE;
   let newCat = EVENT_CD_DICT[row.EVENT_CD].IO_CAT;
   let newShortLabel = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
 
