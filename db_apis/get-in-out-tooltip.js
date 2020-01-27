@@ -2,18 +2,43 @@
  * @Author: Peng 
  * @Date: 2020-01-27 09:44:23 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-27 11:07:02
+ * @Last Modified time: 2020-01-27 15:39:12
  */
 
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
+const {
+  EVENT_CD_DICT,
+  SL_TO_LABEL,
+  SL_TO_SUBCAT,
+  SL_TO_CAT,
+  SL_TO_CALCS,
+  IN_OUT_COLOR_MAP,
+  CAT_CAP_TO_LOWER_MAP,
+} = require("../db_relation/in-out-db-relation");
 
 const PERSON_ID = "person_id";
 const FROM = "from";
 const TO = "to";
 const RESOLUTION = "resolution";
 var timeLable = 0;
+
+// get raw in-out by event between two timestamp
+const SQL_GET_IN_OUT_EVENT_PART1 = `
+SELECT  
+  DT_UNIX,
+  EVENT_CD,
+  IO_CALCS,
+  VALUE
+FROM INTAKE_OUTPUT
+WHERE PERSON_ID = `
+const SQL_GET_IN_OUT_EVENT_PART2 = `
+AND DT_UNIX >= `
+const SQL_GET_IN_OUT_EVENT_PART3 = ` AND DT_UNIX <= `
+const SQL_GET_IN_OUT_EVENT_PART4 = ` 
+ORDER BY DT_UNIX
+`
 
 // get raw in-out by FLUSHES and INFUSIONS between two timestamp
 //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
@@ -37,6 +62,21 @@ WHERE PERSON_ID = `
 const SQL_GET_IN_OUT_DILUENTS_PART2 = ` 
 ORDER BY START_UNIX`
 
+const timeDict = {};
+
+async function inOutEventTooltipQuerySQLExecutor(conn, query) {
+  let timestampLable = timeLable++;
+
+  let SQL_GET_IN_OUT_EVENT = SQL_GET_IN_OUT_EVENT_PART1 + query[PERSON_ID] + SQL_GET_IN_OUT_EVENT_PART2 + query[FROM] * 1 +
+    SQL_GET_IN_OUT_EVENT_PART3 + query[TO] * 1 + SQL_GET_IN_OUT_EVENT_PART4;
+  console.log("SQL for in-out Event: ", SQL_GET_IN_OUT_EVENT);
+  console.time('getInOutEvent-sql' + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_IN_OUT_EVENT);
+  console.timeEnd('getInOutEvent-sql' + timestampLable);
+  return rawRecord.rows;
+}
+
+
 async function inOutDiluentsTooltipQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
 
@@ -53,10 +93,55 @@ async function inOutDiluentsTooltipQuerySQLExecutor(conn, query) {
   return rawRecord.rows;
 }
 
-function _calculateRawRecords(arr, timeInterval, startTime, endTime) {
-  let resultEvent = [];  
+function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
+  let {
+    arr1,
+    arr2,
+  } = rawRecords;
 
-  //example arr = {
+  if (arr1 && arr1.length) {
+    console.log("In-Out Event record size :", arr1.length);
+    let countNull = 0;
+    let currentTime = Math.floor(arr1[0].DT_UNIX / timeInterval) * timeInterval;
+
+    for (let row of arr1) {
+      //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "IO_CALCS": 1, "VALUE": 0.9}
+
+      // end when larger than endTime
+      if (currentTime > endTime) {
+        break;
+      }
+
+      //if current DISPLAY_IO != '1', skip it
+      if (EVENT_CD_DICT[row.EVENT_CD].DISPLAY_IO != '1') {
+        continue;
+      }
+
+      if (row.VALUE == null) {
+        countNull++;
+      }
+
+      if (row.IO_CALCS != 0 && row.IO_CALCS != 1 && row.IO_CALCS != 2) {
+        console.log("row.IO_CALCS error");
+        continue;
+      }
+
+
+
+      if (currentTime + timeInterval > row.DT_UNIX) {
+        // if same time with previous record
+        _updateRowToDict(currentTime, row);
+      } else {
+        // not the same time, set new currentTime
+        currentTime = Math.floor(row.DT_UNIX / timeInterval) * timeInterval;
+        _updateRowToDict(currentTime, row);
+      }
+
+    }
+    console.log("null value number for In-Out Event records: ", countNull);
+  }
+
+  //example arr2 = {
   // START_UNIX,
   // END_UNIX,
   // DRUG,
@@ -68,17 +153,19 @@ function _calculateRawRecords(arr, timeInterval, startTime, endTime) {
   // INFUSION_RATE_UNITS,
   // ADMIN_SITE}
 
-  console.log('arr[0].START_UNIX :', arr[0].START_UNIX);
-  console.log('startTime :', startTime);
-  
-  if (arr && arr.length) {
-    console.log("In-Out Diluents record size :", arr.length);
-    let timeDict = {};
+  if (arr2 && arr2.length) {
+    console.log("In-Out Diluents record size :", arr2.length);
 
-    for (let row of arr) {
+    for (let row of arr2) {
       //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
       let currentTime = Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
+
+      // end when larger than endTime
+      if (currentTime > endTime) {
+        break;
+      }
+
       let zoneNumber = Math.floor((Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let value = 0;
@@ -113,7 +200,7 @@ function _calculateRawRecords(arr, timeInterval, startTime, endTime) {
               singleResult.unit = row.INFUSION_RATE_UNITS;
               singleResult.conc = row.CONC;
               singleResult.strength_unit = row.STRENGTH_UNIT;
-              singleResult.vol_unit = row.VOL_UNIT;    
+              singleResult.vol_unit = row.VOL_UNIT;
               timeDict[calTime].Flushes = singleResult;
             }
           } else {
@@ -131,13 +218,13 @@ function _calculateRawRecords(arr, timeInterval, startTime, endTime) {
               singleResult.unit = row.INFUSION_RATE_UNITS;
               singleResult.conc = row.CONC;
               singleResult.strength_unit = row.STRENGTH_UNIT;
-              singleResult.vol_unit = row.VOL_UNIT;    
+              singleResult.vol_unit = row.VOL_UNIT;
               timeDict[calTime].Infusions = singleResult;
             }
-          }   
+          }
 
         } else {
-          timeDict[calTime] = {};  
+          timeDict[calTime] = {};
 
           let singleResult = {};
           singleResult.value = value;
@@ -147,9 +234,9 @@ function _calculateRawRecords(arr, timeInterval, startTime, endTime) {
           singleResult.unit = row.INFUSION_RATE_UNITS;
           singleResult.conc = row.CONC;
           singleResult.strength_unit = row.STRENGTH_UNIT;
-          singleResult.vol_unit = row.VOL_UNIT;    
+          singleResult.vol_unit = row.VOL_UNIT;
 
-          if (typeFlush) {            
+          if (typeFlush) {
             timeDict[calTime].Flushes = singleResult;
           } else {
             timeDict[calTime].Infusions = singleResult;
@@ -157,10 +244,68 @@ function _calculateRawRecords(arr, timeInterval, startTime, endTime) {
         }
       }
     }
-
     return timeDict;
   }
 }
+
+function _updateRowToDict(currentTime, row) {
+
+  let newValue = row.IO_CALCS == '1' ? row.VALUE : -1 * row.VALUE;
+  let newCat = EVENT_CD_DICT[row.EVENT_CD].IO_CAT;
+  let newShortLabel = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
+
+
+  if (currentTime in timeDict) {
+    if (newCat in timeDict[currentTime]) {
+      if (newShortLabel in timeDict[currentTime][newCat]) {
+        timeDict[currentTime][newCat][newShortLabel].value += newValue;
+
+      } else {
+        let singleResult = {};
+        singleResult.value = newValue;
+        singleResult.sub_cat = EVENT_CD_DICT[row.EVENT_CD].Subcat;
+        singleResult.label = EVENT_CD_DICT[row.EVENT_CD].LABEL;
+        singleResult.short_label = newShortLabel;
+        singleResult.type = row.IO_CALCS;
+        timeDict[currentTime][newCat][newShortLabel] = singleResult;
+      }
+    } else {
+      let singleResult = {};
+      singleResult.value = newValue;
+      singleResult.sub_cat = EVENT_CD_DICT[row.EVENT_CD].Subcat;
+      singleResult.label = EVENT_CD_DICT[row.EVENT_CD].LABEL;
+      singleResult.short_label = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
+      singleResult.type = row.IO_CALCS;
+
+      timeDict[currentTime][newCat] = {};
+      timeDict[currentTime][newCat][newShortLabel] = singleResult;
+    }
+  } else {
+    let singleResult = {};
+    singleResult.value = newValue;
+    singleResult.sub_cat = EVENT_CD_DICT[row.EVENT_CD].Subcat;
+    singleResult.label = EVENT_CD_DICT[row.EVENT_CD].LABEL;
+    singleResult.short_label = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
+    singleResult.type = row.IO_CALCS;
+
+    timeDict[currentTime] = {};
+    timeDict[currentTime][newCat] = {};
+    timeDict[currentTime][newCat][newShortLabel] = singleResult;
+  }
+}
+
+async function parallelQuery(conn, new_query) {
+
+  // should parallel do the sql query
+  const task1 = await inOutEventTooltipQuerySQLExecutor(conn, new_query);
+  const task2 = await inOutDiluentsTooltipQuerySQLExecutor(conn, new_query);
+
+  return {
+    arr1: await task1,
+    arr2: await task2,
+  }
+}
+
 
 /**
  * query:
@@ -204,9 +349,9 @@ const getInOutTooltipQuery = database.withConnection(async function (conn, query
   }
 
   let consoleTimeCount = timeLable++;
-  console.time('getInOut' + consoleTimeCount);
-  let rawResult = await inOutDiluentsTooltipQuerySQLExecutor(conn, new_query);
-  console.timeEnd('getInOut' + consoleTimeCount);
+  console.time('getInOutTooltip' + consoleTimeCount);
+  let rawResult = await parallelQuery(conn, new_query);
+  console.timeEnd('getInOutTooltip' + consoleTimeCount);
   return _calculateRawRecords(rawResult, query[RESOLUTION], query[FROM], query[TO]);
 });
 

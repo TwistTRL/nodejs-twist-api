@@ -14,17 +14,18 @@
   "license": "Apache-2.0",
   "dependencies": {
     "apidoc": "^0.19.1",
+    "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
+    "in-out-codes": "file:../nodejs-twist-utils",
     "is-my-json-valid": "^2.20.0",
     "morgan": "^1.9.1",
+    "node-fetch": "^2.6.0",
     "oracledb": "^4.1.0",
     "pm2": "^4.2.1",
     "relational-query-sql-builder": "github:TwistTRL/relational-query-sql-builder",
     "replace-in-file": "^5.0.2",
-    "update": "^0.7.4",
-    "connect-timeout": "^1.9.0",
-    "in-out-codes": "file:../nodejs-twist-utils"
+    "update": "^0.7.4"
   },
   "devDependencies": {
     "chai": "^4.2.0",

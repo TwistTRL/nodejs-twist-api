@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:12:26 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-27 10:57:52
+ * @Last Modified time: 2020-01-27 15:54:52
  */
 
 const database = require("../services/database");
@@ -73,9 +73,6 @@ async function inOutEventQuerySQLExecutor(conn, query) {
   let rawRecord = await conn.execute(SQL_GET_IN_OUT_EVENT);
   console.timeEnd('getInOutEvent-sql' + timestampLable);
   return rawRecord.rows;
-
-  // let jsonString = _calculateRawRecords(rawRecord, query[RESOLUTION]);
-  // return jsonString;
 }
 
 
@@ -103,9 +100,6 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   } = rawRecords;
 
   let resultEvent = [];
-  // let resultFlush = [];
-  // let resultDrips = [];
-
 
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
@@ -115,6 +109,12 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
     for (let row of arr1) {
       //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "IO_CALCS": 1, "VALUE": 0.9}
+
+
+      // end when larger than endTime
+      if (currentTime > endTime) {
+        break;
+      }
 
       //if current DISPLAY_IO != '1', skip it
       if (EVENT_CD_DICT[row.EVENT_CD].DISPLAY_IO != '1') {
@@ -195,6 +195,12 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
       let currentTime = Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
+
+      // end when larger than endTime
+      if (currentTime > endTime) {
+        break;
+      }
+
       let zoneNumber = Math.floor((Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let singleResult = {};
