@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-24 15:22:10
+ * @Last Modified time: 2020-01-27 11:07:01
  */
 
 const express = require('express');
@@ -70,6 +70,10 @@ const {
   getOrangeDrug,
   getDrugIntermittent
 } = require('../db_apis/get_drug');
+
+const {
+  getInOutTooltipQuery
+} = require('../db_apis/get-in-out-tooltip');
 
 const {
   getInOutQuery
@@ -762,17 +766,32 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
  * @apiName Get in-out for patient
  * @apiGroup Person
  * @apiDescription 
- * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, 
- * binned time resolution `resolution`, from table `INTAKE_OUTPUT`
+ * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `INTAKE_OUTPUT` and `DRUG_DILUENTS`
  * 
- * Value accumulated by `short_label` and records with timestamp during `resolution` time.
+ * Method: 
  * 
- * type == `1` ⟹ value is positive (in);
+ *   ├──part 1: data from `INTAKE_OUTPUT`, value accumulated by `short_label` and records with timestamp during `resolution` time.
  * 
- * type == `2` ⟹ value is negative (out);
+ *   ├──part 2: data from `DRUG_DILUENTS`, if drug is 'papavarine' or 'heparin flush', then cat = "Flushes", value accumulated in each binned time box;
+ * other drug , then cat = "Infusions", value accumulated in each binned time box;
  * 
- * type == `0` ⟹ skipped 
+ *   └──final response: mixed part1 and part2, sorted by time.
  * 
+ * Input notes: 
+ * 
+ *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
+ * 
+ *   └──`from` should be divisible by `resolution`.
+ * 
+ * Response notes:
+ * 
+ *   ├──type == `1` ⟹ value is positive (in);
+ * 
+ *   ├──type == `2` ⟹ value is negative (out);
+ * 
+ *   ├──type == `0` ⟹ skipped;
+ * 
+ *   └──value == 0 ⟹ skipped; 
  * 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {Number} [from=0] Start timestamp.
@@ -781,7 +800,7 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
  * @apiParamExample {json} Example of request in-out data
         {
           "person_id": EXAMPLE_PERSON_ID,
-          "from":1542014000,
+          "from":1541030400,
           "to":1542018000,
           "resolution":3600
         }
@@ -834,6 +853,101 @@ router.post('/inout', async (req, res) => {
   }
 });
 
+/**
+ * @api {post} /inout-tooltip In-Out Tooltip for Patient
+ * @apiVersion 0.0.1
+ * @apiName Get in-out tooltip for patient
+ * @apiGroup Person
+ * @apiDescription 
+ * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `DRUG_DILUENTS`
+ * 
+ * Method: 
+ * 
+ * data from `DRUG_DILUENTS`, if drug is 'papavarine' or 'heparin flush', then cat = "Flushes", value accumulated in each binned time box;
+ * other drug , then cat = "Infusions", value accumulated in each binned time box;
+
+ * 
+ * Input notes: 
+ * 
+ *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
+ * 
+ *   └──`from` should be divisible by `resolution`.
+ * 
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {Number} [from=0] Start timestamp.
+ * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
+ * @apiParam {Number} [resolution=3600] Binned time resolution.
+ * @apiParamExample {json} Example of request in-out data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from":1541030400,
+          "to":1542018000,
+          "resolution":3600
+        }
+
+ * @apiSuccessExample Success-Response:
+ *    {
+        "1541023200": {
+              "Flushes": {
+                  "value": 111,
+                  "drug": [
+                      "heparin flush"
+                  ],
+                  "diluent": "Dextrose 5% in Water",
+                  "rate": 2,
+                  "unit": "mL/hr",
+                  "conc": 1,
+                  "strength_unit": "unit",
+                  "vol_unit": "mL"
+              },
+              "Infusions": {
+                  "value": 222,
+                  "drug": [
+                      "milrinone",
+                      "morphine",
+                      "papaverine",
+                      "heparin",
+                      "dexmedetomidine",
+                      "nitroprusside",
+                      "midazolam",
+                      "niCARdipine"
+                  ],
+                  "diluent": "Dextrose 10% in Water",
+                  "rate": 1.35,
+                  "unit": "mL/hr",
+                  "conc": 0.1,
+                  "strength_unit": "mg",
+                  "vol_unit": "mL"
+              }
+          },
+        ...
+        }
+ *
+ */
+
+router.post('/inout-tooltip', async (req, res) => {
+  const query = req.body;
+  const person_id = query.person_id;
+  if (!Number.isInteger(person_id)) {
+    res.send(
+      "Invalid person_id, should be integer."
+    );
+    return;
+  }
+
+  try {
+    const toSend = await getInOutTooltipQuery(query);
+    res.send(
+      toSend,
+    );
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
+});
 
 // ~~~~~~~~-----------------------------
 /**

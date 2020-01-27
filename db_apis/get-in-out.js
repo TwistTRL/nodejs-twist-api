@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:12:26 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-24 16:19:39
+ * @Last Modified time: 2020-01-27 10:57:52
  */
 
 const database = require("../services/database");
@@ -23,7 +23,6 @@ const FROM = "from";
 const TO = "to";
 const RESOLUTION = "resolution";
 var timeLable = 0;
-
 
 // get raw in-out by event between two timestamp
 const SQL_GET_IN_OUT_EVENT_PART1 = `
@@ -104,8 +103,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   } = rawRecords;
 
   let resultEvent = [];
-  let resultFlush = [];
-  let resultDrips = [];
+  // let resultFlush = [];
+  // let resultDrips = [];
 
 
   if (arr1 && arr1.length) {
@@ -187,30 +186,16 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   // INFUSION_RATE_UNITS,
   // ADMIN_SITE}
 
-
   if (arr2 && arr2.length) {
     console.log("In-Out Diluents record size :", arr2.length);
-
-    let currentTime = Math.floor(Math.max(arr2[0].START_UNIX, startTime) / timeInterval) * timeInterval;
-    console.log('currentTime :', currentTime);
-
     let timeFlushDict = {};
     let timeDripsDict = {};
 
     for (let row of arr2) {
       //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
-
+      let currentTime = Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
       let zoneNumber = Math.floor((Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval) + 1;
-      // console.log('row.END_UNIX :', row.END_UNIX);
-      // console.log('endTime :', endTime);
-
-      // console.log('row.timeInterval :', timeInterval);
-
-      // console.log('currentTime :', currentTime);
-      console.log('zoneNumber :', zoneNumber);
-      // console.log('timeDripsDict :', timeDripsDict);
-
       for (let i = 0; i < zoneNumber; i++) {
         let singleResult = {};
         let value = 0;
@@ -223,9 +208,15 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           value = timeInterval * row.INFUSION_RATE / 3600;
         }
 
-        if (row.DRUG == 'papavarine' || row.DRUG == 'heparin flush') {
-          if (cTime in timeFlushDict) {
+        if (value <= 0) {
+          console.log("error value <= 0: ", value);
+        }
 
+        if (row.DRUG == 'papavarine' || row.DRUG == 'heparin flush') {
+          // `Flushes`, write to timeFlushDict, key is start time of each binned time box
+          // {1524700800: {singleResult}, ...}
+
+          if (cTime in timeFlushDict) {
             timeFlushDict[cTime].value += value;
           } else {
             //FLUSHES	FLUSHES	FLUSH	FLUSH
@@ -240,10 +231,10 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             timeFlushDict[singleResult.time] = singleResult;
           }
         } else {
+          // `Infusions`, write to timeDripsDict, key is start time of each binned time box
+
           if (cTime in timeDripsDict) {
-
             timeDripsDict[cTime].value += value;
-
           } else {
             //INFUSIONS	INFUSIONS	DRIPS	DRIPS
             singleResult.value = value;
@@ -255,29 +246,15 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             singleResult.time = cTime;
             singleResult.type = "1";
             timeDripsDict[singleResult.time] = singleResult;
-
           }
         }
       }
     }
 
-    // console.log("resultEvent : ", resultEvent);
-    // console.log('timeFlushDict :', timeFlushDict);
-    console.log('timeDripsDict :', timeDripsDict);
+    let resultFlush = Object.values(timeFlushDict);
+    let resultDrips = Object.values(timeDripsDict);
 
-    Object.keys(timeFlushDict)
-      .sort()
-      .forEach(function (v) {
-        resultFlush.push(timeFlushDict[v]);
-      });
-
-
-    Object.keys(timeDripsDict)
-      .sort()
-      .forEach(function (v) {
-        resultDrips.push(timeDripsDict[v]);
-      });
-
+    //unsorted array from Event, Flush, Drips
     let arr = [...resultEvent, ...resultFlush, ...resultDrips];
     arr.sort(function (a, b) {
       let keyA = a.time;
@@ -286,13 +263,9 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       if (keyA > keyB) return 1;
       return 0;
     });
-
     return arr;
   }
 }
-
-
-
 
 /**
  * 
@@ -354,14 +327,13 @@ function handelSameTimeArray(array, timeOfArray, timeInterval) {
 
 async function parallelQuery(conn, new_query) {
 
+  // should parallel do the sql query
   const task1 = await inOutEventQuerySQLExecutor(conn, new_query);
   const task2 = await inOutDiluentsQuerySQLExecutor(conn, new_query);
-  // const task3 = await inOutInfusionsQuerySQLExecutor(conn, new_query);
 
   return {
     arr1: await task1,
     arr2: await task2,
-    // result3: await task3,
   }
 }
 
@@ -393,28 +365,25 @@ const getInOutQuery = database.withConnection(async function (conn, query) {
     resolution: query.resolution || 3600
   }
 
-
   if (new_query.from > new_query.to) {
     throw new InputInvalidError('start time must >= end time');
   }
-
   if (new_query.resolution <= 0) {
     throw new InputInvalidError('"resolution" must be >= 3600');
   }
-
   if (new_query.resolution % 3600 != 0) {
-    throw new InputInvalidError('"resolution" must be 3600 * n (n ∈ N)');
+    throw new InputInvalidError('"resolution" should be divisible by 3600');
+  }
+  if (new_query.from % new_query.resolution != 0) {
+    throw new InputInvalidError('"from" should be divisible by "resolution"');
   }
 
   let consoleTimeCount = timeLable++;
   console.time('getInOut' + consoleTimeCount);
   let rawResults = await parallelQuery(conn, new_query);
   console.timeEnd('getInOut' + consoleTimeCount);
-
   return _calculateRawRecords(rawResults, query[RESOLUTION], query[FROM], query[TO]);
 });
-
-
 
 module.exports = {
   getInOutQuery
