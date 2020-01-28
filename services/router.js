@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-27 11:07:01
+ * @Last Modified time: 2020-01-28 09:13:40
  */
 
 const express = require('express');
@@ -70,6 +70,10 @@ const {
   getOrangeDrug,
   getDrugIntermittent
 } = require('../db_apis/get_drug');
+
+const {
+  getInOutTooltipQueryV2
+} = require('../db_apis/get-in-out-tooltip-v2');
 
 const {
   getInOutTooltipQuery
@@ -938,6 +942,120 @@ router.post('/inout-tooltip', async (req, res) => {
 
   try {
     const toSend = await getInOutTooltipQuery(query);
+    res.send(
+      toSend,
+    );
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
+});
+
+
+/**
+ * @api {post} /inout-tooltip-v2 In-Out Tooltip for Patient V2
+ * @apiVersion 0.0.1
+ * @apiName Get in-out tooltip for patient v2
+ * @apiGroup Person
+ * @apiDescription 
+ * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `DRUG_DILUENTS`
+ * 
+ * Method: 
+ * 
+ * data from `DRUG_DILUENTS`, if drug is 'papavarine' or 'heparin flush', then cat = "Flushes", value accumulated in each binned time box;
+ * other drug , then cat = "Infusions", value accumulated in each binned time box;
+
+ * 
+ * Input notes: 
+ * 
+ *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
+ * 
+ *   └──`from` should be divisible by `resolution`.
+ * 
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {Number} [from=0] Start timestamp.
+ * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
+ * @apiParam {Number} [resolution=3600] Binned time resolution.
+ * @apiParamExample {json} Example of request in-out data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from":1541030400,
+          "to":1542018000,
+          "resolution":3600
+        }
+
+ * @apiSuccessExample Success-Response:
+ *    {
+        "1500000000": {
+          "0": {
+              "DRAIN": {
+                  "": {
+                      "value": 11,
+                      "sub_cat": "CT",
+                      "label": "CT 1 Level",
+                      "short_label": ""
+                  }
+              }
+          },
+          "1": {
+              "Infusions": {
+                  "value": 11,
+                  "drug": [
+                      "heparin"
+                  ],
+                  "diluent": "Dextrose 5% in Water",
+                  "rate": 1.25,
+                  "unit": "mL/hr",
+                  "conc": 100,
+                  "strength_unit": "unit",
+                  "vol_unit": "mL"
+              }
+          },
+          "2": {
+              "UOP": {
+                  "FOL": {
+                      "value": -22,
+                      "sub_cat": "Foley",
+                      "label": "FOLEY",
+                      "short_label": "FOL"
+                  }
+              },
+              "DRAIN": {
+                  "CT1": {
+                      "value": -22,
+                      "sub_cat": "CT",
+                      "label": "CT1",
+                      "short_label": "CT1"
+                  },
+                  "CT2": {
+                      "value": -22,
+                      "sub_cat": "CT",
+                      "label": "CT2",
+                      "short_label": "CT2"
+                      }
+                  }
+              }
+          },
+        ...
+        }
+ *
+ */
+
+router.post('/inout-tooltip-v2', async (req, res) => {
+  const query = req.body;
+  const person_id = query.person_id;
+  if (!Number.isInteger(person_id)) {
+    res.send(
+      "Invalid person_id, should be integer."
+    );
+    return;
+  }
+
+  try {
+    const toSend = await getInOutTooltipQueryV2(query);
     res.send(
       toSend,
     );

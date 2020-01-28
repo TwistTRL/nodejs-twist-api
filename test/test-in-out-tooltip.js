@@ -1,11 +1,17 @@
+/*
+ * @Author: Peng 
+ * @Date: 2020-01-28 08:16:53 
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-01-28 09:05:53
+ */
+
+
 const fetch = require("node-fetch");
-var assert = require('assert');
+const assert = require('assert');
+const BASE_TWIST_API_URL = "http://twist:3333/api/";
+const url = BASE_TWIST_API_URL + "inout-tooltip";
 
-
-
-const url = "http://twist:3333/api/inout-tooltip";
-
-const requestBody = {
+const DUMMY_REQUEST_BODY = {
     person_id:25796315,
     from:1541030400,
     to:1541040400,
@@ -21,27 +27,39 @@ const getData = async url => {
                 "Content-Type": "application/json",
                 "Accept-Charset": "utf-8"
             },
-            body: JSON.stringify(requestBody)
+            body: JSON.stringify(DUMMY_REQUEST_BODY)
         });
-        const json = await response.json();
-        console.log('json :', json);
+        return response.json();
     } catch (error) {
         console.error(error);        
     }
 }
 
 
-
-
-
-
-describe('fetch test', function() {
+describe('fetch in-out-tooltip', function() {
     this.timeout(5000);
-    it('fetch in-out-tooltip', () => {
-        const entries = Object.entries(getData(url));
-        console.log("entries: ", entries);
+    it('test fetched timestamp should equal to set', async () => {
+        const result = await getData(url);
+        const entries = Object.entries(result);
+        // console.log("entries[0][0]: ", entries[0][0]);
+        const lv1_keys = Object.keys(result);
+        console.log('lv1_keys :', lv1_keys);
 
-        assert.equal(true, true);
+        const lv2_keys = lv1_keys.map(key => Object.keys(result[key]));
+        console.log('lv2_keys :', lv2_keys);
+
+        // const lv3_keys = lv2_keys.map((key, index) => {
+        //     console.log('key :', key);
+        //     console.log('index :', index);
+        //     const lv3_key = key.map(cat => Object.keys(result[lv1_keys[index]][cat]));
+        //     console.log('lv3_key :', lv3_key);
+        //     return lv3_key;
+        // });
+
+        const lv3_keys = lv2_keys.map((key, index) => key.map(cat => Object.keys(result[lv1_keys[index]][cat])));
+        console.log('lv3_keys :', lv3_keys);
+
+        assert.equal(entries[0][0], 1541030400);
     });
 
 
