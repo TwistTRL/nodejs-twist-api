@@ -2,7 +2,9 @@
 .vscode
 apidoc/
 temp/
-docs/
+docs/*
+!docs/files/index.html
+!docs/files/index.css
 
 # Logs
 logs
