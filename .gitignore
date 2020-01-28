@@ -2,7 +2,9 @@
 .vscode
 apidoc/
 temp/
-docs/*
+docs/apidoc
+docs/apidoc2
+docs/files/*
 !docs/files/index.html
 !docs/files/index.css
 
