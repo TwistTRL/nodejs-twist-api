@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:33:57 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-22 17:25:11
+ * @Last Modified time: 2020-01-28 10:35:33
  */
 
 const {
@@ -13,6 +13,7 @@ const {
   SL_TO_CALCS,
   IN_OUT_COLOR_MAP,
   CAT_CAP_TO_LOWER_MAP,
+  XLSX_PATH
 } = require("in-out-codes");
 
 
@@ -23,5 +24,6 @@ module.exports = {
   SL_TO_CAT,
   SL_TO_CALCS,
   IN_OUT_COLOR_MAP,
-  CAT_CAP_TO_LOWER_MAP
+  CAT_CAP_TO_LOWER_MAP,
+  XLSX_PATH
 }

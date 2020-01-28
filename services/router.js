@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-28 09:13:40
+ * @Last Modified time: 2020-01-28 11:23:52
  */
 
 const express = require('express');
@@ -119,6 +119,8 @@ const {
 // user express.static to display this index.html
 router.use('/', express.static(__dirname + '/../docs/apidoc'));
 router.use('/apidoc2', express.static(__dirname + '/../docs/apidoc2'));
+router.use('/files', express.static(__dirname + '/../docs/files'));
+
 // ------------------------------------------------------------------------
 
 // ``````````````````````````````````````````````
