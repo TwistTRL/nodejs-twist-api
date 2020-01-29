@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-28 08:16:53 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-29 15:45:29
+ * @Last Modified time: 2020-01-29 15:47:06
  */
 
 
@@ -40,7 +40,7 @@ describe('fetch in-out-tooltip', function() {
     this.timeout(5000);
     it('test fetched timestamp should equal to set', async () => {
         const result = await getData(url);
-        const entries = Object.entries(result);
+        const entries = Object.entries(result[0]);
         console.log("entries[0]: ", entries[0]);
         const lv1_keys = Object.keys(result);
         console.log('lv1_keys :', lv1_keys);

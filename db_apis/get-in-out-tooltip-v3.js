@@ -2,9 +2,8 @@
  * @Author: Peng 
  * @Date: 2020-01-29 08:32:39 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-29 10:36:14
+ * @Last Modified time: 2020-01-29 16:22:40
  */
-
 
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
@@ -63,11 +62,6 @@ WHERE PERSON_ID = `
 const SQL_GET_IN_OUT_DILUENTS_PART2 = ` 
 ORDER BY START_UNIX`
 
-
-// reslut will be [type1Dict, type2Dict]
-const type1Dict = {};
-const type2Dict = {};
-
 async function inOutEventTooltipQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
 
@@ -98,6 +92,10 @@ async function inOutDiluentsTooltipQuerySQLExecutor(conn, query) {
 }
 
 function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
+  // result will be [type1Dict, type2Dict], first item is "in" and second is "out".
+  let type1Dict = {};
+  let type2Dict = {};
+
   let {
     arr1,
     arr2,
@@ -125,16 +123,18 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         countNull++;
       }
 
-
-      if (currentTime + timeInterval > row.DT_UNIX) {
-        // if same time with previous record
-        _updateRowToDict(currentTime, row);
-      } else {
-        // not the same time, set new currentTime
+      if (currentTime + timeInterval <= row.DT_UNIX) {
+        // this row record has different time zone with currentTime, setting new currentTime
         currentTime = Math.floor(row.DT_UNIX / timeInterval) * timeInterval;
-        _updateRowToDict(currentTime, row);
       }
 
+      if (row.IO_CALCS == '1') {
+        type1Dict = _updateRowToDict(currentTime, row, type1Dict);
+      } else if (row.IO_CALCS == '2') {
+        type2Dict = _updateRowToDict(currentTime, row, type2Dict);
+      } else {
+        console.log("Error IO_CALCS");
+      }
     }
     console.log("null value number for In-Out Event records: ", countNull);
   }
@@ -158,7 +158,6 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
 
       // console.log("row: ", row);
-
       let currentTime = Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
 
       // end when larger than endTime
@@ -221,55 +220,32 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   return [type1Dict, type2Dict];
 }
 
-function _updateRowToDict(currentTime, row) { 
+function _updateRowToDict(currentTime, row, dict) { 
   let newValue = row.IO_CALCS == '2' ? -1 * row.VALUE : row.VALUE;
   let newCat = EVENT_CD_DICT[row.EVENT_CD].IO_CAT;
   let newShortLabel = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
 
-  if (row.IO_CALCS == '1') {
-    if (!(currentTime in type1Dict)) {
-      type1Dict[currentTime] = {};
-    } 
-
-    if (!(newCat in type1Dict[currentTime])) {
-      type1Dict[currentTime][newCat] = {"acc_value": 0};
-    }
-    type1Dict[currentTime][newCat].acc_value += newValue;
-
-    if (newShortLabel in type1Dict[currentTime][newCat]) {
-      type1Dict[currentTime][newCat][newShortLabel].value += newValue;
-
-    } else {
-      let singleResult = {};
-      singleResult.value = newValue;
-      singleResult.sub_cat = EVENT_CD_DICT[row.EVENT_CD].Subcat;
-      singleResult.label = EVENT_CD_DICT[row.EVENT_CD].LABEL;
-      singleResult.short_label = newShortLabel;
-      
-      type1Dict[currentTime][newCat][newShortLabel] = singleResult;
-    }
-  } else {
-    if (!(currentTime in type2Dict)) {
-      type2Dict[currentTime] = {};
-    } 
-
-    if (!(newCat in type2Dict[currentTime])) {
-      type2Dict[currentTime][newCat] = {"acc_value": 0};
-    }
-    type2Dict[currentTime][newCat].acc_value += newValue;
-
-    if (newShortLabel in type2Dict[currentTime][newCat]) {
-      type2Dict[currentTime][newCat][newShortLabel].value += newValue;
-    } else {
-      let singleResult = {};
-      singleResult.value = newValue;
-      singleResult.sub_cat = EVENT_CD_DICT[row.EVENT_CD].Subcat;
-      singleResult.label = EVENT_CD_DICT[row.EVENT_CD].LABEL;
-      singleResult.short_label = newShortLabel;
-      
-      type2Dict[currentTime][newCat][newShortLabel] = singleResult;
-    }
+  if (!(currentTime in dict)) {
+    dict[currentTime] = {};
+  } 
+  if (!(newCat in dict[currentTime])) {
+    dict[currentTime][newCat] = {"acc_value": 0};
   }
+  dict[currentTime][newCat].acc_value += newValue;
+
+  if (newShortLabel in dict[currentTime][newCat]) {
+    dict[currentTime][newCat][newShortLabel].value += newValue;
+
+  } else {
+    let singleResult = {};
+    singleResult.value = newValue;
+    singleResult.sub_cat = EVENT_CD_DICT[row.EVENT_CD].Subcat;
+    singleResult.label = EVENT_CD_DICT[row.EVENT_CD].LABEL;
+    singleResult.short_label = newShortLabel;
+    
+    dict[currentTime][newCat][newShortLabel] = singleResult;
+  }    
+  return dict;
 }
 
 async function parallelQuery(conn, new_query) {
