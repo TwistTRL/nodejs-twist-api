@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-28 11:23:52
+ * @Last Modified time: 2020-01-29 10:28:18
  */
 
 const express = require('express');
@@ -76,8 +76,8 @@ const {
 } = require('../db_apis/get-in-out-tooltip-v2');
 
 const {
-  getInOutTooltipQuery
-} = require('../db_apis/get-in-out-tooltip');
+  getInOutTooltipQueryV3
+} = require('../db_apis/get-in-out-tooltip-v3');
 
 const {
   getInOutQuery
@@ -861,23 +861,20 @@ router.post('/inout', async (req, res) => {
 
 /**
  * @api {post} /inout-tooltip In-Out Tooltip for Patient
- * @apiVersion 0.0.1
+ * @apiVersion 0.0.3
  * @apiName Get in-out tooltip for patient
  * @apiGroup Person
  * @apiDescription 
- * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `DRUG_DILUENTS`
+ * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`,
+ * from table `DRUG_DILUENTS` and `INTAKE_OUTPUT`
  * 
  * Method: 
- * 
- * data from `DRUG_DILUENTS`, if drug is 'papavarine' or 'heparin flush', then cat = "Flushes", value accumulated in each binned time box;
- * other drug , then cat = "Infusions", value accumulated in each binned time box;
-
  * 
  * Input notes: 
  * 
  *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
  * 
- *   └──`from` should be divisible by `resolution`.
+ *   └──`from` and `to` should be divisible by `resolution`.
  * 
  * 
  * @apiParam {Number} person_id Patient unique ID.
@@ -888,7 +885,7 @@ router.post('/inout', async (req, res) => {
         {
           "person_id": EXAMPLE_PERSON_ID,
           "from":1541030400,
-          "to":1542018000,
+          "to":1541037600,
           "resolution":3600
         }
 
@@ -943,7 +940,7 @@ router.post('/inout-tooltip', async (req, res) => {
   }
 
   try {
-    const toSend = await getInOutTooltipQuery(query);
+    const toSend = await getInOutTooltipQueryV3(query);
     res.send(
       toSend,
     );
@@ -985,7 +982,7 @@ router.post('/inout-tooltip', async (req, res) => {
         {
           "person_id": EXAMPLE_PERSON_ID,
           "from":1541030400,
-          "to":1542018000,
+          "to":1541037600,
           "resolution":3600
         }
 

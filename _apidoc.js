@@ -39,3 +39,78 @@
       }
  *
  */
+
+
+
+/**
+ * @api {post} /inout-tooltip In-Out Tooltip for Patient
+ * @apiVersion 0.0.1
+ * @apiName Get in-out tooltip for patient
+ * @apiGroup Person
+ * @apiDescription 
+ * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `DRUG_DILUENTS`
+ * 
+ * Method: 
+ * 
+ * data from `DRUG_DILUENTS`, if drug is 'papavarine' or 'heparin flush', then cat = "Flushes", value accumulated in each binned time box;
+ * other drug , then cat = "Infusions", value accumulated in each binned time box;
+
+ * 
+ * Input notes: 
+ * 
+ *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
+ * 
+ *   └──`from` should be divisible by `resolution`.
+ * 
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {Number} [from=0] Start timestamp.
+ * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
+ * @apiParam {Number} [resolution=3600] Binned time resolution.
+ * @apiParamExample {json} Example of request in-out data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from":1541030400,
+          "to":1542018000,
+          "resolution":3600
+        }
+
+ * @apiSuccessExample Success-Response:
+ *    {
+        "1541023200": {
+              "Flushes": {
+                  "value": 111,
+                  "drug": [
+                      "heparin flush"
+                  ],
+                  "diluent": "Dextrose 5% in Water",
+                  "rate": 2,
+                  "unit": "mL/hr",
+                  "conc": 1,
+                  "strength_unit": "unit",
+                  "vol_unit": "mL"
+              },
+              "Infusions": {
+                  "value": 222,
+                  "drug": [
+                      "milrinone",
+                      "morphine",
+                      "papaverine",
+                      "heparin",
+                      "dexmedetomidine",
+                      "nitroprusside",
+                      "midazolam",
+                      "niCARdipine"
+                  ],
+                  "diluent": "Dextrose 10% in Water",
+                  "rate": 1.35,
+                  "unit": "mL/hr",
+                  "conc": 0.1,
+                  "strength_unit": "mg",
+                  "vol_unit": "mL"
+              }
+          },
+        ...
+        }
+ *
+ */

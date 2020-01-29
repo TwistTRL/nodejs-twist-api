@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-28 08:19:18 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-28 09:08:57
+ * @Last Modified time: 2020-01-28 18:34:15
  */
 
 
@@ -156,10 +156,12 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
   if (arr2 && arr2.length) {
     console.log("In-Out Diluents record size :", arr2.length);
-
     for (let row of arr2) {
       //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
+
+      // console.log("row: ", row);
+
       let currentTime = Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
 
       // end when larger than endTime
@@ -171,12 +173,18 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       for (let i = 0; i < zoneNumber; i++) {
         let value = 0;
         let calTime = currentTime + i * timeInterval;
+
+
         if (i == 0) {
-          value = (Math.min(currentTime + timeInterval, row.END_UNIX) - row.START_UNIX) * row.INFUSION_RATE / 3600;
+          value = (Math.min(currentTime + timeInterval, row.END_UNIX) - Math.max(startTime, row.START_UNIX)) * row.INFUSION_RATE / 3600;   
+
         } else if (i == zoneNumber - 1) {
-          value = (row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)) * row.INFUSION_RATE / 3600;
+          value = Math.min((row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)), timeInterval) * row.INFUSION_RATE / 3600;
+        
         } else {
           value = timeInterval * row.INFUSION_RATE / 3600;
+         
+
         }
 
         if (value < 0) {
@@ -186,13 +194,17 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         let typeFlush = (row.DRUG == 'papavarine' || row.DRUG == 'heparin flush') ? 1 : 0;
         if (calTime in timeDict) {
           if (typeFlush) {
-            if ("1" in timeDict) {
+            if ("1" in timeDict[calTime]) {
+
               if (timeDict[calTime]["1"].Flushes) {
+                // console.log('value :', value);
+                // console.log('drug :', row.DRUG);
                 timeDict[calTime]["1"].Flushes.value += value;
                 if (!timeDict[calTime]["1"].Flushes.drug.includes(row.DRUG)) {
                   timeDict[calTime]["1"].Flushes.drug.push(row.DRUG);
                 }
               } else {
+
                 let singleResult = {};
                 singleResult.value = value;
                 singleResult.drug = [row.DRUG];
@@ -205,6 +217,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
                 timeDict[calTime]["1"].Flushes = singleResult;
               }
             } else {
+
               let singleResult = {};
               singleResult.value = value;
               singleResult.drug = [row.DRUG];
@@ -219,7 +232,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             }
             
           } else {
-            if ("1" in timeDict) {
+            if ("1" in timeDict[calTime]) {
               if (timeDict[calTime]["1"].Infusions) {
                 timeDict[calTime]["1"].Infusions.value += value;
                 if (!timeDict[calTime]["1"].Infusions.drug.includes(row.DRUG)) {
@@ -252,6 +265,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             }            
           }
         } else {
+
           timeDict[calTime] = {};
           timeDict[calTime]["1"] = {};
           let singleResult = {};
@@ -272,8 +286,9 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         }
       }
     }
-    return timeDict;
   }
+
+  return timeDict;
 }
 
 function _updateRowToDict(currentTime, row) {

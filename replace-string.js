@@ -2,12 +2,13 @@
  * @Author: Peng 
  * @Date: 2020-01-28 10:45:44 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-28 11:29:20
+ * @Last Modified time: 2020-01-29 14:05:42
  */
 
 const replace = require('replace-in-file');
 const fs = require('fs');
 const path=require('path');
+const XLSX = require('xlsx');
 
 const {
   XLSX_PATH
@@ -78,6 +79,11 @@ async function replaceID() {
 function copyXlsxFile() {
   // inoutcode.xlsx will be created or overwritten by default.
   const NEW_PATH = path.join(__dirname, './docs/files/inoutcode.xlsx');
+  const workbook = XLSX.readFile(NEW_PATH);
+  const sheet_name_list = workbook.SheetNames;
+  const IN_OUT_CODE_JSON = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+  let datatable_array = IN_OUT_CODE_JSON.map(item => [item.EVENT_CD, item.EVENT_CD_DEFINITION, item.DISPLAY_IO, item.IO_CALCS, item.IO_CAT, item.Subcat, item.LABEL, item.SHORT_LABEL]);
+  let datatable_json = {"data":datatable_array};
 
   const docsDir = path.join(__dirname, 'docs')
   const filesDir = path.join(docsDir, 'files')
@@ -94,17 +100,21 @@ function copyXlsxFile() {
       fs.copyFile(XLSX_PATH, NEW_PATH, (err) => {
         if (err) throw err;
         console.log('inoutcode.xlsx copied');
+
+        fs.writeFile('./docs/files/xlsx.log', new Date().toString(), function (err) {
+          if (err) throw err;
+          console.log('Saved current time!');
+        });
+
+        fs.writeFile('./docs/files/xlsx.json', JSON.stringify(datatable_json), function (err) {
+          if (err) throw err;
+          console.log('Saved json file!');
+        });
       });
     }); 
       
   });
-
-  // fs.copyFile(XLSX_PATH, NEW_PATH, (err) => {
-  //   if (err) throw err;
-  //   console.log('inoutcode.xlsx copied');
-  // });
 }
 
-
-startReplacString();
+// startReplacString();
 copyXlsxFile();
