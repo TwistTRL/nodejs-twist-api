@@ -2,8 +2,9 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-29 10:28:18
+ * @Last Modified time: 2020-02-03 15:37:48
  */
+const sleep = require('util').promisify(setTimeout)
 
 const express = require('express');
 const path = require('path');
@@ -876,6 +877,16 @@ router.post('/inout', async (req, res) => {
  * 
  *   └──`from` and `to` should be divisible by `resolution`.
  * 
+ * Output notes:
+ *   
+ *   output array [{},{}] has two item, in-data-object and out-data-object.
+ * 
+ *   in-data-object keys: timestamp
+ *   
+ *   in-data-object[timestamp] keys: cat
+ * 
+ *   in-data-object[timestamp][cat] keys: `acc_value` and ((cat is `Infusions` or `Flushes`)? `drugs` : short_label)
+ * 
  * 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {Number} [from=0] Start timestamp.
@@ -884,48 +895,55 @@ router.post('/inout', async (req, res) => {
  * @apiParamExample {json} Example of request in-out data
         {
           "person_id": EXAMPLE_PERSON_ID,
-          "from":1541030400,
+          "from":0,
           "to":1541037600,
           "resolution":3600
         }
 
  * @apiSuccessExample Success-Response:
- *    {
-        "1541023200": {
-              "Flushes": {
-                  "value": 111,
-                  "drug": [
-                      "heparin flush"
-                  ],
-                  "diluent": "Dextrose 5% in Water",
-                  "rate": 2,
-                  "unit": "mL/hr",
-                  "conc": 1,
-                  "strength_unit": "unit",
-                  "vol_unit": "mL"
-              },
-              "Infusions": {
-                  "value": 222,
-                  "drug": [
-                      "milrinone",
-                      "morphine",
-                      "papaverine",
-                      "heparin",
-                      "dexmedetomidine",
-                      "nitroprusside",
-                      "midazolam",
-                      "niCARdipine"
-                  ],
-                  "diluent": "Dextrose 10% in Water",
-                  "rate": 1.35,
-                  "unit": "mL/hr",
-                  "conc": 0.1,
-                  "strength_unit": "mg",
-                  "vol_unit": "mL"
-              }
-          },
-        ...
-        }
+ *
+ [
+    {
+      "1541030400": {
+          "Infusions": {
+              "acc_value": 0.02,
+              "drugs": [
+                  {
+                      "value": 0.02,
+                      "drug": "alprostadil",
+                      "diluent": "Dextrose 10% in Water",
+                      "rate": 0.27,
+                      "unit": "mL/hr",
+                      "conc": 5,
+                      "strength_unit": "mcg",
+                      "vol_unit": "mL",
+                      "location": "not ready"
+                  }
+              ]
+          }
+      },
+      ...
+    },
+    {
+      "1526810400": {
+            "DRAIN": {
+                "acc_value": -10,
+                "CT2": {
+                    "value": 0,
+                    "sub_cat": "CT",
+                    "label": "CT2",
+                    "short_label": "CT2"
+                },
+                "CT1": {
+                    "value": -10,
+                    "sub_cat": "CT",
+                    "label": "CT1",
+                    "short_label": "CT1"
+                }
+            },
+      ...
+    }
+  ]
  *
  */
 
@@ -941,6 +959,7 @@ router.post('/inout-tooltip', async (req, res) => {
 
   try {
     const toSend = await getInOutTooltipQueryV3(query);
+    console.log('finished timestamp :', new Date().getTime());
     res.send(
       toSend,
     );
@@ -958,6 +977,7 @@ router.post('/inout-tooltip', async (req, res) => {
  * @apiVersion 0.0.1
  * @apiName Get in-out tooltip for patient v2
  * @apiGroup Person
+ * @apiDeprecated use now (#Person:Get in-out tooltip for patient).
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `DRUG_DILUENTS`
  * 

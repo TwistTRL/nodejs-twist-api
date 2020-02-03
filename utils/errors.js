@@ -22,6 +22,7 @@ class InputInvalidError extends Error {
   constructor(message) {
     super(message);
     this.name = this.constructor.name;
+    console.log(message);
     Error.captureStackTrace(this, this.constructor);
   }
 }

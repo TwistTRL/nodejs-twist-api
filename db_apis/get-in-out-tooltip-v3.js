@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-29 08:32:39 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-29 16:22:40
+ * @Last Modified time: 2020-02-03 15:37:51
  */
 
 const database = require("../services/database");
@@ -105,6 +105,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     console.log("In-Out Event record size :", arr1.length);
     let countNull = 0;
     let currentTime = Math.floor(arr1[0].DT_UNIX / timeInterval) * timeInterval;
+
 
     for (let row of arr1) {
       //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "IO_CALCS": 1, "VALUE": 0.9}
@@ -217,6 +218,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     }
   }
 
+  // console.log('type1Dict :', type1Dict);
+
   return [type1Dict, type2Dict];
 }
 
@@ -274,13 +277,6 @@ async function parallelQuery(conn, new_query) {
  * @param {*} query 
  */
 const getInOutTooltipQueryV3 = database.withConnection(async function (conn, query) {
-  console.log("query = ", query);
-
-  if (!isValidJson.validate_inout(query)) {
-    console.warn(query + " : not json");
-    throw new InputInvalidError('Input not in valid json');
-  }
-
   let new_query = {
     person_id: query.person_id,
     from: query.from || 0,
@@ -288,7 +284,12 @@ const getInOutTooltipQueryV3 = database.withConnection(async function (conn, que
     to: query.to || Math.ceil(new Date().getTime() / (1000 * query.resolution)) * query.resolution,
     resolution: query.resolution || 3600
   }
+  console.log("query = ", new_query);
 
+  if (!isValidJson.validate_inout(new_query)) {
+    console.warn(new_query + " : not json");
+    throw new InputInvalidError('Input not in valid json');
+  }
 
   if (new_query.from > new_query.to) {
     throw new InputInvalidError('start time must >= end time');
@@ -303,10 +304,12 @@ const getInOutTooltipQueryV3 = database.withConnection(async function (conn, que
   let consoleTimeCount = timeLable++;
   console.time('getInOutTooltip' + consoleTimeCount);
   let rawResult = await parallelQuery(conn, new_query);
-  console.timeEnd('getInOutTooltip' + consoleTimeCount);
-  return _calculateRawRecords(rawResult, query[RESOLUTION], query[FROM], query[TO]);
+  let result = _calculateRawRecords(rawResult, new_query[RESOLUTION], new_query[FROM], new_query[TO]);
+  console.timeEnd('getInOutTooltip' + consoleTimeCount); 
+  return result;
 });
 
 module.exports = {
   getInOutTooltipQueryV3
 };
+
