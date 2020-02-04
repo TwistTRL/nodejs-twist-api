@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:12:26 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-27 15:54:52
+ * @Last Modified time: 2020-02-04 12:18:54
  */
 
 const database = require("../services/database");
@@ -25,11 +25,18 @@ const RESOLUTION = "resolution";
 var timeLable = 0;
 
 // get raw in-out by event between two timestamp
+// const SQL_GET_IN_OUT_EVENT_PART1 = `
+// SELECT  
+//   DT_UNIX,
+//   EVENT_CD,
+//   IO_CALCS,
+//   VALUE
+// FROM INTAKE_OUTPUT
+// WHERE PERSON_ID = `
 const SQL_GET_IN_OUT_EVENT_PART1 = `
 SELECT  
   DT_UNIX,
   EVENT_CD,
-  IO_CALCS,
   VALUE
 FROM INTAKE_OUTPUT
 WHERE PERSON_ID = `
@@ -103,13 +110,14 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
-    let countNull = 0;
+    let countValue0 = 0;
+    let countType0 = 0;
     let currentSameTimeArray = [];
     let currentTime = Math.floor(arr1[0].DT_UNIX / timeInterval) * timeInterval;
 
     for (let row of arr1) {
-      //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "IO_CALCS": 1, "VALUE": 0.9}
-
+      //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "VALUE": 0.9}
+      let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
 
       // end when larger than endTime
       if (currentTime > endTime) {
@@ -121,12 +129,14 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         continue;
       }
 
-      if (row.VALUE == null) {
-        countNull++;
+      if (!row.VALUE) {
+        countValue0++;
+        continue;
       }
 
-      if (row.IO_CALCS != 0 && row.IO_CALCS != 1 && row.IO_CALCS != 2) {
-        console.log("row.IO_CALCS error");
+
+      if (io_calcs != 1 && io_calcs != 2) {
+        countType0++;
         continue;
       }
 
@@ -141,7 +151,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         singleType0Result.short_label = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
         singleType0Result.color = "#fafafa";
         singleType0Result.time = currentTime;
-        singleType0Result.type = row.IO_CALCS;
+        singleType0Result.type = io_calcs;
         resultEvent.push(singleType0Result);
         continue;
       }
@@ -171,7 +181,9 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       let combinedSameTimeArray = handelSameTimeArray(currentSameTimeArray, currentTime, timeInterval);
       resultEvent.push(...combinedSameTimeArray);
     }
-    console.log("null value number for In-Out Event records: ", countNull);
+    console.log("In-Out Event records with 0/null value count: ", countValue0);
+    console.log("In-Out Event records with type `0` count: ", countType0);
+
   }
 
   //example arr2[indexArr2] = {
@@ -196,6 +208,9 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
       let currentTime = Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
 
+      // console.log('row.START_UNIX :', row.START_UNIX);
+      // console.log('startTime :', startTime);
+
       // end when larger than endTime
       if (currentTime > endTime) {
         break;
@@ -206,17 +221,34 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         let singleResult = {};
         let value = 0;
         let cTime = currentTime + i * timeInterval;
+        // if (i == 0) {
+        //   value = (Math.min(currentTime + timeInterval, row.END_UNIX) - row.START_UNIX) * row.INFUSION_RATE / 3600;
+        // } else if (i == zoneNumber - 1) {
+        //   value = (row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)) * row.INFUSION_RATE / 3600;
+        // } else {
+        //   value = timeInterval * row.INFUSION_RATE / 3600;
+        // }
+
         if (i == 0) {
-          value = (Math.min(currentTime + timeInterval, row.END_UNIX) - row.START_UNIX) * row.INFUSION_RATE / 3600;
+          value = (Math.min(currentTime + timeInterval, row.END_UNIX) - Math.max(startTime, row.START_UNIX)) * row.INFUSION_RATE / 3600; 
+          let value1 = (Math.min(currentTime + timeInterval, row.END_UNIX) - row.START_UNIX) * row.INFUSION_RATE / 3600;
+          if (value1 != value){
+            console.log('value1 :', value1);
+          }
         } else if (i == zoneNumber - 1) {
-          value = (row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)) * row.INFUSION_RATE / 3600;
+          value = Math.min((row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)), timeInterval) * row.INFUSION_RATE / 3600;  
+          let value2 = (row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)) * row.INFUSION_RATE / 3600;      
+          if (value2 != value){
+            console.log('value2 :', value2);
+          }
         } else {
-          value = timeInterval * row.INFUSION_RATE / 3600;
+          value = timeInterval * row.INFUSION_RATE / 3600;     
         }
 
         if (value <= 0) {
           console.log("error value <= 0: ", value);
         }
+
 
         if (row.DRUG == 'papavarine' || row.DRUG == 'heparin flush') {
           // `Flushes`, write to timeFlushDict, key is start time of each binned time box
@@ -288,21 +320,22 @@ function handelSameTimeArray(array, timeOfArray, timeInterval) {
   let resultSameTime = [];
 
   for (let row of array) {
-    //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "IO_CALCS": 1, "VALUE": 0.9, "SHORT_LABEL": "VAC"}
+    //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "VALUE": 0.9, "SHORT_LABEL": "VAC"}
+    let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
 
     // todo, now combined with event cd
     // color not working
 
     let value;
     if (row.SHORT_LABEL in dict) {
-      if (row.IO_CALCS == 2) {
+      if (io_calcs == 2) {
         value = Math.abs(row.VALUE) * -1;
       } else {
         value = Math.abs(row.VALUE) * 1;
       }
       dict[row.SHORT_LABEL] += value;
     } else {
-      if (row.IO_CALCS == 2) {
+      if (io_calcs == 2) {
         value = Math.abs(row.VALUE) * -1;
       } else {
         value = Math.abs(row.VALUE) * 1;
@@ -363,7 +396,6 @@ const getInOutQuery = database.withConnection(async function (conn, query) {
     throw new InputInvalidError('Input not in valid json');
   }
 
-  // todo: cut from to hour
   let new_query = {
     person_id: query.person_id,
     from: query.from || 0,
@@ -387,8 +419,19 @@ const getInOutQuery = database.withConnection(async function (conn, query) {
   let consoleTimeCount = timeLable++;
   console.time('getInOut' + consoleTimeCount);
   let rawResults = await parallelQuery(conn, new_query);
+  let result = _calculateRawRecords(rawResults, new_query[RESOLUTION], new_query[FROM], new_query[TO]);
   console.timeEnd('getInOut' + consoleTimeCount);
-  return _calculateRawRecords(rawResults, query[RESOLUTION], query[FROM], query[TO]);
+
+  // let count = 0;
+  // result.forEach(item => {
+  //   count ++;
+  //   if ((item.type != '1' && item.type != '2') || item.value == 0){
+  //     console.log('item :', item);
+  //   }
+  // });
+  // console.log('count :', count);
+
+  return result;
 });
 
 module.exports = {

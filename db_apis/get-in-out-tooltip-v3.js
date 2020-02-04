@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-29 08:32:39 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-03 15:37:51
+ * @Last Modified time: 2020-02-04 12:11:56
  */
 
 const database = require("../services/database");
@@ -29,7 +29,6 @@ const SQL_GET_IN_OUT_EVENT_PART1 = `
 SELECT  
   DT_UNIX,
   EVENT_CD,
-  IO_CALCS,
   VALUE
 FROM INTAKE_OUTPUT
 WHERE PERSON_ID = `
@@ -108,7 +107,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
 
     for (let row of arr1) {
-      //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "IO_CALCS": 1, "VALUE": 0.9}
+      //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "VALUE": 0.9}
+      let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
 
       // end when larger than endTime
       if (currentTime > endTime) {
@@ -116,7 +116,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
 
       //if current DISPLAY_IO != '1', or IO_CALCS == 0, skip it
-      if (EVENT_CD_DICT[row.EVENT_CD].DISPLAY_IO != '1' || row.IO_CALCS == 0) {
+      if (EVENT_CD_DICT[row.EVENT_CD].DISPLAY_IO != '1' || !io_calcs) {
         continue;
       }
 
@@ -129,9 +129,9 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         currentTime = Math.floor(row.DT_UNIX / timeInterval) * timeInterval;
       }
 
-      if (row.IO_CALCS == '1') {
+      if (io_calcs == '1') {
         type1Dict = _updateRowToDict(currentTime, row, type1Dict);
-      } else if (row.IO_CALCS == '2') {
+      } else if (io_calcs == '2') {
         type2Dict = _updateRowToDict(currentTime, row, type2Dict);
       } else {
         console.log("Error IO_CALCS");
