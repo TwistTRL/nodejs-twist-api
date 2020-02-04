@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:12:26 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-04 12:18:54
+ * @Last Modified time: 2020-02-04 14:44:45
  */
 
 const database = require("../services/database");
@@ -389,20 +389,18 @@ async function parallelQuery(conn, new_query) {
  * @param {*} query 
  */
 const getInOutQuery = database.withConnection(async function (conn, query) {
-  console.log("query = ", query);
-
-  if (!isValidJson.validate_inout(query)) {
-    console.warn(query + " : not json");
-    throw new InputInvalidError('Input not in valid json');
-  }
-
   let new_query = {
     person_id: query.person_id,
     from: query.from || 0,
     to: query.to || new Date().getTime() / 1000,
     resolution: query.resolution || 3600
   }
+  console.log("query = ", new_query);
 
+  if (!isValidJson.validate_inout(new_query)) {
+    console.warn(new_query + " : not json");
+    throw new InputInvalidError('Input not in valid json');
+  }
   if (new_query.from > new_query.to) {
     throw new InputInvalidError('start time must >= end time');
   }
