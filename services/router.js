@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-04 17:19:50
+ * @Last Modified time: 2020-02-05 13:01:16
  */
 const sleep = require('util').promisify(setTimeout)
 
@@ -1092,6 +1092,13 @@ router.post('/inout-tooltip', async (req, res) => {
  * 
  *   └──`from` should be divisible by `resolution`.
  * 
+ * Output notes:
+ *  
+ *    ├── for `Flushes` in the same timestamp, combined same `drug` and `diluent` and `location` (`location` for `Flushes` only, current not ready)
+ *    
+ *    ├── for `Infusions` in the same timestamp, combined same `drug` and `diluent`
+ * 
+ *    └── if combined, return the most recent `rate`, `unit`, `conc`, `strength_unit`, and `vol_unit`
  * 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {Number} [from=0] Start timestamp.
@@ -1106,59 +1113,74 @@ router.post('/inout-tooltip', async (req, res) => {
         }
 
  * @apiSuccessExample Success-Response:
- *    {
-        "1500000000": {
-          "0": {
-              "DRAIN": {
-                  "": {
-                      "value": 11,
-                      "sub_cat": "CT",
-                      "label": "CT 1 Level",
-                      "short_label": ""
-                  }
-              }
-          },
-          "1": {
-              "Infusions": {
-                  "value": 11,
-                  "drug": [
-                      "heparin"
-                  ],
-                  "diluent": "Dextrose 5% in Water",
-                  "rate": 1.25,
-                  "unit": "mL/hr",
-                  "conc": 100,
-                  "strength_unit": "unit",
-                  "vol_unit": "mL"
-              }
-          },
-          "2": {
-              "UOP": {
-                  "FOL": {
-                      "value": -22,
-                      "sub_cat": "Foley",
-                      "label": "FOLEY",
-                      "short_label": "FOL"
-                  }
-              },
-              "DRAIN": {
-                  "CT1": {
-                      "value": -22,
-                      "sub_cat": "CT",
-                      "label": "CT1",
-                      "short_label": "CT1"
-                  },
-                  "CT2": {
-                      "value": -22,
-                      "sub_cat": "CT",
-                      "label": "CT2",
-                      "short_label": "CT2"
-                      }
-                  }
-              }
-          },
+ *    
+ * 
+ *  {
+       "150000000": {
+            "IVF": {
+                "acc_value": 3,
+                "IVF": {
+                    "value": 3,
+                    "sub_cat": "IVF",
+                    "label": "IVF",
+                    "short_label": "IVF"
+                }
+            },
+            "Infusions": {
+                "acc_value": 5.0,
+                "drugs": [
+                    {
+                        "value": 2,
+                        "drug": "papaverine",
+                        "diluent": "Sodium Chloride 0.9%",
+                        "rate": 2,
+                        "unit": "mL/hr",
+                        "conc": 0.12,
+                        "strength_unit": "mg",
+                        "vol_unit": "mL"
+                    },
+                    {
+                        "value": 3.0,
+                        "drug": "morphine",
+                        "diluent": "Dextrose 5% in Water",
+                        "rate": 0.2,
+                        "unit": "mL/hr",
+                        "conc": 1,
+                        "strength_unit": "mg",
+                        "vol_unit": "mL"
+                    }
+                ]
+            },
+            "Flushes": {
+                "acc_value": 3,
+                "drugs": [
+                    {
+                        "value": 2,
+                        "drug": "heparin flush",
+                        "diluent": "Sodium Chloride 0.9%",
+                        "rate": 2,
+                        "unit": "mL/hr",
+                        "conc": 1,
+                        "strength_unit": "unit",
+                        "vol_unit": "mL"
+                        "location": "not ready"
+                    },
+                    {
+                        "value": 1,
+                        "drug": "heparin flush",
+                        "diluent": "Dextrose 10% in Water",
+                        "rate": 1,
+                        "unit": "mL/hr",
+                        "conc": 1,
+                        "strength_unit": "unit",
+                        "vol_unit": "mL"
+                        "location": "not ready"
+                    }
+                ]
+            }
+        },
         ...
-        }
+    }
  *
  */
 
