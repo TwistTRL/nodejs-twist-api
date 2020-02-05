@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:12:26 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-04 17:20:52
+ * @Last Modified time: 2020-02-05 15:11:35
  */
 
 const database = require("../services/database");
@@ -255,7 +255,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           } else {
             //FLUSHES	FLUSHES	FLUSH	FLUSH
             singleResult.value = value;   
-            singleResult.short_label = "Flush";
+            singleResult.short_label = "Flushes";
             singleResult.time = cTime;
             singleResult.type = "1";
             timeFlushDict[singleResult.time] = singleResult;

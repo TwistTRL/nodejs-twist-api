@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:33:57 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-01-28 10:35:33
+ * @Last Modified time: 2020-02-05 16:26:08
  */
 
 const {
@@ -11,8 +11,12 @@ const {
   SL_TO_SUBCAT,
   SL_TO_CAT,
   SL_TO_CALCS,
-  IN_OUT_COLOR_MAP,
+  SL_ORDER_ARRAY,
+  CAT_ARRRY,
+  CAT_TO_SL,
+  CAT_COLOR_DICT,
   CAT_CAP_TO_LOWER_MAP,
+  CAT_ORDER_ARRAY,
   XLSX_PATH
 } = require("in-out-codes");
 
@@ -23,7 +27,11 @@ module.exports = {
   SL_TO_SUBCAT,
   SL_TO_CAT,
   SL_TO_CALCS,
-  IN_OUT_COLOR_MAP,
+  SL_ORDER_ARRAY,
+  CAT_ARRRY,
+  CAT_TO_SL,
+  CAT_COLOR_DICT,
   CAT_CAP_TO_LOWER_MAP,
+  CAT_ORDER_ARRAY,
   XLSX_PATH
 }

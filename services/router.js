@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-05 13:01:16
+ * @Last Modified time: 2020-02-05 16:34:35
  */
 const sleep = require('util').promisify(setTimeout)
 
@@ -117,6 +117,8 @@ const test_crash = require('../test/test-crash');
 const {
   testAbnormalMRN
 } = require('../test/test_abnormal_mrn');
+
+const settingsFluid = require('../db_relation/in-out-db-relation')
 
 
 // ------------------------------------------------------------------------
@@ -1076,7 +1078,6 @@ router.post('/inout-tooltip', async (req, res) => {
  * @apiVersion 0.0.1
  * @apiName Get in-out tooltip for patient v2
  * @apiGroup Person
- * @apiDeprecated use now (#Person:Get in-out tooltip for patient).
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `DRUG_DILUENTS`
  * 
@@ -1107,8 +1108,6 @@ router.post('/inout-tooltip', async (req, res) => {
  * @apiParamExample {json} Example of request in-out data
         {
           "person_id": EXAMPLE_PERSON_ID,
-          "from":1541030400,
-          "to":1541037600,
           "resolution":3600
         }
 
@@ -2226,6 +2225,24 @@ router.post('/relational-query', async (req, res) => {
     // res.status(500);
     // res.send(e.toString());
   }
+});
+
+
+
+/**
+ * @api {get} /settings/fluid Fluid Setting Information
+ * @apiVersion 0.0.1
+ * @apiName Get Fluid Setting Information
+ * @apiGroup Settings
+ * @apiDescription some setting of displaying fluid charts
+
+ * @apiSuccessExample Success-Response:
+ *    not available *
+ */
+router.get('/settings/fluid', (req, res) => {
+  res.send(
+    settingsFluid,
+  );
 });
 
 // ~~~~~~~~~~
