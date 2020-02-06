@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-02-05 16:33:06 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-06 14:42:31
+ * @Last Modified time: 2020-02-06 16:16:26
  */
 
 
@@ -199,7 +199,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
         let typeFlush = (row.DRUG == 'papavarine' || row.DRUG == 'heparin flush') ? 1 : 0;
         if (!(calTime in type1Dict)) {
-          type1Dict[calTime] = {};
+          type1Dict[calTime] = {"acc_value": 0};
         }
 
         if (typeFlush) {
@@ -237,6 +237,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
               type1Dict[calTime].Flushes.drugs.push(singleResult);
             }
           }
+          type1Dict[calTime].acc_value += value;
           type1Dict[calTime].Flushes.acc_value += value;
 
         } else {
@@ -272,6 +273,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
               type1Dict[calTime].Infusions.drugs.push(singleResult);
             }
           }
+          type1Dict[calTime].acc_value += value;
           type1Dict[calTime].Infusions.acc_value += value;
         }
       }
@@ -303,11 +305,12 @@ function _updateRowToDict(currentTime, row, dict) {
   let newShortLabel = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
 
   if (!(currentTime in dict)) {
-    dict[currentTime] = {};
+    dict[currentTime] = {"acc_value": 0};
   }
   if (!(newCat in dict[currentTime])) {
     dict[currentTime][newCat] = { "acc_value": 0, "short_labels": []};
   }
+  dict[currentTime].acc_value += newValue;
   dict[currentTime][newCat].acc_value += newValue;
 
   let isNewSlInDict = false;
