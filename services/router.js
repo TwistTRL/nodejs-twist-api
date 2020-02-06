@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-05 16:34:35
+ * @Last Modified time: 2020-02-06 14:46:30
  */
 const sleep = require('util').promisify(setTimeout)
 
@@ -966,6 +966,7 @@ router.post('/inout-v2', async (req, res) => {
  * @apiVersion 0.0.3
  * @apiName Get in-out tooltip for patient
  * @apiGroup Person
+ * @apiDeprecated use now (#Person:in-out-tooltip-v2).
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`,
  * from table `DRUG_DILUENTS` and `INTAKE_OUTPUT`
@@ -1026,22 +1027,19 @@ router.post('/inout-v2', async (req, res) => {
       ...
     },
     {
-      "1526810400": {
-            "DRAIN": {
-                "acc_value": -10,
-                "CT2": {
-                    "value": 0,
-                    "sub_cat": "CT",
-                    "label": "CT2",
-                    "short_label": "CT2"
-                },
-                "CT1": {
-                    "value": -10,
-                    "sub_cat": "CT",
-                    "label": "CT1",
-                    "short_label": "CT1"
-                }
-            },
+      "1538686800": {
+            "UOP": {
+                "acc_value": -15,
+                "short_labels": [
+                    {
+                        "value": -15,
+                        "sub_cat": "Void",
+                        "label": "UOP",
+                        "short_label": "UOP"
+                    }
+                ]
+            }
+      },
       ...
     }
   ]
@@ -1076,7 +1074,7 @@ router.post('/inout-tooltip', async (req, res) => {
 /**
  * @api {post} /inout-tooltip-v2 In-Out Tooltip for Patient V2
  * @apiVersion 0.0.1
- * @apiName Get in-out tooltip for patient v2
+ * @apiName in-out-tooltip-v2
  * @apiGroup Person
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `DRUG_DILUENTS`

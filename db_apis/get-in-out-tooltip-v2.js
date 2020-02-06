@@ -1,8 +1,8 @@
 /*
  * @Author: Peng 
  * @Date: 2020-02-05 16:33:06 
- * @Last Modified by:   Peng 
- * @Last Modified time: 2020-02-05 16:33:06 
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-02-06 14:42:31
  */
 
 
@@ -306,22 +306,28 @@ function _updateRowToDict(currentTime, row, dict) {
     dict[currentTime] = {};
   }
   if (!(newCat in dict[currentTime])) {
-    dict[currentTime][newCat] = { "acc_value": 0 };
+    dict[currentTime][newCat] = { "acc_value": 0, "short_labels": []};
   }
   dict[currentTime][newCat].acc_value += newValue;
 
-  if (newShortLabel in dict[currentTime][newCat]) {
-    dict[currentTime][newCat][newShortLabel].value += newValue;
-
-  } else {
+  let isNewSlInDict = false;
+  for (let i = 0; i < dict[currentTime][newCat].short_labels.length; i++){
+    if (dict[currentTime][newCat].short_labels[i].short_label == newShortLabel) {
+      dict[currentTime][newCat].short_labels[i].value += newValue;
+      isNewSlInDict = true;
+      break;
+    }
+  }
+  
+  if (!isNewSlInDict){
     let singleResult = {};
+    singleResult.short_label = newShortLabel;
     singleResult.value = newValue;
     singleResult.sub_cat = EVENT_CD_DICT[row.EVENT_CD].Subcat;
     singleResult.label = EVENT_CD_DICT[row.EVENT_CD].LABEL;
-    singleResult.short_label = newShortLabel;
-
-    dict[currentTime][newCat][newShortLabel] = singleResult;
+    dict[currentTime][newCat].short_labels.push(singleResult);
   }
+  
   return dict;
 }
 

@@ -1,8 +1,8 @@
 /*
  * @Author: Peng 
  * @Date: 2020-01-21 11:53:31 
- * @Last Modified by:   Peng 
- * @Last Modified time: 2020-01-21 11:53:31 
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-02-06 09:49:57
  */
 
 
@@ -430,18 +430,27 @@ function _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, vitalType
 
 
       // todo remove this later
-      if ( !(arr2[h2].START_TM - records_start_time) % timeInterval) {
-        console.warn("Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+      if ( !(arr2[h2].START_TM - records_start_time) % timeInterval && (arr2[h2].START_TM - records_start_time)) {
+        console.warn("1 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+        console.log('records_start_time :', records_start_time);
+        console.log('arr1[0].START_TM :', arr1[0].START_TM);
+        console.log('arr2[0].START_TM :', arr2[0].START_TM);
+
+        console.log('timeInterval :', timeInterval);
       }
 
       if (arr1[h1].START_TM == arr2[h2].START_TM) {
         // both at this time, keep data from arr1
 
         if (arr1[h1].END_TM * 1 - arr1[h1].START_TM * 1 != timeInterval) {
-          console.warn("Error for " + vitalType + " with " + arr1[h1].START_TM + ", " + arr1[h1].END_TM);
+          console.warn("2 Error for " + vitalType + " with " + arr1[h1].START_TM + ", " + arr1[h1].END_TM);
+          console.log('records_start_time :', records_start_time);
+          console.log('timeInterval :', timeInterval);
         }
         if (arr2[h2].END_TM * 1 - arr2[h2].START_TM * 1 != timeInterval) {
-          console.warn("Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+          console.warn("3 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+          console.log('records_start_time :', records_start_time);
+          console.log('timeInterval :', timeInterval);
         }
 
         if (currentStartTM != arr1[h1].START_TM) {
@@ -459,7 +468,9 @@ function _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, vitalType
         // only data from arr2 at this time
 
         if (arr2[h2].END_TM * 1 - arr2[h2].START_TM * 1 != timeInterval) {
-          console.warn("Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+          console.warn("4 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+          console.log('records_start_time :', records_start_time);
+          console.log('timeInterval :', timeInterval);
         }
 
         if (currentStartTM != arr2[h2].START_TM) {
@@ -470,7 +481,6 @@ function _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, vitalType
           currentStartTM = arr2[h2].START_TM;
           singleResult = getSingleBinnedResult(vitalType2nd, dictResult, currentStartTM, currentStartTM * 1 + timeInterval);
         }
-
 
         singleResult[mapDictResult[arr2[h2].BIN_ID]] = arr2[h2].VAL;
         count2nd++;
@@ -496,7 +506,9 @@ function _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, vitalType
     // the rest of arr1 or arr2
     while (h2 < arr2.length) {
       if (arr2[h2].END_TM * 1 - arr2[h2].START_TM * 1 != timeInterval) {
-        console.warn("Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+        console.warn("5 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+        console.log('records_start_time :', records_start_time);
+        console.log('timeInterval :', timeInterval);
       }
 
       if (currentStartTM != arr2[h2].START_TM) {
@@ -541,7 +553,9 @@ function _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, vitalType
 
       // if timeString is "12H", every end_tm is larger than start_tm 12 hours or 43200 seconds
       if (vitalsRecord.END_TM * 1 - vitalsRecord.START_TM * 1 != timeInterval) {
-        console.warn("Error for " + timeString + " with " + vitalsRecord.START_TM + ", " + vitalsRecord.END_TM);
+        console.warn("6 Error for " + timeString + " with " + vitalsRecord.START_TM + ", " + vitalsRecord.END_TM);
+        console.log('vitalsRecord.START_TM :', vitalsRecord.START_TM);
+        console.log('timeInterval :', timeInterval);
       }
 
       // start_time was sorted when sql query done.
@@ -660,7 +674,8 @@ async function vitalsCalcQuerySQLExecutor(conn, query) {
       //example vitalRecord = {"START_TM": "1524657600", "END_TM": "1524700800", "VAL_MIN": "108"...}
       // if timeString is "12H", every end_tm is larger than start_tm 12 hours or 43200 seconds
       if (vitalRecord.END_TM * 1 - vitalRecord.START_TM * 1 != timeInterval) {
-        console.log("Error for " + timeString + " with " + vitalRecord.START_TM + ", " + vitalRecord.END_TM);
+        console.log("7 Error for " + timeString + " with " + vitalRecord.START_TM + ", " + vitalRecord.END_TM);
+        
       }
 
       // start_time was sorted when sql query done.
@@ -695,16 +710,23 @@ function combine2CalcResults(vitalsRecords, vitalType, vitalsRecords2nd, vitalTy
   while (h1 < arr1.length && h2 < arr2.length) {
 
     if ( !(arr2[h2].START_TM - records_start_time) % timeInterval) {
-      console.warn("Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+      console.warn("8 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+      console.log('records_start_time :', records_start_time);
+      console.log('timeInterval :', timeInterval);
+
     }
 
 
     if (arr1[h1].END_TM * 1 - arr1[h1].START_TM * 1 != timeInterval) {
-      console.log("Error for " + vitalType + " with " + arr1[h1].START_TM + ", " + arr1[h1].END_TM);
+      console.log("9 Error for " + vitalType + " with " + arr1[h1].START_TM + ", " + arr1[h1].END_TM);
+      console.log('records_start_time :', records_start_time);
+      console.log('timeInterval :', timeInterval);
     }
 
     if (arr2[h2].END_TM * 1 - arr2[h2].START_TM * 1 != timeInterval) {
-      console.log("Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+      console.log("10 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
+      console.log('records_start_time :', records_start_time);
+      console.log('timeInterval :', timeInterval);
     }
 
     if (arr1[h1].START_TM == arr2[h2].START_TM) {
