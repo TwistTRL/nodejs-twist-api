@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:12:26 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-05 15:11:35
+ * @Last Modified time: 2020-02-07 15:01:45
  */
 
 const database = require("../services/database");
@@ -180,6 +180,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     console.log("In-Out Event records with 0/null value count: ", countValue0);
     console.log("In-Out Event records with type `0` count: ", countType0);
 
+    // console.log('resultEvent :', resultEvent);
   }
 
   //example arr2[indexArr2] = {

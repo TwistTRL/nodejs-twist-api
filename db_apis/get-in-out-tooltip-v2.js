@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-02-05 16:33:06 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-06 16:16:26
+ * @Last Modified time: 2020-02-07 15:06:07
  */
 
 
@@ -104,7 +104,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
     let countNull = 0;
-    let currentTime = Math.floor(arr1[0].DT_UNIX / timeInterval) * timeInterval;
+    let currentTime = startTime;
 
 
     for (let row of arr1) {
@@ -160,7 +160,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
 
       // console.log("row: ", row);
-      let currentTime = Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
+      let currentTime = startTime;
 
       // end when larger than endTime
       if (currentTime > endTime) {
@@ -181,7 +181,11 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         }
 
         if (value < 0) {
-          console.log("error value < 0: ", value);
+          console.log("! value < 0: ", value);
+          console.log('i :', i);
+          console.log('zoneNumber :', zoneNumber);
+          console.log('currentTime :', currentTime);
+          console.log('row.INFUSION_RATE :', row.INFUSION_RATE);
         }
 
         let singleResult = {};
@@ -364,7 +368,7 @@ const getInOutTooltipQueryV2 = database.withConnection(async function (conn, que
     person_id: query.person_id,
     from: query.from || 0,
     // "to" default value is Math.ceil of timestamp of now to query.resolution 
-    to: query.to || Math.ceil(new Date().getTime() / (1000 * query.resolution)) * query.resolution,
+    to: query.to - 1 || Math.ceil(new Date().getTime() / (1000 * query.resolution)) * query.resolution - 1,
     resolution: query.resolution || 3600
   }
   console.log("query = ", new_query);
@@ -375,15 +379,13 @@ const getInOutTooltipQueryV2 = database.withConnection(async function (conn, que
   }
 
   if (new_query.from > new_query.to) {
-    throw new InputInvalidError('start time must >= end time');
+    throw new InputInvalidError('start time must > end time');
   }
   if (new_query.resolution <= 0 || new_query.resolution % 3600 != 0) {
     throw new InputInvalidError('"resolution" must be 3600 * n (n ∈ N)');
   }
-  if (new_query.from % new_query.resolution != 0 || new_query.to % new_query.resolution) {
-    throw new InputInvalidError('"from" and "to" should be divisible by "resolution"');
-  }
 
+  
   let consoleTimeCount = timeLable++;
   console.time('getInOutTooltip' + consoleTimeCount);
   let rawResult = await parallelQuery(conn, new_query);

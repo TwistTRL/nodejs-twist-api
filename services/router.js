@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-07 11:21:33
+ * @Last Modified time: 2020-02-07 15:10:09
  */
 const sleep = require('util').promisify(setTimeout)
 
@@ -1089,9 +1089,13 @@ router.post('/inout-tooltip', async (req, res) => {
  * 
  *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
  * 
- *   └──`from` should be divisible by `resolution`.
+ *   ├──`from` should be larger than `to` (`to` default is `from` + `resolution` - 1)
+ * 
+ *   └──`from` need be validated by front end.
  * 
  * Output notes:
+ * 
+ *    ├── the output binned start from the timestamp `from`
  *  
  *    ├── for `Flushes` in the same timestamp, combined same `drug` and `diluent` and `location` (`location` for `Flushes` only, current not ready)
  *    
@@ -1106,6 +1110,7 @@ router.post('/inout-tooltip', async (req, res) => {
  * @apiParamExample {json} Example of request in-out data
         {
           "person_id": EXAMPLE_PERSON_ID,
+          "from":150000000,
           "resolution":3600
         }
 
