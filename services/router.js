@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-07 11:02:50
+ * @Last Modified time: 2020-02-07 11:21:33
  */
 const sleep = require('util').promisify(setTimeout)
 
@@ -1342,7 +1342,7 @@ router.post('/vitals', async (req, res) => {
 /**
  * @api {post} /vitalsv2 V2 Binned vitals
  * @apiVersion 0.0.2
- * @apiName get_binned-vitals
+ * @apiName get-binned-vitals
  * @apiGroup Vitals
  * @apiDescription 
  * 
@@ -1450,13 +1450,13 @@ router.post('/vitals', async (req, res) => {
 /**
  * @api {post} /vitalsv2 V2 Raw Vitals
  * @apiVersion 0.0.2
- * @apiName get-raw-vitals Raw From VITAL_TST
+ * @apiName get-raw-vitals
  * @apiGroup Vitals
  * @apiDescription 
  * 
- * From VITAL_TST, get vitals raw data
+ * From VITALS, get vitals raw data
  * 
- * data get from table `VITAL_TST`
+ * data get from table `VITALS`
  * 
  * null value vital records are skiped.
  * 

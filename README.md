@@ -5,7 +5,7 @@
 ```
 git clone https://github.com/TwistTRL/nodejs-twist-utils.git
 
-git clone https://github.com/TwistTRL/nodejs-twist-api.git && cd nodejs-twist-api/ && npm install
+git clone https://github.com/TwistTRL/nodejs-twist-api.git && cd nodejs-twist-api/ && npm install && npm i xlsx
 ```
 
 * Devlopment environment

@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 11:53:31 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-07 10:10:40
+ * @Last Modified time: 2020-02-07 11:20:36
  */
 
 
@@ -144,7 +144,7 @@ SELECT
 `
 const SQL_GET_RAW_PART2 = `, 
   DTUNIX
-FROM VITAL_TST
+FROM VITALS
 WHERE PERSON_ID = `
 
 const SQL_GET_RAW_PART3 = `
