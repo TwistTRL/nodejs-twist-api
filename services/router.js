@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng 
  * @Date: 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-06 14:46:30
+ * @Last Modified time: 2020-02-07 11:02:50
  */
 const sleep = require('util').promisify(setTimeout)
 
@@ -1210,6 +1210,7 @@ router.post('/inout-tooltip-v2', async (req, res) => {
  * @apiVersion 0.0.2
  * @apiName Get Vitals Binned
  * @apiGroup Vitals
+ * @apiDeprecated use now (#Vitals:get-binned-vitals).
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
  * @apiParam {String="binned"} data_type Type of data.
@@ -1253,6 +1254,7 @@ router.post('/inout-tooltip-v2', async (req, res) => {
  * @apiVersion 0.0.2
  * @apiName Get Vitals Calc
  * @apiGroup Vitals
+ * @apiDeprecated use now (#Vitals:get-calc-vitals).
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
  * @apiParam {String="calc"} data_type Type of data.
@@ -1288,6 +1290,7 @@ router.post('/inout-tooltip-v2', async (req, res) => {
  * @apiVersion 0.0.2
  * @apiName Get Vitals Raw
  * @apiGroup Vitals
+ * @apiDeprecated use now (#Vitals:get-raw-vitals).
  * @apiDescription Request vitals raw data from POST json
  * 
  * from table `VITALS`
@@ -1339,9 +1342,11 @@ router.post('/vitals', async (req, res) => {
 /**
  * @api {post} /vitalsv2 V2 Binned vitals
  * @apiVersion 0.0.2
- * @apiName Get Vitals Binned From STAGING_VITALS_BIN_XX
+ * @apiName get_binned-vitals
  * @apiGroup Vitals
- * @apiDescription Combined two sources for `mbp`, `sbp`, and `dbp`:
+ * @apiDescription 
+ * 
+ * From STAGING_VITALS_BIN_XX, combined two sources for `mbp`, `sbp`, and `dbp`:
  * 
  * 1. `mbp`: `MBP1` first, if no data then check `NBPM`
  * 
@@ -1392,9 +1397,11 @@ router.post('/vitals', async (req, res) => {
 /**
  * @api {post} /vitalsv2 V2 Calc vitals
  * @apiVersion 0.0.2
- * @apiName Get Vitals Calc From STAGING_VITALS_CALC_XX
+ * @apiName get-calc-vitals
  * @apiGroup Vitals
- * @apiDescription Combined two sources for `mbp`, `sbp`, and `dbp`:
+ * @apiDescription 
+ * 
+ * From STAGING_VITALS_CALC_XX, combined two sources for `mbp`, `sbp`, and `dbp`:
  * 
  * 1. `mbp`: `MBP1` first, if no data then check `NBPM`
  * 
@@ -1409,37 +1416,45 @@ router.post('/vitals', async (req, res) => {
  * @apiParamExample {json} POST json example
         {
           "person_id": EXAMPLE_PERSON_ID,
-          "vital_type": "mbp",
+          "vital_type": "sbp",
           "data_type": "calc",
           "data_resolution": "1D"
         }
 
- * @apiSuccess {String} perc Percentile String such as "perc25".
- * @apiSuccess {Number} perc_value Value of this percentile.
- * @apiSuccess {String} vital_type_string Vital type name such as "SBP1".
- * @apiSuccess {Number} mean_value Value of VAL_MEAN.
- * @apiSuccess {Number} timestamp UNIX timestamp seconds of average start and end time.
+ * @apiSuccess {Number} perc0 Value of this percentile.
+ * @apiSuccess {String} name Vital type name.
+ * @apiSuccess {Number} mean Mean Value of this timestamp.
+ * @apiSuccess {Number} time UNIX timestamp seconds of average start and end time.
  * @apiSuccessExample Success-Response:
  *      
- *     [
-          {
-            perc: perc_value,
-            ...
-            "name": vital_type_string,
-            "mean": mean_value,
-            "time": timestamp
-          },
-          ...
-       ]
+ *    [
+        {
+            "perc0": 38,
+            "perc1": 43,
+            "perc5": 45,
+            "perc25": 48,
+            "perc50": 54,
+            "perc75": 64,
+            "perc95": 71,
+            "perc99": 73,
+            "perc100": 74,
+            "mean": 55.99,
+            "time": 1500000000,
+            "name": "SBP1"
+        },
+        ...
+      ]
  *
  */
 
 /**
  * @api {post} /vitalsv2 V2 Raw Vitals
  * @apiVersion 0.0.2
- * @apiName Get Vitals Raw From VITAL_TST
+ * @apiName get-raw-vitals Raw From VITAL_TST
  * @apiGroup Vitals
- * @apiDescription Request vitals raw data from POST json
+ * @apiDescription 
+ * 
+ * From VITAL_TST, get vitals raw data
  * 
  * data get from table `VITAL_TST`
  * 

@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 11:53:31 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-06 09:49:57
+ * @Last Modified time: 2020-02-07 10:10:40
  */
 
 
@@ -544,16 +544,17 @@ function _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, vitalType
     return result;
   } else {
     // no source2 data
-    if (arr.length < 1) {
+    // check source1 data
+    if (arr1.length < 1) {
       return [];
     }
     var currentStartTM = 0;
-    for (let vitalsRecord of arr) {
+    for (let vitalsRecord of arr1) {
       //example vitalsRecord = {"START_TM": "1524657600", "END_TM": "1524700800", "BIN_ID": "9", "VAL": 9}
 
-      // if timeString is "12H", every end_tm is larger than start_tm 12 hours or 43200 seconds
+      // if timeInterval is "12H", every end_tm is larger than start_tm 12 hours or 43200 seconds
       if (vitalsRecord.END_TM * 1 - vitalsRecord.START_TM * 1 != timeInterval) {
-        console.warn("6 Error for " + timeString + " with " + vitalsRecord.START_TM + ", " + vitalsRecord.END_TM);
+        console.warn("6 Error for " + timeInterval + " with " + vitalsRecord.START_TM + ", " + vitalsRecord.END_TM);
         console.log('vitalsRecord.START_TM :', vitalsRecord.START_TM);
         console.log('timeInterval :', timeInterval);
       }
@@ -674,7 +675,7 @@ async function vitalsCalcQuerySQLExecutor(conn, query) {
       //example vitalRecord = {"START_TM": "1524657600", "END_TM": "1524700800", "VAL_MIN": "108"...}
       // if timeString is "12H", every end_tm is larger than start_tm 12 hours or 43200 seconds
       if (vitalRecord.END_TM * 1 - vitalRecord.START_TM * 1 != timeInterval) {
-        console.log("7 Error for " + timeString + " with " + vitalRecord.START_TM + ", " + vitalRecord.END_TM);
+        console.log("7 Error for " + timeInterval + " with " + vitalRecord.START_TM + ", " + vitalRecord.END_TM);
         
       }
 
