@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-11 16:13:16
+ * @Last Modified time: 2020-02-11 16:34:16
  */
 const sleep = require("util").promisify(setTimeout);
 
@@ -627,6 +627,8 @@ router.get("/person/:person_id/drug/paralytics", async (req, res) => {
  * @apiDescription
  * 
  * based on RXCUI, see /api/files/#x2
+ * 
+ * In the respond, the "cat_structure": [] is the `MEDICATION_CATEGORY_STRUCTURE` of (#Settings:get-med-setting).
  * 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccess {String} drug name of this drug.

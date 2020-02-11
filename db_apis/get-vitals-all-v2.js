@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 11:53:31 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-07 11:20:36
+ * @Last Modified time: 2020-02-11 16:36:58
  */
 
 
@@ -374,7 +374,7 @@ async function vitalsBinnedQuerySQLExecutor(conn, query) {
     let [minBinId2nd, maxBinId2nd, dictResult2nd] = getMinMaxBinId(dictRecord2nd);
 
     let mapDictResult = getBinIdMapDictResult(dictResult, dictResult2nd);
-    console.log("mapDictResult = ", mapDictResult);
+    // console.log("mapDictResult = ", mapDictResult);
 
     let sqlQuery2nd = SQL_PART1 + sqlTable + SQL_PART2 + person_id + ` AND BIN_ID >= ` + minBinId2nd + ` AND BIN_ID <= ` + maxBinId2nd + SQL_PART3;
     console.log("sqlQuery2nd = ", sqlQuery2nd);
