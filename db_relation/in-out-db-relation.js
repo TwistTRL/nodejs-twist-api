@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:33:57 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-05 16:26:08
+ * @Last Modified time: 2020-02-10 13:06:49
  */
 
 const {
@@ -17,8 +17,8 @@ const {
   CAT_COLOR_DICT,
   CAT_CAP_TO_LOWER_MAP,
   CAT_ORDER_ARRAY,
-  XLSX_PATH
-} = require("in-out-codes");
+  IN_OUT_CODES_XLSX_PATH
+} = require("twist-xlsx");
 
 
 module.exports = {
@@ -33,5 +33,5 @@ module.exports = {
   CAT_COLOR_DICT,
   CAT_CAP_TO_LOWER_MAP,
   CAT_ORDER_ARRAY,
-  XLSX_PATH
+  IN_OUT_CODES_XLSX_PATH
 }

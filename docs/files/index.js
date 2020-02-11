@@ -44,3 +44,21 @@ $(document).ready(function() {
       'stripeClasses':['stripe1','stripe2']
     });
 } );
+
+
+getFileFromServer("./xlsx_medcat.log", function(text) {
+    if (text === null) {
+        console.log("error");
+        text = "Unknown";
+    }
+    document.getElementById("med-file-time").innerHTML = text;
+});
+
+//datatable
+$(document).ready(function() {
+    $('#med-datatable').DataTable({
+      "ajax": 'xlsx_medcat.json',
+      paging: false,
+      'stripeClasses':['stripe1','stripe2']
+    });
+} );

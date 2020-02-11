@@ -1,132 +1,64 @@
 /*
- * @Author: Mingyu/Peng 
- * @Date: 
+ * @Author: Mingyu/Peng
+ * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-07 15:10:09
+ * @Last Modified time: 2020-02-11 16:13:16
  */
-const sleep = require('util').promisify(setTimeout)
+const sleep = require("util").promisify(setTimeout);
 
-const express = require('express');
-const path = require('path');
+const express = require("express");
+const path = require("path");
 const router = new express.Router();
-const {
-  getRelationalQuery
-} = require('../db_apis/get-relational-query');
-const {
-  getVitalsQuery
-} = require('../db_apis/get-vitals-all');
-const {
-  getVitalsQueryV2
-} = require('../db_apis/get-vitals-all-v2');
-const {
-  getLabsQuery
-} = require('../db_apis/get-labs-all');
-const {
-  getRespiratorySupportVariable
-} = require('../db_apis/get_respiratory_support_variables');
-const {
-  getHeartRate
-} = require('../db_apis/get_heart_rate');
-const {
-  getPerson,
-  getPersonFromMRN
-} = require('../db_apis/get_person');
-const {
-  getPersonel
-} = require('../db_apis/get_personel');
-const {
-  getBed
-} = require('../db_apis/get_bed');
-const {
-  getBedSurvey
-} = require('../db_apis/get_bed_survey');
-const {
-  getHr12H,
-  getHr5H,
-  getHr1D,
-  getHr5M
-} = require('../db_apis/get_hr_binned');
-const {
-  getHr12Hv2,
-  getHr5Hv2,
-  getHr1Dv2,
-  getHr5Mv2
-} = require('../db_apis/get_hr_binned_v2');
-const {
-  getHrCalc12H,
-  getHrCalc5H,
-  getHrCalc1D,
-  getHrCalc5M
-} = require('../db_apis/get_hr_calc');
-const {
-  getRawHr
-} = require('../db_apis/get_raw_hr');
-const {
-  getLab,
-  getLabV2,
-  getABG
-} = require('../db_apis/get_labs');
-const {
-  getDrugInfusions,
-  getOrangeDrug,
-  getDrugIntermittent
-} = require('../db_apis/get_drug');
+const { getRelationalQuery } = require("../db_apis/get-relational-query");
+const { getVitalsQuery } = require("../db_apis/get-vitals-all");
+const { getVitalsQueryV2 } = require("../db_apis/get-vitals-all-v2");
+const { getLabsQuery } = require("../db_apis/get-labs-all");
+const { getRespiratorySupportVariable } = require("../db_apis/get_respiratory_support_variables");
+const { getHeartRate } = require("../db_apis/get_heart_rate");
+const { getPerson, getPersonFromMRN } = require("../db_apis/get_person");
+const { getPersonel } = require("../db_apis/get_personel");
+const { getBed } = require("../db_apis/get_bed");
+const { getBedSurvey } = require("../db_apis/get_bed_survey");
+const { getHr12H, getHr5H, getHr1D, getHr5M } = require("../db_apis/get_hr_binned");
+const { getHr12Hv2, getHr5Hv2, getHr1Dv2, getHr5Mv2 } = require("../db_apis/get_hr_binned_v2");
+const { getHrCalc12H, getHrCalc5H, getHrCalc1D, getHrCalc5M } = require("../db_apis/get_hr_calc");
+const { getRawHr } = require("../db_apis/get_raw_hr");
+const { getLab, getLabV2, getABG } = require("../db_apis/get_labs");
+const { getDrugInfusions, getOrangeDrug, getDrugIntermittent } = require("../db_apis/get_drug");
 
-const {
-  getInOutTooltipQueryV2
-} = require('../db_apis/get-in-out-tooltip-v2');
+const { getMed } = require("../db_apis/get-med");
 
-const {
-  getInOutTooltipQueryV3
-} = require('../db_apis/get-in-out-tooltip-v3');
+const { getInOutTooltipQueryV2 } = require("../db_apis/get-in-out-tooltip-v2");
 
-const {
-  getInOutQuery
-} = require('../db_apis/get-in-out');
+const { getInOutTooltipQueryV3 } = require("../db_apis/get-in-out-tooltip-v3");
 
-const {
-  getInOutQueryV2
-} = require('../db_apis/get-in-out-v2');
+const { getInOutQuery } = require("../db_apis/get-in-out");
 
-const {
-  testHr
-} = require('../test/test-vitals');
-const {
-  testLabs
-} = require('../test/test-labs');
+const { getInOutQueryV2 } = require("../db_apis/get-in-out-v2");
 
-const {
-  testDrugInfusions
-} = require('../test/test_drug_overlap');
+const { testHr } = require("../test/test-vitals");
+const { testLabs } = require("../test/test-labs");
 
-const {
-  testDrugInfusionsTime
-} = require('../test/test_drug_time');
+const { testDrugInfusions } = require("../test/test_drug_overlap");
 
+const { testDrugInfusionsTime } = require("../test/test_drug_time");
 
-const {
-  getPersonnelForPatient
-} = require('../db_apis/cross_tables/get_personnel_for_patient');
+const { getPersonnelForPatient } = require("../db_apis/cross_tables/get_personnel_for_patient");
 
-const {
-  getNUTime
-} = require('../db_apis/cross_tables/get_room_time');
+const { getNUTime } = require("../db_apis/cross_tables/get_room_time");
 
+const test_crash = require("../test/test-crash");
+const { testAbnormalMRN } = require("../test/test_abnormal_mrn");
 
-const test_crash = require('../test/test-crash');
-const {
-  testAbnormalMRN
-} = require('../test/test_abnormal_mrn');
-
-const settingsFluid = require('../db_relation/in-out-db-relation')
-
+const settingsFluid = require("../db_relation/in-out-db-relation");
+const settingsMed = require("../db_relation/drug-category-relation");
 
 // ------------------------------------------------------------------------
 // apidoc folder is a static files folder
 // user express.static to display this index.html
-router.use('/', express.static(__dirname + '/../docs/apidoc'));
-router.use('/apidoc2', express.static(__dirname + '/../docs/apidoc2'));
-router.use('/files', express.static(__dirname + '/../docs/files'));
+router.use("/", express.static(__dirname + "/../docs/apidoc"));
+router.use("/apidoc2", express.static(__dirname + "/../docs/apidoc2"));
+router.use("/files", express.static(__dirname + "/../docs/files"));
 
 // ------------------------------------------------------------------------
 
@@ -143,7 +75,7 @@ router.use('/files', express.static(__dirname + '/../docs/files'));
  * @apiSuccess {Number} timestamp UNIX Timestamp seconds of the lab.
  * @apiSuccess {Number} labValue Value of this lab.
  * @apiSuccessExample Success-Response:
- *      
+ *
  *     {
  *       labName: [
  *                    {
@@ -156,25 +88,20 @@ router.use('/files', express.static(__dirname + '/../docs/files'));
  *     }
  *
  */
-router.get('/person/:person_id/labs', async (req, res) => {
+router.get("/person/:person_id/labs", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
 
-  console.log('/person/ %s /labs ...', person_id);
+  console.log("/person/ %s /labs ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getLab(binds),
-  );
+  res.send(await getLab(binds));
 });
-
 
 /**
  * @api {post} /labs Labs api/labs
@@ -212,13 +139,11 @@ router.get('/person/:person_id/labs', async (req, res) => {
  *     }
  *
  */
-router.post('/labs', async (req, res) => {
+router.post("/labs", async (req, res) => {
   const query = req.body;
   try {
     const toSend = await getLabsQuery(query);
-    res.send(
-      toSend,
-    );
+    res.send(toSend);
   } catch (e) {
     console.log(new Date());
     console.log(e);
@@ -226,7 +151,6 @@ router.post('/labs', async (req, res) => {
     res.send(e.toString());
   }
 });
-
 
 /**
  * @api {get} /person/:person_id/labsv2 Labs for Patient V2
@@ -259,27 +183,21 @@ router.post('/labs', async (req, res) => {
  *
  */
 
-router.get('/person/:person_id/labsv2', async (req, res) => {
+router.get("/person/:person_id/labsv2", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
 
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
 
-  console.log('getting labsV2 for %s ...', person_id);
+  console.log("getting labsV2 for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getLabV2(binds),
-  );
+  res.send(await getLabV2(binds));
 });
-
-
 
 /**
  * @api {get} /person/:person_id/abg Labs ABG for Patient
@@ -307,26 +225,21 @@ router.get('/person/:person_id/labsv2', async (req, res) => {
  *
  */
 
-router.get('/person/:person_id/abg', async (req, res) => {
+router.get("/person/:person_id/abg", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
 
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
 
-  console.log('getting abg for %s ...', person_id);
+  console.log("getting abg for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getABG(binds),
-  );
+  res.send(await getABG(binds));
 });
-
 
 /**
  * @api {get} /person/:person_id/vitals/hr/binned/:data_resolution Binned Heart Rate
@@ -354,78 +267,61 @@ router.get('/person/:person_id/abg', async (req, res) => {
  *
  */
 
-router.get('/person/:person_id/vitals/hr/binned/12H', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/binned/12H", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_12H for %s ...', person_id);
+  console.log("getting hr_12H for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHr12H(binds),
-  );
+  res.send(await getHr12H(binds));
 });
 
-router.get('/person/:person_id/vitals/hr/binned/5H', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/binned/5H", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_5H for %s ...', person_id);
+  console.log("getting hr_5H for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHr5H(binds),
-  );
+  res.send(await getHr5H(binds));
 });
 
-router.get('/person/:person_id/vitals/hr/binned/1D', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/binned/1D", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_1D for %s ...', person_id);
+  console.log("getting hr_1D for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHr1D(binds),
-  );
+  res.send(await getHr1D(binds));
 });
 
-router.get('/person/:person_id/vitals/hr/binned/5M', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/binned/5M", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_5M for %s ...', person_id);
+  console.log("getting hr_5M for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHr5M(binds),
-  );
+  res.send(await getHr5M(binds));
 });
-
 
 /**
  * @api {get} /person/:person_id/vitals/hr/binnedv2/:data_resolution Binned Heart Rate V2
@@ -459,76 +355,60 @@ router.get('/person/:person_id/vitals/hr/binned/5M', async (req, res) => {
  *
  */
 
-router.get('/person/:person_id/vitals/hr/binnedv2/12H', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/binnedv2/12H", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_12H for %s ...', person_id);
+  console.log("getting hr_12H for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHr12Hv2(binds),
-  );
+  res.send(await getHr12Hv2(binds));
 });
 
-router.get('/person/:person_id/vitals/hr/binnedv2/5H', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/binnedv2/5H", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_5H for %s ...', person_id);
+  console.log("getting hr_5H for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHr5Hv2(binds),
-  );
+  res.send(await getHr5Hv2(binds));
 });
 
-router.get('/person/:person_id/vitals/hr/binnedv2/1D', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/binnedv2/1D", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_1D for %s ...', person_id);
+  console.log("getting hr_1D for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHr1Dv2(binds),
-  );
+  res.send(await getHr1Dv2(binds));
 });
 
-router.get('/person/:person_id/vitals/hr/binnedv2/5M', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/binnedv2/5M", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_5M for %s ...', person_id);
+  console.log("getting hr_5M for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHr5Mv2(binds),
-  );
+  res.send(await getHr5Mv2(binds));
 });
 
 /**
@@ -556,81 +436,61 @@ router.get('/person/:person_id/vitals/hr/binnedv2/5M', async (req, res) => {
  *
  */
 
-
-router.get('/person/:person_id/vitals/hr/calc/12H', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/calc/12H", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_12H for %s ...', person_id);
+  console.log("getting hr_12H for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHrCalc12H(binds),
-  );
+  res.send(await getHrCalc12H(binds));
 });
 
-router.get('/person/:person_id/vitals/hr/calc/5H', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/calc/5H", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_5H for %s ...', person_id);
+  console.log("getting hr_5H for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHrCalc5H(binds),
-  );
+  res.send(await getHrCalc5H(binds));
 });
 
-router.get('/person/:person_id/vitals/hr/calc/1D', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/calc/1D", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_1D for %s ...', person_id);
+  console.log("getting hr_1D for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHrCalc1D(binds),
-  );
+  res.send(await getHrCalc1D(binds));
 });
 
-router.get('/person/:person_id/vitals/hr/calc/5M', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/calc/5M", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting hr_5M for %s ...', person_id);
+  console.log("getting hr_5M for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getHrCalc5M(binds),
-  );
+  res.send(await getHrCalc5M(binds));
 });
-
-
-
 
 /**
  * @api {get} /person/:person_id/drug/intermittent Drug Intermittent
@@ -657,22 +517,18 @@ router.get('/person/:person_id/vitals/hr/calc/5M', async (req, res) => {
       ]
  *
  */
-router.get('/person/:person_id/drug/intermittent', async (req, res) => {
+router.get("/person/:person_id/drug/intermittent", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting drug intermittent for %s ...', person_id);
+  console.log("getting drug intermittent for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getDrugIntermittent(binds),
-  );
+  res.send(await getDrugIntermittent(binds));
 });
 
 /**
@@ -705,24 +561,19 @@ router.get('/person/:person_id/drug/intermittent', async (req, res) => {
       ]
  *
  */
-router.get('/person/:person_id/drug/infusions', async (req, res) => {
+router.get("/person/:person_id/drug/infusions", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting drug infusions for %s ...', person_id);
+  console.log("getting drug infusions for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getDrugInfusions(binds),
-  );
+  res.send(await getDrugInfusions(binds));
 });
-
 
 /**
  * @api {get} /person/:person_id/drug/paralytics Drug Paralytics
@@ -754,23 +605,66 @@ router.get('/person/:person_id/drug/infusions', async (req, res) => {
       ]
  *
  */
-router.get('/person/:person_id/drug/paralytics', async (req, res) => {
+router.get("/person/:person_id/drug/paralytics", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting paralytics drug infusions for %s ...', person_id);
-
+  console.log("getting paralytics drug infusions for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getOrangeDrug(binds),
-  );
+  res.send(await getOrangeDrug(binds));
+});
+
+/**
+ * @api {get} /person/:person_id/med Medication
+ * @apiVersion 0.0.1
+ * @apiName get-person-medication
+ * @apiGroup Person
+ * @apiDescription
+ * 
+ * based on RXCUI, see /api/files/#x2
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {String} drug name of this drug.
+ * @apiSuccess {Number} infusion_rate Value of this drug.
+ * @apiSuccess {Number} from_timestamp start timestamp of this drug.
+ * @apiSuccess {Number} to_timestamp end timestamp of this drug.
+ * @apiSuccess {String} unit_string unit string this drug.
+
+ * @apiSuccessExample Success-Response:
+ *      
+      {
+        "COAG": [
+            {
+                "name": "heparin",
+                "dose": 10,
+                "start": 1500000000,
+                "end": 1520000000,
+                "unit": "unit/kg/hr",
+                "RXCUI": 111111
+            },
+            ...
+          ]
+        ...
+      }
+ *
+ */
+router.get("/person/:person_id/med", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting drug infusions for %s ...", person_id);
+
+  const binds = {
+    person_id
+  };
+  res.send(await getMed(binds));
 });
 
 /**
@@ -843,21 +737,17 @@ router.get('/person/:person_id/drug/paralytics', async (req, res) => {
  *
  */
 
-router.post('/inout', async (req, res) => {
+router.post("/inout", async (req, res) => {
   const query = req.body;
   const person_id = query.person_id;
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
 
   try {
     const toSend = await getInOutQuery(query);
-    res.send(
-      toSend,
-    );
+    res.send(toSend);
   } catch (e) {
     console.log(new Date());
     console.log(e);
@@ -865,8 +755,6 @@ router.post('/inout', async (req, res) => {
     res.send(e.toString());
   }
 });
-
-
 
 /**
  * @api {post} /inout-v2 In-Out for Patient V2
@@ -938,21 +826,17 @@ router.post('/inout', async (req, res) => {
  *
  */
 
-router.post('/inout-v2', async (req, res) => {
+router.post("/inout-v2", async (req, res) => {
   const query = req.body;
   const person_id = query.person_id;
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
 
   try {
     const toSend = await getInOutQueryV2(query);
-    res.send(
-      toSend,
-    );
+    res.send(toSend);
   } catch (e) {
     console.log(new Date());
     console.log(e);
@@ -1046,22 +930,18 @@ router.post('/inout-v2', async (req, res) => {
  *
  */
 
-router.post('/inout-tooltip', async (req, res) => {
+router.post("/inout-tooltip", async (req, res) => {
   const query = req.body;
   const person_id = query.person_id;
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
 
   try {
     const toSend = await getInOutTooltipQueryV3(query);
-    console.log('finished timestamp :', new Date().getTime());
-    res.send(
-      toSend,
-    );
+    console.log("finished timestamp :", new Date().getTime());
+    res.send(toSend);
   } catch (e) {
     console.log(new Date());
     console.log(e);
@@ -1069,7 +949,6 @@ router.post('/inout-tooltip', async (req, res) => {
     res.send(e.toString());
   }
 });
-
 
 /**
  * @api {post} /inout-tooltip-v2 In-Out Tooltip for Patient V2
@@ -1186,21 +1065,17 @@ router.post('/inout-tooltip', async (req, res) => {
  *
  */
 
-router.post('/inout-tooltip-v2', async (req, res) => {
+router.post("/inout-tooltip-v2", async (req, res) => {
   const query = req.body;
   const person_id = query.person_id;
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
 
   try {
     const toSend = await getInOutTooltipQueryV2(query);
-    res.send(
-      toSend,
-    );
+    res.send(toSend);
   } catch (e) {
     console.log(new Date());
     console.log(e);
@@ -1327,13 +1202,11 @@ router.post('/inout-tooltip-v2', async (req, res) => {
  *
  */
 
-router.post('/vitals', async (req, res) => {
+router.post("/vitals", async (req, res) => {
   const query = req.body;
   try {
     const toSend = await getVitalsQuery(query);
-    res.send(
-      toSend,
-    );
+    res.send(toSend);
   } catch (e) {
     console.log(new Date());
     console.log(e);
@@ -1341,8 +1214,6 @@ router.post('/vitals', async (req, res) => {
     res.send(e.toString());
   }
 });
-
-
 
 /**
  * @api {post} /vitalsv2 V2 Binned vitals
@@ -1496,13 +1367,12 @@ router.post('/vitals', async (req, res) => {
  *
  */
 
-router.post('/vitalsv2', async (req, res) => {
-  const query = req.body;
+router.post("/vitalsv2", async (req, res) => {
+  let query = req.body;
+  query.person_id = Number(query.person_id);
   try {
     const toSend = await getVitalsQueryV2(query);
-    res.send(
-      toSend,
-    );
+    res.send(toSend);
   } catch (e) {
     console.log(new Date());
     console.log(e);
@@ -1536,28 +1406,23 @@ router.post('/vitalsv2', async (req, res) => {
  *
  */
 
-router.get('/person/:person_id/vitals/hr/raw', async (req, res) => {
+router.get("/person/:person_id/vitals/hr/raw", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
   const from = parseFloat(req.query.from) || Date.now() / 1000 - 600;
   const to = parseFloat(req.query.to) || Date.now() / 1000;
-  console.log('Date.now():', Date.now());
+  console.log("Date.now():", Date.now());
   const binds = {
     person_id,
     from_: from,
-    to_: to,
+    to_: to
   };
-  console.log('getting raw hr for %s from %d to %d ...', binds.person_id, binds.from_, binds.to_);
-  res.send(
-    await getRawHr(binds),
-  );
+  console.log("getting raw hr for %s from %d to %d ...", binds.person_id, binds.from_, binds.to_);
+  res.send(await getRawHr(binds));
 });
-
 
 // ~~~~~~~~~~~~~~~~~~~
 //        test
@@ -1612,13 +1477,11 @@ router.get('/person/:person_id/vitals/hr/raw', async (req, res) => {
  *
  */
 
-router.post('/test/hr', async (req, res) => {
+router.post("/test/hr", async (req, res) => {
   const query = req.body;
   try {
     const toSend = await testHr(query);
-    res.send(
-      toSend,
-    );
+    res.send(toSend);
   } catch (e) {
     console.log(new Date());
     console.log(e);
@@ -1626,7 +1489,6 @@ router.post('/test/hr', async (req, res) => {
     res.send(e.toString());
   }
 });
-
 
 /**
  * @api {post} /test/labs Test labs
@@ -1670,13 +1532,11 @@ router.post('/test/hr', async (req, res) => {
  *
  */
 
-router.post('/test/labs', async (req, res) => {
+router.post("/test/labs", async (req, res) => {
   const query = req.body;
   try {
     const toSend = await testLabs(query);
-    res.send(
-      toSend,
-    );
+    res.send(toSend);
   } catch (e) {
     console.log(new Date());
     console.log(e);
@@ -1684,8 +1544,6 @@ router.post('/test/labs', async (req, res) => {
     res.send(e.toString());
   }
 });
-
-
 
 /**
  * @api {get} /test/drug/infusions/:person_id Test drug infusions overlap
@@ -1696,52 +1554,40 @@ router.post('/test/labs', async (req, res) => {
  * @apiParam {Number} person_id Patient unique ID.
 
  */
-router.get('/test/drug/infusions/:person_id', async (req, res) => {
+router.get("/test/drug/infusions/:person_id", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('testing drug infusions for %s ...', person_id);
+  console.log("testing drug infusions for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await testDrugInfusions(binds),
-  );
+  res.send(await testDrugInfusions(binds));
 });
-
 
 /**
  * @api {get} /test/drug/infusions/checktime/:person_id Test drug infusions time
  * @apiVersion 0.0.1
  * @apiName Test drug infusions start end time
- * @apiGroup _Test 
+ * @apiGroup _Test
  * @apiParam {Number} person_id Patient unique ID.
  */
-router.get('/test/drug/infusions/checktime/:person_id', async (req, res) => {
+router.get("/test/drug/infusions/checktime/:person_id", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('testing drug infusions time for %s ...', person_id);
+  console.log("testing drug infusions time for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await testDrugInfusionsTime(binds),
-  );
+  res.send(await testDrugInfusionsTime(binds));
 });
-
-
-
 
 /**
  * @api {put} /test/crash Test Crash
@@ -1756,11 +1602,9 @@ router.get('/test/drug/infusions/checktime/:person_id', async (req, res) => {
 
  * @apiGroup _Test
  */
-router.put('/test/crash', async (req, res) => {
+router.put("/test/crash", async (req, res) => {
   test_crash();
-  res.send(
-    "crash ..."
-  );
+  res.send("crash ...");
 });
 
 /**
@@ -1770,13 +1614,9 @@ router.put('/test/crash', async (req, res) => {
 
  * @apiGroup _Test
  */
-router.put('/test/abnormal-mrn', async (req, res) => {
-  res.send(
-    await testAbnormalMRN(),
-  );
+router.put("/test/abnormal-mrn", async (req, res) => {
+  res.send(await testAbnormalMRN());
 });
-
-
 
 /**
  * @api {get} /mrn/:mrn Person ID From MRN
@@ -1793,16 +1633,12 @@ router.put('/test/abnormal-mrn', async (req, res) => {
  *
  */
 
-router.get('/mrn/:mrn', async (req, res) => {
-
+router.get("/mrn/:mrn", async (req, res) => {
   const mrn = parseInt(req.params.mrn);
   console.log("mrn is: " + mrn);
 
-  res.send(
-    await getPersonFromMRN(mrn),
-  );
+  res.send(await getPersonFromMRN(mrn));
 });
-
 
 /**
  * @api {get} /person/:person_id/personnel Personnel For Patient
@@ -1818,26 +1654,19 @@ router.get('/mrn/:mrn', async (req, res) => {
  *
  */
 
-router.get('/person/:person_id/personnel', async (req, res) => {
-
+router.get("/person/:person_id/personnel", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting doctors information for %s ...', person_id);
+  console.log("getting doctors information for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getPersonnelForPatient(binds),
-  );
+  res.send(await getPersonnelForPatient(binds));
 });
-
-
 
 /**
  * @api {get} /person/:person_id/nurse-unit Nurse Unit For Patient
@@ -1869,31 +1698,24 @@ router.get('/person/:person_id/personnel', async (req, res) => {
  *
  */
 
-router.get('/person/:person_id/nurse-unit', async (req, res) => {
-
+router.get("/person/:person_id/nurse-unit", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log('getting nurse unit information for %s ...', person_id);
+  console.log("getting nurse unit information for %s ...", person_id);
 
   const binds = {
-    person_id,
+    person_id
   };
-  res.send(
-    await getNUTime(binds),
-  );
+  res.send(await getNUTime(binds));
 });
-
 
 // ```````````````````````
 // api from Lingyu Zhou
-// 
+//
 // ```````````````````````
-
 
 /**
  * @api {get} /person/:person_id/RSS RSS For Person
@@ -1927,12 +1749,10 @@ router.get('/person/:person_id/nurse-unit', async (req, res) => {
  * 
  *
  */
-router.get('/person/:person_id/RSS', async (req, res) => {
+router.get("/person/:person_id/RSS", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
   const from = parseFloat(req.query.from) || 0;
@@ -1940,19 +1760,15 @@ router.get('/person/:person_id/RSS', async (req, res) => {
   const binds = {
     person_id,
     from_: from,
-    to_: to,
+    to_: to
   };
-  res.send(
-    await getRespiratorySupportVariable(binds),
-  );
+  res.send(await getRespiratorySupportVariable(binds));
 });
 
-router.get('/person/:person_id/HR', async (req, res) => {
+router.get("/person/:person_id/HR", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
   const from = parseFloat(req.query.from) || 0;
@@ -1960,19 +1776,15 @@ router.get('/person/:person_id/HR', async (req, res) => {
   const binds = {
     person_id,
     from_: from,
-    to_: to,
+    to_: to
   };
-  res.send(
-    await getHeartRate(binds),
-  );
+  res.send(await getHeartRate(binds));
 });
 
-router.get('/HeartRate', async (req, res) => {
+router.get("/HeartRate", async (req, res) => {
   const person_id = parseInt(req.query.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id, should be integer."
-    );
+    res.send("Invalid person_id, should be integer.");
     return;
   }
   const from = parseFloat(req.query.from) || 0;
@@ -1980,16 +1792,10 @@ router.get('/HeartRate', async (req, res) => {
   const binds = {
     person_id,
     from_: from,
-    to_: to,
+    to_: to
   };
-  res.send(
-    await getHeartRate(binds),
-  );
+  res.send(await getHeartRate(binds));
 });
-
-
-
-
 
 /**
  * @api {get} /person/:person_id Basic Person Information
@@ -2043,22 +1849,16 @@ router.get('/HeartRate', async (req, res) => {
  *
  */
 
-router.get('/person/:person_id', async (req, res) => {
+router.get("/person/:person_id", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id. Should be integer.",
-    );
+    res.send("Invalid person_id. Should be integer.");
     return;
   }
   console.log("router person_id is: " + person_id);
 
-
-  res.send(
-    await getPerson(person_id),
-  );
+  res.send(await getPerson(person_id));
 });
-
 
 /**
  * @api {get} /personel/:chb_prsnl_id Personnel Information
@@ -2073,27 +1873,21 @@ router.get('/person/:person_id', async (req, res) => {
  *    not available
  *
  */
-router.get('/personel/:chb_prsnl_id', async (req, res) => {
+router.get("/personel/:chb_prsnl_id", async (req, res) => {
   const chb_prsnl_id = parseInt(req.params.chb_prsnl_id);
   // const binds = {
   //   chb_prsnl_id,
   // };
-  res.send(
-    await getPersonel(chb_prsnl_id),
-  );
+  res.send(await getPersonel(chb_prsnl_id));
 });
 
-router.get('/survey/bed_space', async (req, res) => {
+router.get("/survey/bed_space", async (req, res) => {
   const at = parseFloat(req.query.at);
   const binds = {
-    at_unix_ts: at,
+    at_unix_ts: at
   };
-  res.send(
-    await getBedSurvey(binds),
-  );
+  res.send(await getBedSurvey(binds));
 });
-
-
 
 /**
  * @api {get} /bed/:bed_cd Bed Information
@@ -2108,14 +1902,12 @@ router.get('/survey/bed_space', async (req, res) => {
  *    not available
  *
  */
-router.get('/bed/:bed_cd', async (req, res) => {
+router.get("/bed/:bed_cd", async (req, res) => {
   const bed_cd = parseFloat(req.params.bed_cd);
   const binds = {
-    bed_cd,
+    bed_cd
   };
-  res.send(
-    await getBed(binds),
-  );
+  res.send(await getBed(binds));
 });
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -2123,12 +1915,10 @@ router.get('/bed/:bed_cd', async (req, res) => {
 // FHIR like API
 // relational-query
 // ~~~~~~~~~~~~~~~~~~~~~
-router.get('/RespiratorySupportVariable', async (req, res) => {
+router.get("/RespiratorySupportVariable", async (req, res) => {
   const person_id = parseInt(req.query.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send(
-      "Invalid person_id. Should be integer.",
-    );
+    res.send("Invalid person_id. Should be integer.");
     return;
   }
   const from = parseFloat(req.query.from) || 0;
@@ -2136,15 +1926,10 @@ router.get('/RespiratorySupportVariable', async (req, res) => {
   const binds = {
     person_id,
     from_: from,
-    to_: to,
+    to_: to
   };
-  res.send(
-    await getRespiratorySupportVariable(binds),
-  );
+  res.send(await getRespiratorySupportVariable(binds));
 });
-
-
-
 
 /**
  * @api {post} /relational-query Relational Query
@@ -2230,13 +2015,11 @@ router.get('/RespiratorySupportVariable', async (req, res) => {
     }
  *
  */
-router.post('/relational-query', async (req, res) => {
+router.post("/relational-query", async (req, res) => {
   const query = req.body;
   try {
     const toSend = await getRelationalQuery(query);
-    res.send(
-      toSend,
-    );
+    res.send(toSend);
   } catch (e) {
     console.log(new Date());
     console.log(e);
@@ -2245,27 +2028,97 @@ router.post('/relational-query', async (req, res) => {
   }
 });
 
-
-
 /**
- * @api {get} /settings/fluid Fluid Setting Information
+ * @api {get} /settings/fluid/:item Fluid Setting Information
  * @apiVersion 0.0.1
- * @apiName Get Fluid Setting Information
+ * @apiName get-fluid-setting
  * @apiGroup Settings
  * @apiDescription some setting of displaying fluid charts
+ * 
+ * from [inoutcode.xlsx](./files/inoutcode.xlsx)
+ * @apiParam {String=`EVENT_CD_DICT`,
+        `SL_TO_LABEL`,
+        `SL_TO_SUBCAT`,
+        `SL_TO_CAT`,
+        `SL_TO_CALCS`,
+        `SL_ORDER_ARRAY`,
+        `CAT_ARRRY`,
+        `CAT_TO_SL`,
+        `CAT_COLOR_DICT`,
+        `CAT_CAP_TO_LOWER_MAP`,
+        `CAT_ORDER_ARRAY`,
+        `IN_OUT_CODES_XLSX_PATH`} item for in-out-code
 
  * @apiSuccessExample Success-Response:
- *    not available *
+      {
+        EVENT_CD_DICT,
+        SL_TO_LABEL,
+        SL_TO_SUBCAT,
+        SL_TO_CAT,
+        SL_TO_CALCS,
+        SL_ORDER_ARRAY,
+        CAT_ARRRY,
+        CAT_TO_SL,
+        CAT_COLOR_DICT,
+        CAT_CAP_TO_LOWER_MAP,
+        CAT_ORDER_ARRAY,
+        IN_OUT_CODES_XLSX_PATH
+      }
+ 
  */
-router.get('/settings/fluid', (req, res) => {
-  res.send(
-    settingsFluid,
-  );
+router.get("/settings/fluid/:item", (req, res) => {
+  const item = req.params.item;
+  res.send(settingsFluid[item]);
+});
+
+/**
+ * @api {get} /settings/med/:item Med Setting Information
+ * @apiVersion 0.0.1
+ * @apiName get-med-setting
+ * @apiGroup Settings
+ * @apiDescription some setting of displaying med charts
+ * 
+ *  from [medcat.xlsx](./files/medcat.xlsx)
+
+ * @apiParam {String=`DRUG_INFUSIONS_LIST`,
+        `DRUG_INTERMITTENT_LIST`,
+        `ORANGE_DRUG_LIST`,        
+        `RXCUI_LIST`,
+        `DRUG_LIST`,
+        `CAT_LIST`,
+        `RXCUI_BY_CAT_ORDER_DICT`,
+        `RXCUI_TO_CAT_DICT`,
+        `MEDICATION_CATEGORY_STRUCTURE`,
+        `MED_CAT_XLSX_PATH`} item default `MEDICATION_CATEGORY_STRUCTURE`.
+ * @apiSuccessExample Success-Response:
+ *    {
+        DRUG_INFUSIONS_LIST,
+        DRUG_INTERMITTENT_LIST,
+        ORANGE_DRUG_LIST,        
+        RXCUI_LIST,
+        DRUG_LIST,
+        CAT_LIST,
+        RXCUI_BY_CAT_ORDER_DICT,
+        RXCUI_TO_CAT_DICT,
+        MEDICATION_CATEGORY_STRUCTURE,
+        MED_CAT_XLSX_PATH,
+      }
+ */
+router.get("/settings/med/:item", (req, res) => {
+  const item = req.params.item;
+  if (!req || !settingsMed[item]) {
+    res.send(settingsMed);
+  } else {
+    res.send(settingsMed[item]);
+  }
+});
+
+router.get("/settings/med", (req, res) => {
+  res.send(settingsMed.MEDICATION_CATEGORY_STRUCTURE);
 });
 
 // ~~~~~~~~~~
 // api end
 // ~~~~~~~~~~
-
 
 module.exports = router;

@@ -1,12 +1,12 @@
-/**
- * CONFIG DRUG CATEGORY
- * 
- * PENG 
- * 12/27/19
- * 
+/*
+ * @Author: Peng 
+ * @Date: 2019-12-27 12:54:04 
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-02-11 15:51:54
  */
 
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+ //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // define the category based on drug string
 // will updating for more
 // Table: DRUG_INFUSIONS
@@ -31,6 +31,17 @@ const ORANGE_DRUG_LIST = [
   "rocuronium",
   "atracurium"
 ];
+
+const {
+  RXCUI_LIST,
+  DRUG_LIST,
+  CAT_LIST,
+  RXCUI_BY_CAT_ORDER_DICT,
+  RXCUI_TO_CAT_DICT,
+  MEDICATION_CATEGORY_STRUCTURE,
+
+  MED_CAT_XLSX_PATH,
+} = require("twist-xlsx");
 
 /**
  * 
@@ -93,5 +104,13 @@ albumin human (albumin human 25% intravenous solution)
 module.exports = {
   DRUG_INFUSIONS_LIST,
   DRUG_INTERMITTENT_LIST,
-  ORANGE_DRUG_LIST
+  ORANGE_DRUG_LIST,
+  
+  RXCUI_LIST,
+  DRUG_LIST,
+  CAT_LIST,
+  RXCUI_BY_CAT_ORDER_DICT,
+  RXCUI_TO_CAT_DICT,
+  MEDICATION_CATEGORY_STRUCTURE,
+  MED_CAT_XLSX_PATH,
 }

@@ -36,9 +36,9 @@ SELECT  ROWNUM AS ID,
         HFOV_POWER,
         INO_DOSE,
         ITIME,
-        MAP,
-        MASK,
-        "MODE",
+        MAP_DEV,
+        MASK_DEV,
+        MODE_DEV,
         MVE,
         NAVA,
         OXYGEN_FIO2_DELIVERY_DEVICE,
@@ -57,7 +57,7 @@ SELECT  ROWNUM AS ID,
         AGE_IN_SECOND,
         RST,
         RSS
-FROM RESPIRATORY_SUPPORT_VARIABLE
+FROM RSS
 WHERE PERSON_ID = :person_id
   AND VALID_FROM_DT_TM BETWEEN :from_ AND :to_
 ORDER BY VALID_FROM_DT_TM ASC

@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-02-05 16:33:06 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-07 15:06:07
+ * @Last Modified time: 2020-02-07 17:01:10
  */
 
 
@@ -11,12 +11,7 @@ const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
 const {
   EVENT_CD_DICT,
-  SL_TO_LABEL,
-  SL_TO_SUBCAT,
-  SL_TO_CAT,
-  SL_TO_CALCS,
-  IN_OUT_COLOR_MAP,
-  CAT_CAP_TO_LOWER_MAP,
+  SL_ORDER_ARRAY,
 } = require("../db_relation/in-out-db-relation");
 
 const PERSON_ID = "person_id";
@@ -199,6 +194,11 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         singleResult.vol_unit = row.VOL_UNIT;
         singleResult.end_time = Math.min(row.END_UNIX, currentTime + timeInterval);
 
+        if (!row.DRUG) {
+          console.log('row :', row);
+          continue;
+        }
+
         // singleResult.location = "not ready";
 
         let typeFlush = (row.DRUG == 'papavarine' || row.DRUG == 'heparin flush') ? 1 : 0;
@@ -332,11 +332,62 @@ function _updateRowToDict(currentTime, row, dict) {
     singleResult.value = newValue;
     singleResult.sub_cat = EVENT_CD_DICT[row.EVENT_CD].Subcat;
     singleResult.label = EVENT_CD_DICT[row.EVENT_CD].LABEL;
-    dict[currentTime][newCat].short_labels.push(singleResult);
+    if (dict[currentTime][newCat].short_labels.length == 0) {
+      dict[currentTime][newCat].short_labels.push(singleResult);
+    } else {
+      dict[currentTime][newCat].short_labels.splice(binarySearch(dict[currentTime][newCat].short_labels, singleResult, comp), 0, singleResult)
+    }
+
   }
   
   return dict;
 }
+
+// "short_labels": [
+//   {
+//       "short_label": "FOL",
+//       "value": -1685,
+//       "sub_cat": "Foley",
+//       "label": "FOLEY"
+//   },
+//   {
+//       "short_label": "UOP",
+//       "value": -10,
+//       "sub_cat": "Void",
+//       "label": "UOP"
+//   }
+// ]
+
+
+function binarySearch(ar, el, compare_fn) {
+  if (compare_fn(ar[0].short_label, el.short_label)){
+    return 0;
+  }      
+  if (compare_fn(el.short_label, ar[ar.length-1].short_label)) {
+    return ar.length;
+  }
+
+  var m = 0;
+  var n = ar.length - 1;
+  while (m <= n) {
+      var k = (n + m) >> 1;
+      var cmp = compare_fn(el.short_label, ar[k].short_label);
+      if (cmp > 0) {
+          m = k + 1;
+      } else if(cmp < 0) {
+          n = k - 1;
+      } else {
+          return k;
+      }
+  }
+  return -m - 1;
+}
+
+function comp(a, b) {
+  return SL_ORDER_ARRAY.indexOf(a) > SL_ORDER_ARRAY.indexOf(b);
+}
+
+
 
 async function parallelQuery(conn, new_query) {
 

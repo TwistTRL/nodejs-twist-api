@@ -198,6 +198,7 @@ const getOrangeDrug = database.withConnection(getOrangeDrugSqlExecutor);
 /**
  * 
 
+ getOrangeDrug = get paralytics drug for person
  
  */
 
