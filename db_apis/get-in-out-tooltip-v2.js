@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-02-05 16:33:06 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-07 17:01:10
+ * @Last Modified time: 2020-02-11 17:15:44
  */
 
 
@@ -180,7 +180,14 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           console.log('i :', i);
           console.log('zoneNumber :', zoneNumber);
           console.log('currentTime :', currentTime);
+          console.log('startTime :', startTime);
+          console.log('row.START_UNIX :', row.START_UNIX);
+          console.log('row.END_UNIX :', row.END_UNIX);
           console.log('row.INFUSION_RATE :', row.INFUSION_RATE);
+
+          console.log('Math.min(currentTime + timeInterval, row.END_UNIX) :', Math.min(currentTime + timeInterval, row.END_UNIX));
+          console.log('Math.max(startTime, row.START_UNIX) :', Math.max(startTime, row.START_UNIX));
+
         }
 
         let singleResult = {};
@@ -419,7 +426,7 @@ const getInOutTooltipQueryV2 = database.withConnection(async function (conn, que
     person_id: query.person_id,
     from: query.from || 0,
     // "to" default value is Math.ceil of timestamp of now to query.resolution 
-    to: query.to - 1 || Math.ceil(new Date().getTime() / (1000 * query.resolution)) * query.resolution - 1,
+    to: query.to - 1 || (query.from + query.resolution - 1),
     resolution: query.resolution || 3600
   }
   console.log("query = ", new_query);
