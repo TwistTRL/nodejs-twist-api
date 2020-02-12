@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2019-12-27 12:54:04 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-11 15:51:54
+ * @Last Modified time: 2020-02-12 12:49:25
  */
 
 
@@ -38,6 +38,7 @@ const {
   CAT_LIST,
   RXCUI_BY_CAT_ORDER_DICT,
   RXCUI_TO_CAT_DICT,
+  DRUG_BY_CAT_ORDER_DICT,
   MEDICATION_CATEGORY_STRUCTURE,
 
   MED_CAT_XLSX_PATH,
@@ -111,6 +112,7 @@ module.exports = {
   CAT_LIST,
   RXCUI_BY_CAT_ORDER_DICT,
   RXCUI_TO_CAT_DICT,
+  DRUG_BY_CAT_ORDER_DICT,
   MEDICATION_CATEGORY_STRUCTURE,
   MED_CAT_XLSX_PATH,
 }

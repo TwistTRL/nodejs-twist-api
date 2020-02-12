@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-11 16:34:16
+ * @Last Modified time: 2020-02-12 12:57:15
  */
 const sleep = require("util").promisify(setTimeout);
 
@@ -16,6 +16,7 @@ const { getLabsQuery } = require("../db_apis/get-labs-all");
 const { getRespiratorySupportVariable } = require("../db_apis/get_respiratory_support_variables");
 const { getHeartRate } = require("../db_apis/get_heart_rate");
 const { getPerson, getPersonFromMRN } = require("../db_apis/get_person");
+const { getWeight, getWeightCalc } = require("../db_apis/get-weight");
 const { getPersonel } = require("../db_apis/get_personel");
 const { getBed } = require("../db_apis/get_bed");
 const { getBedSurvey } = require("../db_apis/get_bed_survey");
@@ -991,7 +992,7 @@ router.post("/inout-tooltip", async (req, res) => {
  * @apiParamExample {json} Example of request in-out data
         {
           "person_id": EXAMPLE_PERSON_ID,
-          "from":150000000,
+          "from":1539568800,
           "resolution":3600
         }
 
@@ -999,7 +1000,7 @@ router.post("/inout-tooltip", async (req, res) => {
  *    
  * 
  *  {
-       "150000000": {
+       "1539568800": {
             "IVF": {
                 "acc_value": 3,
                 "IVF": {
@@ -1862,6 +1863,80 @@ router.get("/person/:person_id", async (req, res) => {
   res.send(await getPerson(person_id));
 });
 
+
+
+/**
+ * @api {get} /person/:person_id/weight Weight
+ * @apiVersion 0.0.1
+ * @apiName get-weight
+ * @apiGroup Person
+ * @apiDescription
+ * 
+ * weight records array sorted by timestamp
+ * 
+ * FROM WEIGHTS
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {Number} DT_UNIX Unix Second Time.
+ * @apiSuccess {Number} WEIGHT Patient weight at this time.
+ * @apiSuccessExample Success-Response:
+ *      
+            
+      [
+        {
+            "DT_UNIX": 1500000000,
+            "WEIGHT": 2.22
+        },
+        ...
+      ]
+ *
+ */
+
+router.get("/person/:person_id/weight", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id. Should be integer.");
+    return;
+  }
+  res.send(await getWeight(person_id));
+});
+
+
+
+/**
+ * @api {get} /person/:person_id/weight-calc Weight-calc
+ * @apiVersion 0.0.1
+ * @apiName get-weight-calc
+ * @apiGroup Person
+ * @apiDescription
+ * 
+ * weight records array sorted by timestamp
+ * 
+ * FROM WEIGHTS_CALCS
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {Number} DT_UNIX Unix Second Time.
+ * @apiSuccess {Number} WEIGHT Patient weight at this time.
+ * @apiSuccessExample Success-Response:
+ *      
+            
+      [
+        {
+            "DT_UNIX": 1500000000,
+            "WEIGHT": 2.22
+        },
+        ...
+      ]
+ *
+ */
+router.get("/person/:person_id/weight-calc", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id. Should be integer.");
+    return;
+  }
+  res.send(await getWeightCalc(person_id));
+});
+
 /**
  * @api {get} /personel/:chb_prsnl_id Personnel Information
  * @apiVersion 0.0.1
@@ -2090,6 +2165,7 @@ router.get("/settings/fluid/:item", (req, res) => {
         `CAT_LIST`,
         `RXCUI_BY_CAT_ORDER_DICT`,
         `RXCUI_TO_CAT_DICT`,
+        `DRUG_BY_CAT_ORDER_DICT`,
         `MEDICATION_CATEGORY_STRUCTURE`,
         `MED_CAT_XLSX_PATH`} item default `MEDICATION_CATEGORY_STRUCTURE`.
  * @apiSuccessExample Success-Response:
@@ -2102,6 +2178,7 @@ router.get("/settings/fluid/:item", (req, res) => {
         CAT_LIST,
         RXCUI_BY_CAT_ORDER_DICT,
         RXCUI_TO_CAT_DICT,
+        DRUG_BY_CAT_ORDER_DICT,
         MEDICATION_CATEGORY_STRUCTURE,
         MED_CAT_XLSX_PATH,
       }

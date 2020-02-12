@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-02-05 16:33:06 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-11 17:15:44
+ * @Last Modified time: 2020-02-12 12:51:19
  */
 
 
@@ -57,9 +57,19 @@ WHERE PERSON_ID = `
 const SQL_GET_IN_OUT_DILUENTS_PART2 = ` 
 ORDER BY START_UNIX`
 
+
+const SQL_GET_WEIGHT_PART1 = `
+SELECT
+  DT_UNIX,
+  WEIGHT
+FROM WEIGHTS
+WHERE PERSON_ID = `
+const SQL_GET_WEIGHT_PART2 = ` 
+ORDER BY DT_UNIX`
+
+
 async function inOutEventTooltipQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
-
   let SQL_GET_IN_OUT_EVENT = SQL_GET_IN_OUT_EVENT_PART1 + query[PERSON_ID] + SQL_GET_IN_OUT_EVENT_PART2 + query[FROM] * 1 +
     SQL_GET_IN_OUT_EVENT_PART3 + query[TO] * 1 + SQL_GET_IN_OUT_EVENT_PART4;
   console.log("SQL for in-out Event: ", SQL_GET_IN_OUT_EVENT);
@@ -72,7 +82,6 @@ async function inOutEventTooltipQuerySQLExecutor(conn, query) {
 
 async function inOutDiluentsTooltipQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
-
   let SQL_GET_IN_OUT_DILUENTS = SQL_GET_IN_OUT_DILUENTS_PART1 + query[PERSON_ID] +
     ` 
     AND ((START_UNIX < ` + query[FROM] + ` AND END_UNIX > ` + query[FROM] + `)
@@ -86,6 +95,16 @@ async function inOutDiluentsTooltipQuerySQLExecutor(conn, query) {
   return rawRecord.rows;
 }
 
+async function weightQuerySQLExecutor(conn, query) {
+  let timestampLable = timeLable++;
+  let SQL_GET_WEIGHT = SQL_GET_WEIGHT_PART1 + query[PERSON_ID] + SQL_GET_WEIGHT_PART2;
+  console.log("SQL for get weight: ", SQL_GET_WEIGHT);
+  console.time('getWeight-sql' + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_WEIGHT);
+  console.timeEnd('getWeight-sql' + timestampLable);
+  return rawRecord.rows;
+}
+
 function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   // result will be [type1Dict, type2Dict], first item is "in" and second is "out".
   let type1Dict = {};
@@ -94,6 +113,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   let {
     arr1,
     arr2,
+    weightArray,
   } = rawRecords;
 
   if (arr1 && arr1.length) {
@@ -126,9 +146,9 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
 
       if (io_calcs == '1') {
-        type1Dict = _updateRowToDict(currentTime, row, type1Dict);
+        type1Dict = _updateRowToDict(currentTime, row, type1Dict, weightArray);
       } else if (io_calcs == '2') {
-        type2Dict = _updateRowToDict(currentTime, row, type2Dict);
+        type2Dict = _updateRowToDict(currentTime, row, type2Dict, weightArray);
       } else {
         console.log("Error IO_CALCS");
       }
@@ -210,7 +230,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
         let typeFlush = (row.DRUG == 'papavarine' || row.DRUG == 'heparin flush') ? 1 : 0;
         if (!(calTime in type1Dict)) {
-          type1Dict[calTime] = {"acc_value": 0};
+          let weightCalTime = getWeightOnTime(calTime, weightArray)
+          type1Dict[calTime] = {"acc_value": 0, "weight": weightCalTime};
         }
 
         if (typeFlush) {
@@ -300,23 +321,21 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           }
         }
       }
-    });
-    
+    });    
   }
-
   // console.log('type1Dict :', type1Dict);
-
   return [type1Dict, type2Dict];
 }
 
-function _updateRowToDict(currentTime, row, dict) {
+function _updateRowToDict(currentTime, row, dict, weightArray) {
   let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
   let newValue = io_calcs == '2' ? -1 * row.VALUE : row.VALUE;
   let newCat = EVENT_CD_DICT[row.EVENT_CD].IO_CAT;
   let newShortLabel = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
 
   if (!(currentTime in dict)) {
-    dict[currentTime] = {"acc_value": 0};
+    let weightCurrentTime = getWeightOnTime(currentTime, weightArray)
+    dict[currentTime] = {"acc_value": 0, "weight": weightCurrentTime};
   }
   if (!(newCat in dict[currentTime])) {
     dict[currentTime][newCat] = { "acc_value": 0, "short_labels": []};
@@ -344,10 +363,34 @@ function _updateRowToDict(currentTime, row, dict) {
     } else {
       dict[currentTime][newCat].short_labels.splice(binarySearch(dict[currentTime][newCat].short_labels, singleResult, comp), 0, singleResult)
     }
-
-  }
-  
+  }  
   return dict;
+}
+
+function getWeightOnTime(timestamp, weightArray) {
+  let timeArr = weightArray.map(item => item.DT_UNIX);
+  let index = getBinarySearchNearest(timestamp, timeArr);
+  let roundWeight = Math.round((weightArray[index].WEIGHT + Number.EPSILON) * 1000) / 1000;
+  return roundWeight;
+}
+
+function getBinarySearchNearest(num, arr) {
+  if(!arr || !arr.length){
+    return null;
+  }
+
+  if(arr.length == 1) {
+    return 0;
+  }
+
+  let mid = Math.floor((arr.length - 1) / 2);
+  if (arr[mid] == num){
+    return mid;
+  } else if (arr[mid] > num) {
+    return getBinarySearchNearest(num, arr.slice(0, mid+1));
+  } else {
+    return getBinarySearchNearest(num, arr.slice(mid+1)) + mid+1;
+  }
 }
 
 // "short_labels": [
@@ -401,10 +444,12 @@ async function parallelQuery(conn, new_query) {
   // should parallel do the sql query
   const task1 = await inOutEventTooltipQuerySQLExecutor(conn, new_query);
   const task2 = await inOutDiluentsTooltipQuerySQLExecutor(conn, new_query);
+  const task3 = await weightQuerySQLExecutor(conn, new_query);
 
   return {
     arr1: await task1,
     arr2: await task2,
+    weightArray: await task3,
   }
 }
 
@@ -441,6 +486,10 @@ const getInOutTooltipQueryV2 = database.withConnection(async function (conn, que
   }
   if (new_query.resolution <= 0 || new_query.resolution % 3600 != 0) {
     throw new InputInvalidError('"resolution" must be 3600 * n (n ∈ N)');
+  }
+
+  if (new_query.from % 3600 != 0) {
+    throw new InputInvalidError('"start" time must be divisible by 3600');
   }
 
   
