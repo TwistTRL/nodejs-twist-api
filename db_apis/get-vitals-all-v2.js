@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 11:53:31 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-11 16:36:58
+ * @Last Modified time: 2020-02-18 13:59:12
  */
 
 
@@ -710,7 +710,7 @@ function combine2CalcResults(vitalsRecords, vitalType, vitalsRecords2nd, vitalTy
   let count2nd = 0;
   while (h1 < arr1.length && h2 < arr2.length) {
 
-    if ( !(arr2[h2].START_TM - records_start_time) % timeInterval) {
+    if ((arr2[h2].START_TM - records_start_time) && !(arr2[h2].START_TM - records_start_time) % timeInterval) {
       console.warn("8 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
       console.log('records_start_time :', records_start_time);
       console.log('timeInterval :', timeInterval);
