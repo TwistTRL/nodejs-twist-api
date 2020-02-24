@@ -17,13 +17,16 @@
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "twist-xlsx": "file:../nodejs-twist-utils",
+    "express-session": "^1.17.0",
     "is-my-json-valid": "^2.20.0",
+    "kill-port": "^1.6.0",
     "morgan": "^1.9.1",
     "oracledb": "^4.2.0",
     "pm2": "^4.2.3",
     "relational-query-sql-builder": "github:TwistTRL/relational-query-sql-builder",
     "replace-in-file": "^5.0.2",
+    "session-file-store": "^1.4.0",
+    "twist-xlsx": "file:../nodejs-twist-utils",
     "xlsx": "^0.15.5"
   },
   "devDependencies": {

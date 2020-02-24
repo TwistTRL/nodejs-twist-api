@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 11:53:31 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-18 13:59:12
+ * @Last Modified time: 2020-02-24 12:14:15
  */
 
 
@@ -364,6 +364,7 @@ async function vitalsBinnedQuerySQLExecutor(conn, query) {
 
 
   let timeInterval = convertTimeInterval(query[cat3]);
+  console.log('~~~~~~~~~~~~~~~timeInterval :', timeInterval);
   let vitalType2nd = SQLVitalTypeDict2ndChoice[query[catVitalType]];
   console.log("vitalType2nd: ", vitalType2nd);
 
@@ -381,12 +382,12 @@ async function vitalsBinnedQuerySQLExecutor(conn, query) {
     console.time('getVitalBinned-2nd ' + timestamp);
     let vitalsRecords2nd = await conn.execute(sqlQuery2nd);
     console.timeEnd('getVitalBinned-2nd ' + timestamp);
-    let binnedResult = _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, vitalType2nd, mapDictResult, vitalsRecords2nd, timeInterval);
+    let binnedResult = _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsRecords, vitalType2nd, mapDictResult, vitalsRecords2nd);
     console.timeEnd('getVitalBinned' + timestamp);
     return binnedResult;
   }
 
-  let binnedResult = _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, timeInterval);
+  let binnedResult = _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsRecords);
   console.timeEnd('getVitalBinned' + timestamp);
   return binnedResult;
 
@@ -408,8 +409,10 @@ function getMinMaxBinId(dictRecord) {
   return [minBinId, maxBinId, dictResult];
 }
 
-function _calculateBinnedRecords(vitalType, dictResult, vitalsRecords, vitalType2nd = null, mapDictResult = null, vitalsRecords2nd = null, timeInterval) {
+function _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsRecords, vitalType2nd = null, mapDictResult = null, vitalsRecords2nd = null) {
   var result = [dictResult];
+  console.log('~~~----- timeInterval :', timeInterval);
+
   // vitalsRecords = {"metadata":[], "rows":[]}
   var arr1 = vitalsRecords.rows;
   console.log("vitals Binned record size :", arr1.length);
