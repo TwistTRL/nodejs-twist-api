@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 11:53:31 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-24 12:14:15
+ * @Last Modified time: 2020-02-24 12:25:37
  */
 
 
@@ -411,8 +411,6 @@ function getMinMaxBinId(dictRecord) {
 
 function _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsRecords, vitalType2nd = null, mapDictResult = null, vitalsRecords2nd = null) {
   var result = [dictResult];
-  console.log('~~~----- timeInterval :', timeInterval);
-
   // vitalsRecords = {"metadata":[], "rows":[]}
   var arr1 = vitalsRecords.rows;
   console.log("vitals Binned record size :", arr1.length);
