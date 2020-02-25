@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 11:04:40
+ * @Last Modified time: 2020-02-25 16:21:35
  */
 
 const database = require("../services/database");
@@ -426,10 +426,14 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           value = (timeInterval * row.RESULT_VAL) / 3600;
         }
 
-        if (value < 0 || (value == 0 && row.RESULT_VAL != 0)) {
+        if (value < 0 ) {
           console.log("error value <= 0: ", value);
-          console.log('row.RESULT_VAL :', row.RESULT_VAL);
         }
+
+        // if (value == 0 && row.RESULT_VAL != 0) {
+        //   console.log('row.RESULT_VAL :', row.RESULT_VAL);
+
+        // }
 
         if (cTime in timeTPNDict) {
           timeTPNDict[cTime].value += value;
