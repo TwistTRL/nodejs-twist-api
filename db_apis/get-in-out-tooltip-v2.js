@@ -2,13 +2,14 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-02-24 21:29:51
+ * @Last Modified time: 2020-02-25 05:58:37
  */
 
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
 const { EVENT_CD_DICT, SL_ORDER_ARRAY } = require("../db_relation/in-out-db-relation");
+const { getBinarySearchNearest } = require("./utils/binarySearchUtils");
 
 const PERSON_ID = "person_id";
 const FROM = "from";
@@ -526,31 +527,31 @@ function getWeightOnTime(timestamp, weightArray) {
   return roundWeight;
 }
 
-/**
- * 
- * Recursive function to get the value index of a sorted number array smaller nearest target number  
- * @param {Number} num 
- * @param {Array} arr 
- * @returns {Number} index of arr
- */
-function getBinarySearchNearest(num, arr) {
-  if (!arr || !arr.length) {
-    return null;
-  }
+// /**
+//  *
+//  * Recursive function to get the value index of a sorted number array smaller nearest target number
+//  * @param {Number} num
+//  * @param {Array} arr
+//  * @returns {Number} index of arr
+//  */
+// const getBinarySearchNearest = (num, arr) => {
+//   if (!arr || !arr.length) {
+//     return null;
+//   }
 
-  if (arr.length == 1) {
-    return 0;
-  }
+//   if (arr.length == 1) {
+//     return 0;
+//   }
 
-  let mid = Math.floor((arr.length - 1) / 2);
-  if (arr[mid] == num) {
-    return mid;
-  } else if (arr[mid] > num) {
-    return getBinarySearchNearest(num, arr.slice(0, mid + 1));
-  } else {
-    return getBinarySearchNearest(num, arr.slice(mid + 1)) + mid + 1;
-  }
-}
+//   let mid = Math.floor((arr.length - 1) / 2);
+//   if (arr[mid] == num) {
+//     return mid;
+//   } else if (arr[mid] > num) {
+//     return getBinarySearchNearest(num, arr.slice(0, mid + 1));
+//   } else {
+//     return getBinarySearchNearest(num, arr.slice(mid + 1)) + mid + 1;
+//   }
+// }
 
 // "short_labels": [
 //   {
@@ -602,7 +603,7 @@ async function parallelQuery(conn, new_query) {
   const task2 = await inOutDiluentsTooltipQuerySQLExecutor(conn, new_query);
   const task3 = await tpnQuerySQLExecutor(conn, new_query);
   const task4 = await weightQuerySQLExecutor(conn, new_query);
-  console.timeEnd("parallel-query")
+  console.timeEnd("parallel-query");
   return {
     arr1: await task1,
     arr2: await task2,

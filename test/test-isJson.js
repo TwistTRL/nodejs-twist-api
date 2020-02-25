@@ -2,10 +2,6 @@ var assert = require('assert');
 const isValidJson = require("../utils/isJson");
 
 
-describe('isJson', function () {
-    
-});
-
 
 describe('isJson', function () {
 
