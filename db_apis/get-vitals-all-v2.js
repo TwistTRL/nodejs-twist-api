@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 11:53:31 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-24 12:25:37
+ * @Last Modified time: 2020-02-25 10:29:14
  */
 
 
@@ -364,7 +364,6 @@ async function vitalsBinnedQuerySQLExecutor(conn, query) {
 
 
   let timeInterval = convertTimeInterval(query[cat3]);
-  console.log('~~~~~~~~~~~~~~~timeInterval :', timeInterval);
   let vitalType2nd = SQLVitalTypeDict2ndChoice[query[catVitalType]];
   console.log("vitalType2nd: ", vitalType2nd);
 

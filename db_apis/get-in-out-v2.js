@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
- * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-02-25 06:16:22
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-02-25 09:15:21
  */
 
 const database = require("../services/database");
@@ -155,6 +155,8 @@ async function inOutDiluentsQuerySQLExecutor(conn, query) {
 
 function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   let { arr1, arr2, arr3 } = rawRecords;
+
+  console.log('arr3.length :', arr3.length);
 
   let resultEvent = [];
 

@@ -2,7 +2,6 @@
 .vscode
 apidoc/
 temp/
-config/users.js
 docs/apidoc
 docs/apidoc2
 docs/files/*

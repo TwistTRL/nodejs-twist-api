@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-11 11:50:13
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-24 15:48:16
+ * @Last Modified time: 2020-02-25 10:23:14
  */
 
 const database = require("../services/database");
@@ -12,6 +12,7 @@ const {
   CAT_LIST,
   RXCUI_BY_CAT_ORDER_DICT,
   RXCUI_TO_CAT_DICT,
+  DRUG_TO_CAT_DICT,
   MEDICATION_CATEGORY_STRUCTURE
 } = require("../db_relation/drug-category-relation");
 
@@ -59,6 +60,20 @@ FROM SUCTION
 WHERE PERSON_ID = :person_id
 ORDER BY EVENT_START_DT_TM`;
 
+const SQL_INFUSIONS_UNIT = `
+SELECT
+  DISTINCT DRUG,
+  INFUSION_RATE_UNITS
+FROM DRUG_INFUSIONS
+WHERE PERSON_ID = :person_id
+ORDER BY DRUG`;
+
+async function getInfusionsUnitSqlExecutor(conn, binds) {
+  console.log("SQL Get Infusions Unit = " + SQL_INFUSIONS_UNIT);
+  let infusionsUnitRecords = await conn.execute(SQL_INFUSIONS_UNIT, binds);
+  return infusionsUnitRecords.rows;
+}
+
 async function getSuctionSqlExecutor(conn, binds) {
   let SQL_SUCTION = SQL_SUCTION_PART1;
   console.log("SQL Get Suction = " + SQL_SUCTION);
@@ -97,16 +112,19 @@ async function getIntermittentSqlExecutor(conn, binds) {
 }
 
 function _calculateRawRecords(rawRecords) {
-  let { arr1, arr2, arr3 } = rawRecords;
+  let { arr1, arr2, arr3, arr4 } = rawRecords;
 
   console.log("infusions length :", arr1.length);
   console.log("intermittent length :", arr2.length);
   console.log("suction length :", arr3.length);
 
+  console.log("arr4.length :", arr4.length);
+
   let suctionArray = [];
   if (arr3.length > 0) {
     arr3.forEach(element => {
       let singleResult = {};
+      singleResult.name = "suction";
       singleResult.time =
         new Date(element["EVENT_START_DT_TM"]).getTime() / 1000;
       singleResult.lvl = element.LVL;
@@ -124,10 +142,49 @@ function _calculateRawRecords(rawRecords) {
     name: "SUCTION",
     children: [{ name: "suction" }, { name: "child2" }, { name: "child3" }]
   };
-  let catStructureArray = [suctionCatStructure, ...MEDICATION_CATEGORY_STRUCTURE];
+
+  // console.log("arr4 :", arr4);
+  // arr4: [ { DRUG: 'DOPamine', INFUSION_RATE_UNITS: 'mcg/kg/min' },
+  // { DRUG: 'EPINEPHrine', INFUSION_RATE_UNITS: 'mcg/kg/min' },...]
+
+  let unitDict = {};
+  arr4.forEach(element => {
+    let cat = DRUG_TO_CAT_DICT[element.DRUG];
+    if (!(cat in unitDict)) {
+      unitDict[cat] = {};
+    }
+    unitDict[cat][element.DRUG] = element.INFUSION_RATE_UNITS;
+  });
+
+  // console.log('newCatStructure :', newCatStructure);
+  // unitDict : { CV:
+  //   { DOPamine: 'mcg/kg/min',
+  //     alprostadil: 'mcg/kg/min',
+  //     esmolol: 'mcg/kg/min',
+  //     fenoldopam: 'mcg/kg/min',
+  //     milrinone: 'mcg/kg/min',
+  //     niCARdipine: 'mcg/kg/min',
+  //     nitroprusside: 'mcg/kg/min',
+  //     norepinephrine: 'mcg/kg/min' },
+  //  RESP: { EPINEPHrine: 'mcg/kg/min' },...}
+
+  let newCatStructure = [...MEDICATION_CATEGORY_STRUCTURE];
+  newCatStructure.forEach(element => {
+    if (element.name in unitDict) {
+      console.log("element.name :", element.name);
+      element.children.forEach(item => {
+        if (item.name in unitDict[element.name]) {
+          item.unit = unitDict[element.name][item.name];
+          console.log('item.name :', item.name);
+        }
+      });
+    }
+  });
+
+  let catStructureArray = [suctionCatStructure, ...newCatStructure];
   let result_dict = {
     cat_structure: catStructureArray,
-    suction: suctionArray
+    SUCTION: suctionArray
   };
   CAT_LIST.forEach(cat => {
     result_dict[cat] = [];
@@ -187,10 +244,12 @@ async function parallelQuery(conn, binds) {
   const task1 = await getINFUSIONSSqlExecutor(conn, binds);
   const task2 = await getIntermittentSqlExecutor(conn, binds);
   const task3 = await getSuctionSqlExecutor(conn, binds);
+  const task4 = await getInfusionsUnitSqlExecutor(conn, binds);
   return {
     arr1: task1,
     arr2: task2,
-    arr3: task3
+    arr3: task3,
+    arr4: task4
   };
 }
 

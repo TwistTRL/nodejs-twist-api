@@ -154,7 +154,5 @@ function copyXlsxFile() {
   });
 }
 
-//TODO add users.js
-
 startReplacString();
 copyXlsxFile();
