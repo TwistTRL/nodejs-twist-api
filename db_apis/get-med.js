@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-11 11:50:13
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 10:23:14
+ * @Last Modified time: 2020-02-25 10:34:44
  */
 
 const database = require("../services/database");
@@ -117,8 +117,7 @@ function _calculateRawRecords(rawRecords) {
   console.log("infusions length :", arr1.length);
   console.log("intermittent length :", arr2.length);
   console.log("suction length :", arr3.length);
-
-  console.log("arr4.length :", arr4.length);
+  console.log("infusions units length :", arr4.length);
 
   let suctionArray = [];
   if (arr3.length > 0) {
@@ -171,11 +170,9 @@ function _calculateRawRecords(rawRecords) {
   let newCatStructure = [...MEDICATION_CATEGORY_STRUCTURE];
   newCatStructure.forEach(element => {
     if (element.name in unitDict) {
-      console.log("element.name :", element.name);
       element.children.forEach(item => {
         if (item.name in unitDict[element.name]) {
           item.unit = unitDict[element.name][item.name];
-          console.log('item.name :', item.name);
         }
       });
     }

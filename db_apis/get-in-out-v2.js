@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 09:15:21
+ * @Last Modified time: 2020-02-25 11:04:40
  */
 
 const database = require("../services/database");
@@ -24,22 +24,18 @@ const TO = "to";
 const RESOLUTION = "resolution";
 var timeLable = 0;
 
-// oracle db convert unixtimestamp to date
-// to_date('1970-01-01','YYYY-MM-DD') + numtodsinterval(1244108886,'SECOND')
-
 const SQL_GET_TPN_PART1 = `
 SELECT  
-  EVENT_START_DT_TM,
-  EVENT_END_DT_TM,
+  START_UNIX,
+  END_UNIX, 
   RESULT_VAL
 FROM TPN
-WHERE Person_ID = `;
+WHERE PERSON_ID = `;
 const SQL_GET_TPN_PART2 = `
-AND EVENT_START_DT_TM <= to_date('1970-01-01','YYYY-MM-DD') + numtodsinterval(`;
-const SQL_GET_TPN_PART3 = ` AND EVENT_END_DT_TM >= to_date('1970-01-01','YYYY-MM-DD') + numtodsinterval(`;
-const SQL_GET_TPN_PART4 = `, 'SECOND')`;
-const SQL_GET_TPN_PART5 = ` 
-ORDER BY EVENT_START_DT_TM`;
+AND START_UNIX <= `;
+const SQL_GET_TPN_PART3 = ` AND END_UNIX >= `;
+const SQL_GET_TPN_PART4 = ` 
+ORDER BY START_UNIX`;
 
 // get raw in-out by event between two timestamp
 // const SQL_GET_IN_OUT_EVENT_PART1 = `
@@ -92,12 +88,10 @@ async function tpnQuerySQLExecutor(conn, query) {
     SQL_GET_TPN_PART1 +
     query[PERSON_ID] +
     SQL_GET_TPN_PART2 +
-    Number(query[FROM]) +
-    SQL_GET_TPN_PART4 +
-    SQL_GET_TPN_PART3 +
     Number(query[TO]) +
-    SQL_GET_TPN_PART4 +
-    SQL_GET_TPN_PART5;
+    SQL_GET_TPN_PART3 +
+    Number(query[FROM]) +
+    SQL_GET_TPN_PART4;
   console.log("SQL for TPN: ", SQL_GET_TPN);
   console.time("getTPN-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_TPN);
@@ -156,7 +150,8 @@ async function inOutDiluentsQuerySQLExecutor(conn, query) {
 function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   let { arr1, arr2, arr3 } = rawRecords;
 
-  console.log('arr3.length :', arr3.length);
+  console.log("arr3.length :", arr3.length);
+  console.log("arr3 :", arr3);
 
   let resultEvent = [];
 
@@ -263,7 +258,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
       let currentTime =
-        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
+        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
+        timeInterval;
 
       // console.log('row.START_UNIX :', row.START_UNIX);
       // console.log('startTime :', startTime);
@@ -274,7 +270,9 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
 
       let zoneNumber =
-        Math.floor((Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval) + 1;
+        Math.floor(
+          (Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval
+        ) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let singleResult = {};
         let value = 0;
@@ -293,24 +291,30 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
               Math.max(startTime, row.START_UNIX)) *
               row.INFUSION_RATE) /
             3600;
-          let value1 =
-            ((Math.min(currentTime + timeInterval, row.END_UNIX) - row.START_UNIX) *
-              row.INFUSION_RATE) /
-            3600;
-          if (value1 != value) {
-            console.log("value1 :", value1);
-          }
+          // let value1 =
+          //   ((Math.min(currentTime + timeInterval, row.END_UNIX) -
+          //     row.START_UNIX) *
+          //     row.INFUSION_RATE) /
+          //   3600;
+          // if (value1 != value) {
+          //   console.log("value1 :", value1);
+          //   console.log('value :', value);
+          // }
         } else if (i == zoneNumber - 1) {
           value =
-            (Math.min(row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
+            (Math.min(
+              row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1),
+              timeInterval
+            ) *
               row.INFUSION_RATE) /
             3600;
-          let value2 =
-            ((row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)) * row.INFUSION_RATE) /
-            3600;
-          if (value2 != value) {
-            console.log("value2 :", value2);
-          }
+          // let value2 =
+          //   ((row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)) *
+          //     row.INFUSION_RATE) /
+          //   3600;
+          // if (value2 != value) {
+          //   console.log("value2 :", value2);
+          // }
         } else {
           value = (timeInterval * row.INFUSION_RATE) / 3600;
         }
@@ -349,110 +353,111 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         }
       }
     }
+  }
+  //example arr3[indexArr3] = {
+  // START_UNIX
+  // EVENT_TAG
+  // RESULT_VAL
+  // END_UNIX}
+  let timeTPNDict = {};
 
-    //example arr3[indexArr3] = {
-    // EVENT_START_DT_TM
-    // EVENT_TAG
-    // RESULT_VAL
-    // EVENT_END_DT_TM}
-    let timeTPNDict = {};
+  if (arr3 && arr3.length) {
+    console.log("TPN record size :", arr3.length);
 
-    if (arr3 && arr3.length) {
-      console.log("TPN record size :", arr3.length);
+    for (let row of arr3) {
+      //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
+      //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
 
-      for (let row of arr3) {
-        //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
-        //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
 
-        let convertStart = new Date(row.EVENT_START_DT_TM).getTime() / 1000;
-        let convertEnd = new Date(row.EVENT_END_DT_TM).getTime() / 1000;
-        let currentTime =
-          Math.floor(Math.max(convertStart, startTime) / timeInterval) * timeInterval;
+      let rowStart = row.START_UNIX;
+      let rowEnd = row.END_UNIX + 1;
 
-        // console.log('row.START_UNIX :', row.START_UNIX);
-        // console.log('startTime :', startTime);
+      let currentTime =
+        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
+        timeInterval;
 
-        // end when larger than endTime
-        if (currentTime > endTime) {
-          break;
+      // console.log('row.START_UNIX :', row.START_UNIX);
+      // console.log('startTime :', startTime);
+
+      // end when larger than endTime
+      if (currentTime > endTime) {
+        break;
+      }
+
+      let zoneNumber =
+        Math.floor(
+          (Math.min(rowEnd, endTime) - currentTime) / timeInterval
+        ) + 1;
+      for (let i = 0; i < zoneNumber; i++) {
+        let singleResult = {};
+        let value = 0;
+        let cTime = currentTime + i * timeInterval;
+
+
+        if (i == 0) {
+          value =
+            ((Math.min(currentTime + timeInterval, rowEnd) -
+              Math.max(startTime, row.START_UNIX)) *
+              row.RESULT_VAL) /
+            3600;
+          let value1 =
+            ((Math.min(currentTime + timeInterval, rowEnd) - row.START_UNIX) *
+              row.RESULT_VAL) /
+            3600;
+          if (value1 != value) {
+            console.log("value1 :", value1);
+          }
+        } else if (i == zoneNumber - 1) {
+          value =
+            (Math.min(
+              rowEnd - currentTime - timeInterval * (zoneNumber - 1),
+              timeInterval
+            ) *
+              row.RESULT_VAL) /
+            3600;
+          let value2 =
+            ((rowEnd - currentTime - timeInterval * (zoneNumber - 1)) *
+              row.RESULT_VAL) /
+            3600;
+          if (value2 != value) {
+            console.log("value2 :", value2);
+          }
+        } else {
+          value = (timeInterval * row.RESULT_VAL) / 3600;
         }
 
-        let zoneNumber =
-          Math.floor((Math.min(convertEnd, endTime) - currentTime) / timeInterval) + 1;
-        for (let i = 0; i < zoneNumber; i++) {
-          let singleResult = {};
-          let value = 0;
-          let cTime = currentTime + i * timeInterval;
-          // if (i == 0) {
-          //   value = (Math.min(currentTime + timeInterval, row.END_UNIX) - row.START_UNIX) * row.INFUSION_RATE / 3600;
-          // } else if (i == zoneNumber - 1) {
-          //   value = (row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)) * row.INFUSION_RATE / 3600;
-          // } else {
-          //   value = timeInterval * row.INFUSION_RATE / 3600;
-          // }
+        if (value < 0 || (value == 0 && row.RESULT_VAL != 0)) {
+          console.log("error value <= 0: ", value);
+          console.log('row.RESULT_VAL :', row.RESULT_VAL);
+        }
 
-          // TODO replace row.INFUSION_RATE 
-
-          if (i == 0) {
-            value =
-              ((Math.min(currentTime + timeInterval, convertEnd) -
-                Math.max(startTime, convertStart)) *
-                row.RESULT_VAL) /
-              3600;
-            let value1 =
-              ((Math.min(currentTime + timeInterval, convertEnd) - convertStart) *
-                row.RESULT_VAL) /
-              3600;
-            if (value1 != value) {
-              console.log("value1 :", value1);
-            }
-          } else if (i == zoneNumber - 1) {
-            value =
-              (Math.min(convertEnd - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
-                row.RESULT_VAL) /
-              3600;
-            let value2 =
-              ((convertEnd - currentTime - timeInterval * (zoneNumber - 1)) * row.RESULT_VAL) /
-              3600;
-            if (value2 != value) {
-              console.log("value2 :", value2);
-            }
-          } else {
-            value = (timeInterval * row.RESULT_VAL) / 3600;
-          }
-
-          if (value <= 0) {
-            console.log("error value <= 0: ", value);
-          }
-
-          if (cTime in timeTPNDict) {
-            timeTPNDict[cTime].value += value;
-          } else {
-            singleResult.value = value;
-            singleResult.short_label = "TPN";
-            singleResult.time = cTime;
-            singleResult.type = "1";
-            timeTPNDict[singleResult.time] = singleResult;
-          }
+        if (cTime in timeTPNDict) {
+          timeTPNDict[cTime].value += value;
+        } else {
+          singleResult.value = value;
+          singleResult.short_label = "TPN";
+          singleResult.time = cTime;
+          singleResult.type = "1";
+          timeTPNDict[singleResult.time] = singleResult;
         }
       }
     }
-
-    let resultFlush = Object.values(timeFlushDict);
-    let resultDrips = Object.values(timeDripsDict);
-    let resultTPN = Object.values(timeTPNDict);
-
-    //unsorted array from Event, Flush, Drips, TPN
-    let arr = [...resultEvent, ...resultFlush, ...resultDrips, ...resultTPN];
-    arr.sort(function(a, b) {
-      let keyA = a.time;
-      let keyB = b.time;
-      if (keyA < keyB) return -1;
-      if (keyA > keyB) return 1;
-      return 0;
-    });
-    return arr;
   }
+
+  let resultFlush = Object.values(timeFlushDict);
+  let resultDrips = Object.values(timeDripsDict);
+  let resultTPN = Object.values(timeTPNDict);
+
+  //unsorted array from Event, Flush, Drips, TPN
+  let arr = [...resultEvent, ...resultFlush, ...resultDrips, ...resultTPN];
+  arr.sort(function(a, b) {
+    let keyA = a.time;
+    let keyB = b.time;
+    if (keyA < keyB) return -1;
+    if (keyA > keyB) return 1;
+    return 0;
+  });
+  return arr;
 }
 
 /**

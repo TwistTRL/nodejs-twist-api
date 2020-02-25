@@ -1,14 +1,17 @@
 /*
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
- * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-02-25 06:12:31
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-02-25 11:41:14
  */
 
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
-const { EVENT_CD_DICT, SL_ORDER_ARRAY } = require("../db_relation/in-out-db-relation");
+const {
+  EVENT_CD_DICT,
+  SL_ORDER_ARRAY
+} = require("../db_relation/in-out-db-relation");
 const { getBinarySearchNearest } = require("./utils/binarySearchUtils");
 
 const PERSON_ID = "person_id";
@@ -19,17 +22,30 @@ var timeLable = 0;
 
 const SQL_GET_TPN_PART1 = `
 SELECT  
-  EVENT_START_DT_TM,
-  EVENT_END_DT_TM,
-  RESULT_VAL
+  START_UNIX,
+  END_UNIX, 
+  RESULT_VAL,
+  "Dextrose PN",
+"Amino Acid PN",
+"Selenium PN",
+"Potassium PN",
+"Calcium PN",
+"Magnesium PN",
+"Phosphorus PN",
+"Heparin PN",
+"Ranitidine PN",
+"Extra Phytonadione PN",
+"Sodium PN",
+"Vitamin PN",
+"Carnitine PN"
 FROM TPN
-WHERE Person_ID = `;
+WHERE PERSON_ID = `;
 const SQL_GET_TPN_PART2 = `
-AND EVENT_START_DT_TM <= to_date('1970-01-01','YYYY-MM-DD') + numtodsinterval(`;
-const SQL_GET_TPN_PART3 = ` AND EVENT_END_DT_TM >= to_date('1970-01-01','YYYY-MM-DD') + numtodsinterval(`;
-const SQL_GET_TPN_PART4 = `, 'SECOND')`;
-const SQL_GET_TPN_PART5 = ` 
-ORDER BY EVENT_START_DT_TM`;
+AND START_UNIX <= `;
+const SQL_GET_TPN_PART3 = ` AND END_UNIX >= `;
+const SQL_GET_TPN_PART4 = ` 
+ORDER BY START_UNIX`;
+
 
 // get raw in-out by event between two timestamp
 const SQL_GET_IN_OUT_EVENT_PART1 = `
@@ -83,12 +99,10 @@ async function tpnQuerySQLExecutor(conn, query) {
     SQL_GET_TPN_PART1 +
     query[PERSON_ID] +
     SQL_GET_TPN_PART2 +
-    Number(query[FROM]) +
-    SQL_GET_TPN_PART4 +
-    SQL_GET_TPN_PART3 +
     Number(query[TO]) +
-    SQL_GET_TPN_PART4 +
-    SQL_GET_TPN_PART5;
+    SQL_GET_TPN_PART3 +
+    Number(query[FROM]) +
+    SQL_GET_TPN_PART4;
   console.log("SQL for TPN: ", SQL_GET_TPN);
   console.time("getTPN-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_TPN);
@@ -144,7 +158,8 @@ async function inOutDiluentsTooltipQuerySQLExecutor(conn, query) {
 
 async function weightQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
-  let SQL_GET_WEIGHT = SQL_GET_WEIGHT_PART1 + query[PERSON_ID] + SQL_GET_WEIGHT_PART2;
+  let SQL_GET_WEIGHT =
+    SQL_GET_WEIGHT_PART1 + query[PERSON_ID] + SQL_GET_WEIGHT_PART2;
   console.log("SQL for get weight: ", SQL_GET_WEIGHT);
   console.time("getWeight-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_WEIGHT);
@@ -162,7 +177,10 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
     let countNull = 0;
-    let currentTime = startTime;
+    // let currentTime = startTime;
+    let currentTime =
+    Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
+    timeInterval;
 
     for (let row of arr1) {
       //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "VALUE": 0.9}
@@ -217,7 +235,10 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
 
       // console.log("row: ", row);
-      let currentTime = startTime;
+      // let currentTime = startTime;
+      let currentTime =
+      Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
+      timeInterval;
 
       // end when larger than endTime
       if (currentTime > endTime) {
@@ -225,7 +246,9 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
 
       let zoneNumber =
-        Math.floor((Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval) + 1;
+        Math.floor(
+          (Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval
+        ) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let value = 0;
         let calTime = currentTime + i * timeInterval;
@@ -238,7 +261,10 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             3600;
         } else if (i == zoneNumber - 1) {
           value =
-            (Math.min(row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
+            (Math.min(
+              row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1),
+              timeInterval
+            ) *
               row.INFUSION_RATE) /
             3600;
         } else {
@@ -246,7 +272,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         }
 
         if (value < 0) {
-          console.error("! value < 0: ", value);
+          console.error("arr2 value < 0: ", value);
           console.log("i :", i);
           console.log("zoneNumber :", zoneNumber);
           console.log("currentTime :", currentTime);
@@ -259,7 +285,10 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             "Math.min(currentTime + timeInterval, row.END_UNIX) :",
             Math.min(currentTime + timeInterval, row.END_UNIX)
           );
-          console.log("Math.max(startTime, row.START_UNIX) :", Math.max(startTime, row.START_UNIX));
+          console.log(
+            "Math.max(startTime, row.START_UNIX) :",
+            Math.max(startTime, row.START_UNIX)
+          );
         }
 
         let singleResult = {};
@@ -271,7 +300,10 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         singleResult.conc = row.CONC;
         singleResult.strength_unit = row.STRENGTH_UNIT;
         singleResult.vol_unit = row.VOL_UNIT;
-        singleResult.end_time = Math.min(row.END_UNIX, currentTime + timeInterval);
+        singleResult.end_time = Math.min(
+          row.END_UNIX,
+          currentTime + timeInterval
+        );
 
         if (!row.DRUG) {
           console.log("row :", row);
@@ -280,7 +312,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
         // singleResult.location = "not ready";
 
-        let typeFlush = row.DRUG == "papavarine" || row.DRUG == "heparin flush" ? 1 : 0;
+        let typeFlush =
+          row.DRUG == "papavarine" || row.DRUG == "heparin flush" ? 1 : 0;
         if (!(calTime in type1Dict)) {
           let weightCalTime = getWeightOnTime(calTime, weightArray);
           type1Dict[calTime] = { acc_value: 0, weight: weightCalTime };
@@ -303,14 +336,20 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
                 drugsArray[i].location == singleResult.location
               ) {
                 type1Dict[calTime].Flushes.drugs[i].value += singleResult.value;
-                if (singleResult.end_time >= type1Dict[calTime].Flushes.drugs[i].end_time) {
+                if (
+                  singleResult.end_time >=
+                  type1Dict[calTime].Flushes.drugs[i].end_time
+                ) {
                   // updated to most recent rate
-                  type1Dict[calTime].Flushes.drugs[i].end_time = singleResult.end_time;
+                  type1Dict[calTime].Flushes.drugs[i].end_time =
+                    singleResult.end_time;
                   type1Dict[calTime].Flushes.drugs[i].rate = singleResult.rate;
                   type1Dict[calTime].Flushes.drugs[i].unit = singleResult.unit;
                   type1Dict[calTime].Flushes.drugs[i].conc = singleResult.conc;
-                  type1Dict[calTime].Flushes.drugs[i].strength_unit = singleResult.strength_unit;
-                  type1Dict[calTime].Flushes.drugs[i].vol_unit = singleResult.vol_unit;
+                  type1Dict[calTime].Flushes.drugs[i].strength_unit =
+                    singleResult.strength_unit;
+                  type1Dict[calTime].Flushes.drugs[i].vol_unit =
+                    singleResult.vol_unit;
                 }
                 isMerged = true;
                 break;
@@ -337,15 +376,25 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
                 drugsArray[i].drug == singleResult.drug &&
                 drugsArray[i].diluent == singleResult.diluent
               ) {
-                type1Dict[calTime].Infusions.drugs[i].value += singleResult.value;
-                if (singleResult.end_time >= type1Dict[calTime].Infusions.drugs[i].end_time) {
+                type1Dict[calTime].Infusions.drugs[i].value +=
+                  singleResult.value;
+                if (
+                  singleResult.end_time >=
+                  type1Dict[calTime].Infusions.drugs[i].end_time
+                ) {
                   // updated to most recent rate
-                  type1Dict[calTime].Infusions.drugs[i].end_time = singleResult.end_time;
-                  type1Dict[calTime].Infusions.drugs[i].rate = singleResult.rate;
-                  type1Dict[calTime].Infusions.drugs[i].unit = singleResult.unit;
-                  type1Dict[calTime].Infusions.drugs[i].conc = singleResult.conc;
-                  type1Dict[calTime].Infusions.drugs[i].strength_unit = singleResult.strength_unit;
-                  type1Dict[calTime].Infusions.drugs[i].vol_unit = singleResult.vol_unit;
+                  type1Dict[calTime].Infusions.drugs[i].end_time =
+                    singleResult.end_time;
+                  type1Dict[calTime].Infusions.drugs[i].rate =
+                    singleResult.rate;
+                  type1Dict[calTime].Infusions.drugs[i].unit =
+                    singleResult.unit;
+                  type1Dict[calTime].Infusions.drugs[i].conc =
+                    singleResult.conc;
+                  type1Dict[calTime].Infusions.drugs[i].strength_unit =
+                    singleResult.strength_unit;
+                  type1Dict[calTime].Infusions.drugs[i].vol_unit =
+                    singleResult.vol_unit;
                 }
                 isMerged = true;
                 break;
@@ -362,105 +411,6 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
     }
 
-    // TODO do arr3 for TPN data
-
-    // TPN data is "in"
-
-    if (arr3 && arr3.length) {
-      console.log("TPN record size :", arr3.length);
-      for (let row of arr3) {
-        //example row = {"EVENT_START_DT_TM": 1524700800, "EVENT_END_DT_TM": "1524736800", "RESULT_VAL": 0.9 .... }
-
-        // console.log("row: ", row);
-        let currentTime = startTime;
-
-        // end when larger than endTime
-        if (currentTime > endTime) {
-          break;
-        }
-
-        let convertStart = new Date(row.EVENT_START_DT_TM).getTime() / 1000;
-        let convertEnd = new Date(row.EVENT_END_DT_TM).getTime() / 1000;
-
-        let zoneNumber =
-          Math.floor((Math.min(convertEnd, endTime) - currentTime) / timeInterval) + 1;
-        for (let i = 0; i < zoneNumber; i++) {
-          let value = 0;
-          let calTime = currentTime + i * timeInterval;
-
-          if (i == 0) {
-            value =
-              ((Math.min(currentTime + timeInterval, convertEnd) -
-                Math.max(startTime, convertStart)) *
-                row.RESULT_VAL) /
-              3600;
-          } else if (i == zoneNumber - 1) {
-            value =
-              (Math.min(convertEnd - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
-                row.RESULT_VAL) /
-              3600;
-          } else {
-            value = (timeInterval * row.RESULT_VAL) / 3600;
-          }
-
-          if (value < 0) {
-            console.error("! value < 0: ", value);
-            console.log("i :", i);
-            console.log("zoneNumber :", zoneNumber);
-            console.log("currentTime :", currentTime);
-            console.log("startTime :", startTime);
-            console.log("convertStart :", convertStart);
-            console.log("convertEnd :", convertEnd);
-            console.log("row.RESULT_VAL :", row.RESULT_VAL);
-
-            console.log(
-              "Math.min(currentTime + timeInterval, convertEnd) :",
-              Math.min(currentTime + timeInterval, convertEnd)
-            );
-            console.log("Math.max(startTime, convertStart) :", Math.max(startTime, convertStart));
-          }
-
-          let singleResult = {};
-          singleResult.value = value;
-          singleResult.short_label = "TPN";
-          singleResult.time = cTime;
-          singleResult.type = "1";
-          timeTPNDict[singleResult.time] = singleResult;
-
-          if (!type1Dict[calTime].Nutritions) {
-            type1Dict[calTime].Nutritions = { acc_value: 0, TPN: [] };
-            type1Dict[calTime].Nutritions.TPN.push(singleResult);
-          } else {
-            // let tpnArray = type1Dict[calTime].Nutritions.TPN;
-            // let isMerged = false;
-            // for (let i = 0; i < drugsArray.length; i++) {
-            //   if (drugsArray[i].tpn == singleResult.drug
-            //     && drugsArray[i].diluent == singleResult.diluent
-            //     && drugsArray[i].location == singleResult.location) {
-            //     type1Dict[calTime].Flushes.drugs[i].value += singleResult.value;
-            //     if (singleResult.end_time >= type1Dict[calTime].Flushes.drugs[i].end_time) {
-            //       // updated to most recent rate
-            //       type1Dict[calTime].Flushes.drugs[i].end_time = singleResult.end_time;
-            //       type1Dict[calTime].Flushes.drugs[i].rate = singleResult.rate;
-            //       type1Dict[calTime].Flushes.drugs[i].unit = singleResult.unit;
-            //       type1Dict[calTime].Flushes.drugs[i].conc = singleResult.conc;
-            //       type1Dict[calTime].Flushes.drugs[i].strength_unit = singleResult.strength_unit;
-            //       type1Dict[calTime].Flushes.drugs[i].vol_unit = singleResult.vol_unit;
-            //     }
-            //     isMerged = true;
-            //     break;
-            //   }
-          }
-
-          if (!isMerged) {
-            type1Dict[calTime].Nutritions.TPN.push(singleResult);
-          }
-        }
-        type1Dict[calTime].acc_value += value;
-        type1Dict[calTime].Nutritions.acc_value += value;
-      }
-    }
-
     Object.values(type1Dict).forEach(elementTimestamp => {
       for (let [key, value] of Object.entries(elementTimestamp)) {
         if (key == "Infusions" || key == "Flushes") {
@@ -474,6 +424,106 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
     });
   }
+
+  // TODO do arr3 for TPN data
+
+  // TPN data is "in"
+  if (arr3 && arr3.length) {
+    console.log("TPN record size :", arr3.length);
+    for (let row of arr3) {
+      //example row = {"EVENT_START_DT_TM": 1524700800, "EVENT_END_DT_TM": "1524736800", "RESULT_VAL": 0.9 .... }
+
+      // console.log("row: ", row);
+      // let currentTime = startTime;
+
+      let currentTime =
+      Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
+      timeInterval;
+
+
+      // end when larger than endTime
+      if (currentTime > endTime) {
+        break;
+      }
+
+      let rowStart = row.START_UNIX;
+      let rowEnd = row.END_UNIX + 1;
+
+      let zoneNumber =
+        Math.floor(
+          (Math.min(rowEnd, endTime) - currentTime) / timeInterval
+        ) + 1;
+      for (let i = 0; i < zoneNumber; i++) {
+        let value = 0;
+        let calTime = currentTime + i * timeInterval;
+
+        if (i == 0) {
+          value =
+            ((Math.min(currentTime + timeInterval, rowEnd) -
+              Math.max(startTime, rowStart)) *
+              row.RESULT_VAL) /
+            3600;
+        } else if (i == zoneNumber - 1) {
+          value =
+            (Math.min(
+              rowEnd - currentTime - timeInterval * (zoneNumber - 1),
+              timeInterval
+            ) *
+              row.RESULT_VAL) /
+            3600;
+        } else {
+          value = (timeInterval * row.RESULT_VAL) / 3600;
+        }
+
+        if (value < 0) {
+          console.error("arr3 value < 0: ", value);
+          console.log("i :", i);
+          console.log("zoneNumber :", zoneNumber);
+          console.log("currentTime :", currentTime);
+          console.log("startTime :", startTime);
+          console.log("rowStart :", rowStart);
+          console.log("rowEnd :", rowEnd);
+          console.log("row.RESULT_VAL :", row.RESULT_VAL);
+
+          console.log(
+            "Math.min(currentTime + timeInterval, rowEnd) :",
+            Math.min(currentTime + timeInterval, rowEnd)
+          );
+          console.log(
+            "Math.max(startTime, rowStart) :",
+            Math.max(startTime, rowStart)
+          );
+        }
+
+        let singleResult = {};
+        singleResult.value = value;
+        singleResult["Dextrose PN"] = row["Dextrose PN"];
+        singleResult["Amino Acid PN"] = row["Amino Acid PN"];
+        singleResult["Selenium PN"] = row["Selenium PN"];
+        singleResult["Potassium PN"] = row["Potassium PN"];
+        singleResult["Calcium PN"] = row["Calcium PN"];
+        singleResult["Magnesium PN"] = row["Magnesium PN"];
+        singleResult["Phosphorus PN"] = row["Phosphorus PN"];
+        singleResult["Heparin PN"] = row["Heparin PN"];
+        singleResult["Ranitidine PN"] = row["Ranitidine PN"];
+        singleResult["Extra Phytonadione PN"] = row["Extra Phytonadione PN"];
+        singleResult["Sodium PN"] = row["Sodium PN"];
+        // singleResult["Vitamin PN"] = row["Vitamin PN"];
+        singleResult["Carnitine PN"] = row["Carnitine PN"];
+
+        if (!type1Dict[calTime]) {
+          type1Dict[calTime] = { acc_value: 0, Nutritions: { acc_value: 0, TPN: [singleResult] }};
+        }
+        if (!type1Dict[calTime].Nutritions) {
+          type1Dict[calTime].Nutritions = { acc_value: 0, TPN: [] };
+        }
+        type1Dict[calTime].Nutritions.TPN.push(singleResult);
+        type1Dict[calTime].acc_value += value;
+        type1Dict[calTime].Nutritions.acc_value += value;         
+      }
+    }
+  }
+
   // console.log('type1Dict :', type1Dict);
   return [type1Dict, type2Dict];
 }
@@ -496,7 +546,9 @@ function _updateRowToDict(currentTime, row, dict, weightArray) {
 
   let isNewSlInDict = false;
   for (let i = 0; i < dict[currentTime][newCat].short_labels.length; i++) {
-    if (dict[currentTime][newCat].short_labels[i].short_label == newShortLabel) {
+    if (
+      dict[currentTime][newCat].short_labels[i].short_label == newShortLabel
+    ) {
       dict[currentTime][newCat].short_labels[i].value += newValue;
       isNewSlInDict = true;
       break;
@@ -513,7 +565,11 @@ function _updateRowToDict(currentTime, row, dict, weightArray) {
       dict[currentTime][newCat].short_labels.push(singleResult);
     } else {
       dict[currentTime][newCat].short_labels.splice(
-        binarySearch(dict[currentTime][newCat].short_labels, singleResult, comp),
+        binarySearch(
+          dict[currentTime][newCat].short_labels,
+          singleResult,
+          comp
+        ),
         0,
         singleResult
       );
@@ -525,7 +581,8 @@ function _updateRowToDict(currentTime, row, dict, weightArray) {
 function getWeightOnTime(timestamp, weightArray) {
   let timeArr = weightArray.map(item => item.DT_UNIX);
   let index = getBinarySearchNearest(timestamp, timeArr);
-  let roundWeight = Math.round((weightArray[index].WEIGHT + Number.EPSILON) * 1000) / 1000;
+  let roundWeight =
+    Math.round((weightArray[index].WEIGHT + Number.EPSILON) * 1000) / 1000;
   return roundWeight;
 }
 
@@ -626,7 +683,10 @@ async function parallelQuery(conn, new_query) {
  * @param {*} conn 
  * @param {*} query 
  */
-const getInOutTooltipQueryV2 = database.withConnection(async function(conn, query) {
+const getInOutTooltipQueryV2 = database.withConnection(async function(
+  conn,
+  query
+) {
   let new_query = {
     person_id: query.person_id,
     from: query.from || 0,
