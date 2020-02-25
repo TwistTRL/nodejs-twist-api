@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-25 12:59:10
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 15:08:53
+ * @Last Modified time: 2020-02-25 15:59:36
  */
 
 const database = require("../services/database");
@@ -28,7 +28,7 @@ ORDER BY DTUNIX`;
 
 const SQL_GET_VITAL_TEMP_PART1 = `
 SELECT
-  TEMP1
+  TEMP1,
   DTUNIX
 FROM VITALS
 WHERE PERSON_ID = `;
@@ -48,7 +48,9 @@ async function tempSQLExecutor(conn, query) {
     query.to +
     SQL_GET_TEMP_PART2;
   console.log("SQL for get temp: ", SQL_GET_TEMP);
+  console.time("temp-v500");
   let rawRecord = await conn.execute(SQL_GET_TEMP);
+  console.timeEnd("temp-v500");
   return rawRecord.rows;
 }
 
@@ -62,21 +64,21 @@ async function tempVitalSQLExecutor(conn, query) {
   query.to +
   SQL_GET_VITAL_TEMP_PART2;
 console.log("SQL for get raw temp: ", SQL_GET_VITAL_TEMP);
+console.time("temp-vitals");
 let rawRecord = await conn.execute(SQL_GET_VITAL_TEMP);
+console.timeEnd("temp-vitals");
 return rawRecord.rows;
 }
 
 const _calculateRawRecords = (rawResult) => {
-  let {arr1, arr2} = rawResult;
-  console.log("arr temp length :", arr1.length);
-  console.log("arr vital temp length :", arr2.length);
+  let arr1 = rawResult[0];
+  let arr2 = rawResult[1];
   let result = [];
 
   arr1.forEach(element => {
     let time = element.DTUNIX;
     let value;
     let type;
-
     if (element.TEMPERATURE) {
       value = element.TEMPERATURE;
       type = "TEMPERATURE";
@@ -103,13 +105,11 @@ const _calculateRawRecords = (rawResult) => {
 async function parallelQuery(conn, new_query) {
   // should parallel do the sql query
   console.time("parallel-query");
-  const task1 = await tempSQLExecutor(conn, new_query);
-  const task2 = await tempVitalSQLExecutor(conn, new_query);
+  const task1 = tempSQLExecutor(conn, new_query);
+  const task2 = tempVitalSQLExecutor(conn, new_query);
+  const result = await Promise.all([task1, task2]);
   console.timeEnd("parallel-query");
-  return {
-    arr1: await task1,
-    arr2: await task2
-  };
+  return result;
 }
 
 

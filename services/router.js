@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 13:32:33
+ * @Last Modified time: 2020-02-25 15:57:33
  */
 const sleep = require("util").promisify(setTimeout);
 
@@ -1390,7 +1390,7 @@ router.post("/vitalsv2", async (req, res) => {
 
 
 /**
- * @api {post} /vitals/temperature Get Temperature
+ * @api {post} /vitals/temperature Temperature
  * @apiVersion 0.0.1
  * @apiName get-temperature
  * @apiGroup Vitals
@@ -1398,7 +1398,7 @@ router.post("/vitalsv2", async (req, res) => {
  * 
  * From table `VITAL_V500`, get temperature data
  * 
- * from column `TEMPERATURE` then `TEMPERATURE_ESOPH` then `TEMPERATURE_SKIN`
+ * from column `TEMPERATURE` then `TEMPERATURE_ESOPH` then `TEMPERATURE_SKIN` then table `VITALS`
  * 
  * if all three columns are null value then skiped.
  * 
@@ -1411,15 +1411,16 @@ router.post("/vitalsv2", async (req, res) => {
           "from":1542014000,
           "to":1542018000
         }
- * @apiSuccess {String} vital_type_string Vital type name such as "SBP1".
- * @apiSuccess {Number} value Vitals raw data.
- * @apiSuccess {Number} timestamp time in Unix seconds.
+ * @apiSuccess {String="TEMPERATURE", "TEMPERATURE_ESOPH", "TEMPERATURE_SKIN", "VITALS"} type temperature source.
+ * @apiSuccess {String} value temperature value String.
+ * @apiSuccess {Number} time timestamp in Unix seconds.
  * @apiSuccessExample Success-Response:
  *      
       [
         {
-          "value": value,
-          "time": timestamp
+        "time": 1542014000,
+        "value": "37.2",
+        "type": "TEMPERATURE_ESOPH"
         },
         ...
       ]
