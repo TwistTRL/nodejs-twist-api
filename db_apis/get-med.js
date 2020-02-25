@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-11 11:50:13
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 10:34:44
+ * @Last Modified time: 2020-02-25 12:12:02
  */
 
 const database = require("../services/database");
@@ -125,6 +125,8 @@ function _calculateRawRecords(rawRecords) {
       let singleResult = {};
       singleResult.name = "suction";
       singleResult.time =
+        new Date(element["EVENT_START_DT_TM"]).getTime() / 1000;
+      singleResult.start =
         new Date(element["EVENT_START_DT_TM"]).getTime() / 1000;
       singleResult.lvl = element.LVL;
       singleResult.comment = element.COMMENT;

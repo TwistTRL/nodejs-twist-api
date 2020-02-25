@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 11:47:44
+ * @Last Modified time: 2020-02-25 12:15:23
  */
 
 const database = require("../services/database");
@@ -45,7 +45,6 @@ AND START_UNIX <= `;
 const SQL_GET_TPN_PART3 = ` AND END_UNIX >= `;
 const SQL_GET_TPN_PART4 = ` 
 ORDER BY START_UNIX`;
-
 
 // get raw in-out by event between two timestamp
 const SQL_GET_IN_OUT_EVENT_PART1 = `
@@ -179,7 +178,6 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     let countNull = 0;
     let currentTime = startTime;
 
-
     for (let row of arr1) {
       //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "VALUE": 0.9}
       let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
@@ -235,8 +233,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       // console.log("row: ", row);
       // let currentTime = startTime;
       let currentTime =
-      Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
-      timeInterval;
+        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
+        timeInterval;
 
       // end when larger than endTime
       if (currentTime > endTime) {
@@ -435,9 +433,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       // let currentTime = startTime;
 
       let currentTime =
-      Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
-      timeInterval;
-
+        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
+        timeInterval;
 
       // end when larger than endTime
       if (currentTime > endTime) {
@@ -448,9 +445,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       let rowEnd = row.END_UNIX + 1;
 
       let zoneNumber =
-        Math.floor(
-          (Math.min(rowEnd, endTime) - currentTime) / timeInterval
-        ) + 1;
+        Math.floor((Math.min(rowEnd, endTime) - currentTime) / timeInterval) +
+        1;
       for (let i = 0; i < zoneNumber; i++) {
         let value = 0;
         let calTime = currentTime + i * timeInterval;
@@ -510,14 +506,25 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         singleResult["Carnitine PN"] = row["Carnitine PN"];
 
         if (!type1Dict[calTime]) {
-          type1Dict[calTime] = { acc_value: 0, Nutritions: { acc_value: 0, TPN: [singleResult] }};
+          type1Dict[calTime] = {
+            acc_value: 0,
+            Nutrition: {
+              acc_value: 0,
+              items: [{ acc_value: 0, name: "TPN", items: [singleResult] }]
+            }
+          };
+        } else if (!type1Dict[calTime].Nutrition) {
+          type1Dict[calTime].Nutrition = {
+            acc_value: 0,
+            items: [{ acc_value: 0, name: "TPN", items: [singleResult] }]
+          };
+        } else {
+          type1Dict[calTime].Nutrition.items[0].items.push(singleResult);
         }
-        if (!type1Dict[calTime].Nutritions) {
-          type1Dict[calTime].Nutritions = { acc_value: 0, TPN: [] };
-        }
-        type1Dict[calTime].Nutritions.TPN.push(singleResult);
         type1Dict[calTime].acc_value += value;
-        type1Dict[calTime].Nutritions.acc_value += value;         
+        type1Dict[calTime].Nutrition.acc_value += value;
+        type1Dict[calTime].Nutrition.items[0].acc_value += value;
+
       }
     }
   }
