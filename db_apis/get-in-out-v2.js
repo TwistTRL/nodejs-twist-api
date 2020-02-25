@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
- * @Last Modified by: Peng
- * @Last Modified time: 2020-02-24 16:56:33
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-02-24 21:12:15
  */
 
 const database = require("../services/database");
@@ -24,6 +24,9 @@ const TO = "to";
 const RESOLUTION = "resolution";
 var timeLable = 0;
 
+// oracle db convert unixtimestamp to date
+// to_date('1970-01-01','YYYY-MM-DD') + numtodsinterval(1244108886,'SECOND')
+
 const SQL_GET_TPN_PART1 = `
 SELECT  
   EVENT_START_DT_TM,
@@ -32,9 +35,10 @@ SELECT
 FROM TPN
 WHERE Person_ID = `;
 const SQL_GET_TPN_PART2 = `
-AND EVENT_START_DT_TM <= `;
-const SQL_GET_TPN_PART3 = ` AND EVENT_END_DT_TM <= `;
-const SQL_GET_TPN_PART4 = ` 
+AND EVENT_START_DT_TM <= to_date('1970-01-01','YYYY-MM-DD') + numtodsinterval(`;
+const SQL_GET_TPN_PART3 = ` AND EVENT_END_DT_TM >= to_date('1970-01-01','YYYY-MM-DD') + numtodsinterval(`;
+const SQL_GET_TPN_PART4 = `, 'SECOND')`;
+const SQL_GET_TPN_PART5 = ` 
 ORDER BY EVENT_START_DT_TM`;
 
 // get raw in-out by event between two timestamp
@@ -84,17 +88,16 @@ ORDER BY START_UNIX`;
 
 async function tpnQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
-
-  console.log('PERSON_ID :', PERSON_ID);
-
   let SQL_GET_TPN =
     SQL_GET_TPN_PART1 +
     query[PERSON_ID] +
-    // SQL_GET_TPN_PART2 +
-    // query[FROM] * 1 +
-    // SQL_GET_TPN_PART3 +
-    // query[TO] * 1 +
-    SQL_GET_TPN_PART4;
+    SQL_GET_TPN_PART2 +
+    Number(query[FROM]) +
+    SQL_GET_TPN_PART4 +
+    SQL_GET_TPN_PART3 +
+    Number(query[TO]) +
+    SQL_GET_TPN_PART4 +
+    SQL_GET_TPN_PART5;
   console.log("SQL for TPN: ", SQL_GET_TPN);
   console.time("getTPN-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_TPN);
@@ -248,19 +251,17 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   // INFUSION_RATE,
   // INFUSION_RATE_UNITS,
   // ADMIN_SITE}
-  
+
   let timeFlushDict = {};
   let timeDripsDict = {};
   if (arr2 && arr2.length) {
     console.log("In-Out Diluents record size :", arr2.length);
- 
 
     for (let row of arr2) {
       //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
       let currentTime =
-        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
-        timeInterval;
+        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
 
       // console.log('row.START_UNIX :', row.START_UNIX);
       // console.log('startTime :', startTime);
@@ -271,9 +272,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
 
       let zoneNumber =
-        Math.floor(
-          (Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval
-        ) + 1;
+        Math.floor((Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let singleResult = {};
         let value = 0;
@@ -293,8 +292,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
               row.INFUSION_RATE) /
             3600;
           let value1 =
-            ((Math.min(currentTime + timeInterval, row.END_UNIX) -
-              row.START_UNIX) *
+            ((Math.min(currentTime + timeInterval, row.END_UNIX) - row.START_UNIX) *
               row.INFUSION_RATE) /
             3600;
           if (value1 != value) {
@@ -302,15 +300,11 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           }
         } else if (i == zoneNumber - 1) {
           value =
-            (Math.min(
-              row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1),
-              timeInterval
-            ) *
+            (Math.min(row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
               row.INFUSION_RATE) /
             3600;
           let value2 =
-            ((row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)) *
-              row.INFUSION_RATE) /
+            ((row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1)) * row.INFUSION_RATE) /
             3600;
           if (value2 != value) {
             console.log("value2 :", value2);
@@ -371,8 +365,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         let convertStart = new Date(row.EVENT_START_DT_TM).getTime() / 1000;
         let convertEnd = new Date(row.EVENT_END_DT_TM).getTime() / 1000;
         let currentTime =
-          Math.floor(Math.max(convertStart, startTime) / timeInterval) *
-          timeInterval;
+          Math.floor(Math.max(convertStart, startTime) / timeInterval) * timeInterval;
 
         // console.log('row.START_UNIX :', row.START_UNIX);
         // console.log('startTime :', startTime);
@@ -383,9 +376,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         }
 
         let zoneNumber =
-          Math.floor(
-            (Math.min(convertEnd, endTime) - currentTime) / timeInterval
-          ) + 1;
+          Math.floor((Math.min(convertEnd, endTime) - currentTime) / timeInterval) + 1;
         for (let i = 0; i < zoneNumber; i++) {
           let singleResult = {};
           let value = 0;
@@ -398,6 +389,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           //   value = timeInterval * row.INFUSION_RATE / 3600;
           // }
 
+          // TODO replace row.INFUSION_RATE 
+
           if (i == 0) {
             value =
               ((Math.min(currentTime + timeInterval, convertEnd) -
@@ -405,8 +398,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
                 row.INFUSION_RATE) /
               3600;
             let value1 =
-              ((Math.min(currentTime + timeInterval, convertEnd) -
-                convertStart) *
+              ((Math.min(currentTime + timeInterval, convertEnd) - convertStart) *
                 row.INFUSION_RATE) /
               3600;
             if (value1 != value) {
@@ -414,15 +406,11 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             }
           } else if (i == zoneNumber - 1) {
             value =
-              (Math.min(
-                convertEnd - currentTime - timeInterval * (zoneNumber - 1),
-                timeInterval
-              ) *
+              (Math.min(convertEnd - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
                 row.INFUSION_RATE) /
               3600;
             let value2 =
-              ((convertEnd - currentTime - timeInterval * (zoneNumber - 1)) *
-                row.INFUSION_RATE) /
+              ((convertEnd - currentTime - timeInterval * (zoneNumber - 1)) * row.INFUSION_RATE) /
               3600;
             if (value2 != value) {
               console.log("value2 :", value2);

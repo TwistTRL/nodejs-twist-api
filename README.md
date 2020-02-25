@@ -117,6 +117,12 @@ API documentation: web browser `twist:3333/api/`
     └── relationalJSON.js
 ```
 
+## TODO list
+
+- [ ] get-in-out-v2 TPN data
+- [ ] get-in-out-tooltip-v2 TPN data
+- [ ] temperature data
+
 ## Special Thanks
 This repo starts from a clone of the code here:
 https://jsao.io/2018/03/creating-a-rest-api-with-node-js-and-oracle-database/
