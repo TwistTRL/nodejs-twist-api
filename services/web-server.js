@@ -2,13 +2,12 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-24 15:03:54
+ * @Last Modified time: 2020-02-25 12:55:36
  */
 const express = require("express");
 const timeout = require("connect-timeout");
 const webServerConfig = require("../config/web-server-config.js");
 const rootRouter = require("./router");
-const logoutRouter = require("./logoutRouter");
 
 const cors = require("cors");
 const morgan = require("morgan");
@@ -19,9 +18,6 @@ var httpServer;
 const bodyParser = require("body-parser");
 
 const app = express();
-// const session = require("express-session");
-// const FileStore = require("session-file-store")(session);
-const identityKey = "skey";
 const users = require("../config/users").items;
 const ipListPath = path.join(__dirname, "../config/ipList.txt");
 
@@ -81,11 +77,12 @@ function initialize() {
           fs.appendFile(ipListPath, "\n" + currentAddress, function(err) {
             if (err) throw err;
             console.log("Saved currentAddress: ", currentAddress);
+            res.redirect("/api");
           });
+        } else {
+          res.redirect("/api");
         }
-        res.redirect("/api");
       } else {
-        console.log("stay /login");
         res.redirect("/login");
       }
     });

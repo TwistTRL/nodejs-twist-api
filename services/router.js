@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-12 12:57:15
+ * @Last Modified time: 2020-02-25 13:32:33
  */
 const sleep = require("util").promisify(setTimeout);
 
@@ -36,6 +36,7 @@ const { getInOutTooltipQueryV3 } = require("../db_apis/get-in-out-tooltip-v3");
 const { getInOutQuery } = require("../db_apis/get-in-out");
 
 const { getInOutQueryV2 } = require("../db_apis/get-in-out-v2");
+const { getTemp } = require("../db_apis/get-temp");
 
 const { testHr } = require("../test/test-vitals");
 const { testLabs } = require("../test/test-labs");
@@ -1383,6 +1384,69 @@ router.post("/vitalsv2", async (req, res) => {
     res.send(e.toString());
   }
 });
+
+
+
+
+
+/**
+ * @api {post} /vitals/temperature Get Temperature
+ * @apiVersion 0.0.1
+ * @apiName get-temperature
+ * @apiGroup Vitals
+ * @apiDescription 
+ * 
+ * From table `VITAL_V500`, get temperature data
+ * 
+ * from column `TEMPERATURE` then `TEMPERATURE_ESOPH` then `TEMPERATURE_SKIN`
+ * 
+ * if all three columns are null value then skiped.
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {Number} from Start timestamp.
+ * @apiParam {Number} to End timestamp.
+ * @apiParamExample {json} Example of request vitals raw data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from":1542014000,
+          "to":1542018000
+        }
+ * @apiSuccess {String} vital_type_string Vital type name such as "SBP1".
+ * @apiSuccess {Number} value Vitals raw data.
+ * @apiSuccess {Number} timestamp time in Unix seconds.
+ * @apiSuccessExample Success-Response:
+ *      
+      [
+        {
+          "value": value,
+          "time": timestamp
+        },
+        ...
+      ]
+ *
+ */
+
+
+router.post("/vitals/temperature", async (req, res) => {
+  let query = req.body;
+  query.person_id = Number(query.person_id);
+  try {
+    const toSend = await getTemp(query);
+    res.send(toSend);
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
+});
+
+
+
+
+
+
+
 
 // raw hr bewteen two timestamp
 

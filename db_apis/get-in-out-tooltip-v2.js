@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 12:15:23
+ * @Last Modified time: 2020-02-25 14:50:03
  */
 
 const database = require("../services/database");
@@ -231,10 +231,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
 
       // console.log("row: ", row);
-      // let currentTime = startTime;
-      let currentTime =
-        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
-        timeInterval;
+      let currentTime = startTime;
+ 
 
       // end when larger than endTime
       if (currentTime > endTime) {
@@ -430,11 +428,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //example row = {"EVENT_START_DT_TM": 1524700800, "EVENT_END_DT_TM": "1524736800", "RESULT_VAL": 0.9 .... }
 
       // console.log("row: ", row);
-      // let currentTime = startTime;
-
-      let currentTime =
-        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
-        timeInterval;
+      let currentTime = startTime;
 
       // end when larger than endTime
       if (currentTime > endTime) {
@@ -508,6 +502,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         if (!type1Dict[calTime]) {
           type1Dict[calTime] = {
             acc_value: 0,
+            weight: getWeightOnTime(calTime, weightArray),
             Nutrition: {
               acc_value: 0,
               items: [{ acc_value: 0, name: "TPN", items: [singleResult] }]
@@ -590,32 +585,6 @@ function getWeightOnTime(timestamp, weightArray) {
     Math.round((weightArray[index].WEIGHT + Number.EPSILON) * 1000) / 1000;
   return roundWeight;
 }
-
-// /**
-//  *
-//  * Recursive function to get the value index of a sorted number array smaller nearest target number
-//  * @param {Number} num
-//  * @param {Array} arr
-//  * @returns {Number} index of arr
-//  */
-// const getBinarySearchNearest = (num, arr) => {
-//   if (!arr || !arr.length) {
-//     return null;
-//   }
-
-//   if (arr.length == 1) {
-//     return 0;
-//   }
-
-//   let mid = Math.floor((arr.length - 1) / 2);
-//   if (arr[mid] == num) {
-//     return mid;
-//   } else if (arr[mid] > num) {
-//     return getBinarySearchNearest(num, arr.slice(0, mid + 1));
-//   } else {
-//     return getBinarySearchNearest(num, arr.slice(mid + 1)) + mid + 1;
-//   }
-// }
 
 // "short_labels": [
 //   {
