@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 11:41:14
+ * @Last Modified time: 2020-02-25 11:47:44
  */
 
 const database = require("../services/database");
@@ -177,10 +177,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
     let countNull = 0;
-    // let currentTime = startTime;
-    let currentTime =
-    Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
-    timeInterval;
+    let currentTime = startTime;
+
 
     for (let row of arr1) {
       //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "VALUE": 0.9}
