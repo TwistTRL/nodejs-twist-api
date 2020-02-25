@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-02-25 05:58:37
+ * @Last Modified time: 2020-02-25 06:12:31
  */
 
 const database = require("../services/database");
@@ -364,10 +364,12 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
     // TODO do arr3 for TPN data
 
+    // TPN data is "in"
+
     if (arr3 && arr3.length) {
       console.log("TPN record size :", arr3.length);
       for (let row of arr3) {
-        //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
+        //example row = {"EVENT_START_DT_TM": 1524700800, "EVENT_END_DT_TM": "1524736800", "RESULT_VAL": 0.9 .... }
 
         // console.log("row: ", row);
         let currentTime = startTime;
@@ -390,15 +392,15 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             value =
               ((Math.min(currentTime + timeInterval, convertEnd) -
                 Math.max(startTime, convertStart)) *
-                row.INFUSION_RATE) /
+                row.RESULT_VAL) /
               3600;
           } else if (i == zoneNumber - 1) {
             value =
               (Math.min(convertEnd - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
-                row.INFUSION_RATE) /
+                row.RESULT_VAL) /
               3600;
           } else {
-            value = (timeInterval * row.INFUSION_RATE) / 3600;
+            value = (timeInterval * row.RESULT_VAL) / 3600;
           }
 
           if (value < 0) {
@@ -409,7 +411,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             console.log("startTime :", startTime);
             console.log("convertStart :", convertStart);
             console.log("convertEnd :", convertEnd);
-            console.log("row.INFUSION_RATE :", row.INFUSION_RATE);
+            console.log("row.RESULT_VAL :", row.RESULT_VAL);
 
             console.log(
               "Math.min(currentTime + timeInterval, convertEnd) :",

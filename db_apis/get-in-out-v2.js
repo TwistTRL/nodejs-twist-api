@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-02-24 21:12:15
+ * @Last Modified time: 2020-02-25 06:16:22
  */
 
 const database = require("../services/database");
@@ -395,11 +395,11 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             value =
               ((Math.min(currentTime + timeInterval, convertEnd) -
                 Math.max(startTime, convertStart)) *
-                row.INFUSION_RATE) /
+                row.RESULT_VAL) /
               3600;
             let value1 =
               ((Math.min(currentTime + timeInterval, convertEnd) - convertStart) *
-                row.INFUSION_RATE) /
+                row.RESULT_VAL) /
               3600;
             if (value1 != value) {
               console.log("value1 :", value1);
@@ -407,16 +407,16 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           } else if (i == zoneNumber - 1) {
             value =
               (Math.min(convertEnd - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
-                row.INFUSION_RATE) /
+                row.RESULT_VAL) /
               3600;
             let value2 =
-              ((convertEnd - currentTime - timeInterval * (zoneNumber - 1)) * row.INFUSION_RATE) /
+              ((convertEnd - currentTime - timeInterval * (zoneNumber - 1)) * row.RESULT_VAL) /
               3600;
             if (value2 != value) {
               console.log("value2 :", value2);
             }
           } else {
-            value = (timeInterval * row.INFUSION_RATE) / 3600;
+            value = (timeInterval * row.RESULT_VAL) / 3600;
           }
 
           if (value <= 0) {

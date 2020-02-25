@@ -122,6 +122,7 @@ API documentation: web browser `twist:3333/api/`
 - [ ] get-in-out-v2 TPN data
 - [ ] get-in-out-tooltip-v2 TPN data
 - [ ] temperature data
+- [ ] add users.js
 
 ## Special Thanks
 This repo starts from a clone of the code here:
