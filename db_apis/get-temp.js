@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-25 12:59:10
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-26 12:13:08
+ * @Last Modified time: 2020-02-26 16:28:30
  */
 
 const database = require("../services/database");
@@ -92,12 +92,12 @@ const _calculateRawRecords = (rawResult) => {
     result.push({ time, value, type });
   });
 
-  arr2.forEach(element => {
-    let time = element.DTUNIX;
-    let value = element.TEMP1;
-    let type = "VITALS";
-    result.push({ time, value, type})
-  });
+  // arr2.forEach(element => {
+  //   let time = element.DTUNIX;
+  //   let value = element.TEMP1;
+  //   let type = "VITALS";
+  //   result.push({ time, value, type})
+  // });
 
   return result;
 };
@@ -106,12 +106,11 @@ async function parallelQuery(conn, new_query) {
   // should parallel do the sql query
   // console.time("parallel-query");
   const task1 = tempSQLExecutor(conn, new_query);
-  const task2 = tempVitalSQLExecutor(conn, new_query);
-  const result = await Promise.all([task1, task2]);
+  // const task2 = tempVitalSQLExecutor(conn, new_query);
+  const result = await Promise.all([task1]);
   // console.timeEnd("parallel-query");
   return result;
 }
-
 
 const getTemp = database.withConnection(async function(conn, query) {
   let new_query = {
