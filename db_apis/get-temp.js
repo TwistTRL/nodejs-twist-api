@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-25 12:59:10
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-26 11:59:30
+ * @Last Modified time: 2020-02-26 12:13:08
  */
 
 const database = require("../services/database");
@@ -104,11 +104,11 @@ const _calculateRawRecords = (rawResult) => {
 
 async function parallelQuery(conn, new_query) {
   // should parallel do the sql query
-  console.time("parallel-query");
+  // console.time("parallel-query");
   const task1 = tempSQLExecutor(conn, new_query);
   const task2 = tempVitalSQLExecutor(conn, new_query);
   const result = await Promise.all([task1, task2]);
-  console.timeEnd("parallel-query");
+  // console.timeEnd("parallel-query");
   return result;
 }
 
