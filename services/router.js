@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 15:57:33
+ * @Last Modified time: 2020-02-26 15:50:32
  */
 const sleep = require("util").promisify(setTimeout);
 
@@ -676,6 +676,8 @@ router.get("/person/:person_id/med", async (req, res) => {
  * @apiVersion 0.0.2
  * @apiName Get in-out for patient
  * @apiGroup Person
+ * @apiDeprecated use now (#Person:in-out-patient-V2).
+
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `INTAKE_OUTPUT` and `DRUG_DILUENTS`
  * 
@@ -763,7 +765,7 @@ router.post("/inout", async (req, res) => {
 /**
  * @api {post} /inout-v2 In-Out for Patient V2
  * @apiVersion 0.0.2
- * @apiName Get in-out for patient V2
+ * @apiName in-out-patient-V2
  * @apiGroup Person
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `INTAKE_OUTPUT` and `DRUG_DILUENTS`
@@ -960,7 +962,7 @@ router.post("/inout-tooltip", async (req, res) => {
  * @apiName in-out-tooltip-v2
  * @apiGroup Person
  * @apiDescription 
- * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `DRUG_DILUENTS`
+ * Get in-out fluid data based on `person_id`, start time `from`, end time `from + resolution - 1`, from table `DRUG_DILUENTS`
  * 
  * Method: 
  * 
@@ -972,7 +974,7 @@ router.post("/inout-tooltip", async (req, res) => {
  * 
  *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
  * 
- *   ├──`from` should be larger than `to` (`to` default is `from` + `resolution` - 1)
+ *   ├──`to` is set to `from + resolution - 1`. 
  * 
  *   └──`from` need be validated by front end.
  * 
@@ -988,7 +990,6 @@ router.post("/inout-tooltip", async (req, res) => {
  * 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {Number} [from=0] Start timestamp.
- * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
  * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
@@ -997,11 +998,12 @@ router.post("/inout-tooltip", async (req, res) => {
           "resolution":3600
         }
 
- * @apiSuccessExample Success-Response:
- *    
+ * @apiSuccessExample Success-Response: *    
  * 
  *  {
        "1539568800": {
+            "acc_value": 20,
+            "weight": 50,
             "IVF": {
                 "acc_value": 3,
                 "IVF": {
@@ -1024,16 +1026,7 @@ router.post("/inout-tooltip", async (req, res) => {
                         "strength_unit": "mg",
                         "vol_unit": "mL"
                     },
-                    {
-                        "value": 3.0,
-                        "drug": "morphine",
-                        "diluent": "Dextrose 5% in Water",
-                        "rate": 0.2,
-                        "unit": "mL/hr",
-                        "conc": 1,
-                        "strength_unit": "mg",
-                        "vol_unit": "mL"
-                    }
+                    ...
                 ]
             },
             "Flushes": {
@@ -1050,16 +1043,23 @@ router.post("/inout-tooltip", async (req, res) => {
                         "vol_unit": "mL"
                         "location": "not ready"
                     },
+                    ...
+                ]
+            },
+            "Nutrition": {
+                "acc_value": 10,
+                "items": [
                     {
-                        "value": 1,
-                        "drug": "heparin flush",
-                        "diluent": "Dextrose 10% in Water",
-                        "rate": 1,
-                        "unit": "mL/hr",
-                        "conc": 1,
-                        "strength_unit": "unit",
-                        "vol_unit": "mL"
-                        "location": "not ready"
+                        "acc_value": 10,
+                        "name": "TPN",
+                        "items": [
+                            {
+                                "name": "Dextrose PN",
+                                "value": 210,
+                                "unit": "g/L"
+                            },
+                            ...
+                          ]
                     }
                 ]
             }

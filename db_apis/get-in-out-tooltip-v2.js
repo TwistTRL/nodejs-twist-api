@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-26 15:14:41
+ * @Last Modified time: 2020-02-26 15:42:53
  */
 
 const database = require("../services/database");
@@ -701,8 +701,7 @@ const getInOutTooltipQueryV2 = database.withConnection(async function(
   let new_query = {
     person_id: query.person_id,
     from: query.from || 0,
-    // "to" default value is Math.ceil of timestamp of now to query.resolution
-    to: query.to - 1 || query.from + query.resolution - 1,
+    to: query.from + query.resolution - 1,
     resolution: query.resolution || 3600
   };
   console.log("query = ", new_query);
