@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 14:50:03
+ * @Last Modified time: 2020-02-26 15:14:41
  */
 
 const database = require("../services/database");
@@ -232,7 +232,6 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
       // console.log("row: ", row);
       let currentTime = startTime;
- 
 
       // end when larger than endTime
       if (currentTime > endTime) {
@@ -483,21 +482,60 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           );
         }
 
-        let singleResult = {};
-        singleResult.value = value;
-        singleResult["Dextrose PN"] = row["Dextrose PN"];
-        singleResult["Amino Acid PN"] = row["Amino Acid PN"];
-        singleResult["Selenium PN"] = row["Selenium PN"];
-        singleResult["Potassium PN"] = row["Potassium PN"];
-        singleResult["Calcium PN"] = row["Calcium PN"];
-        singleResult["Magnesium PN"] = row["Magnesium PN"];
-        singleResult["Phosphorus PN"] = row["Phosphorus PN"];
-        singleResult["Heparin PN"] = row["Heparin PN"];
-        singleResult["Ranitidine PN"] = row["Ranitidine PN"];
-        singleResult["Extra Phytonadione PN"] = row["Extra Phytonadione PN"];
-        singleResult["Sodium PN"] = row["Sodium PN"];
-        // singleResult["Vitamin PN"] = row["Vitamin PN"];
-        singleResult["Carnitine PN"] = row["Carnitine PN"];
+        let tpnResultArr = [];
+        let tpnList = [
+          "Dextrose PN",
+          "Amino Acid PN",
+          "Selenium PN",
+          "Potassium PN",
+          "Calcium PN",
+          "Magnesium PN",
+          "Phosphorus PN",
+          "Heparin PN",
+          "Ranitidine PN",
+          "Extra Phytonadione PN",
+          "Sodium PN",
+          "Carnitine PN"
+        ];
+
+        let TPN_UNIT_DICT = {
+          "Dextrose PN": "g/L",
+          "Amino Acid PN": "g/L",
+          "Selenium PN": "mcg/L",
+          "Potassium PN": "mEq/L",
+          "Calcium PN": "mEq/L",
+          "Magnesium PN": "mEq/L",
+          "Phosphorus PN": "mmol/L",
+          "Heparin PN": "unit/L",
+          "Ranitidine PN": "mg/L",
+          "Extra Phytonadione PN": "mg/L",
+          "Sodium PN": "mEq/L",
+          "Carnitine PN": "mg/L",
+      };
+
+        tpnList.forEach(element => {
+          let singleResult = {};
+          singleResult.name = element;
+          singleResult.value = row[element];
+          singleResult.unit = TPN_UNIT_DICT[element];
+          tpnResultArr.push(singleResult);
+        });
+
+        // let singleResult = {};
+        // singleResult.value = value;
+        // singleResult["Dextrose PN"] = row["Dextrose PN"];
+        // singleResult["Amino Acid PN"] = row["Amino Acid PN"];
+        // singleResult["Selenium PN"] = row["Selenium PN"];
+        // singleResult["Potassium PN"] = row["Potassium PN"];
+        // singleResult["Calcium PN"] = row["Calcium PN"];
+        // singleResult["Magnesium PN"] = row["Magnesium PN"];
+        // singleResult["Phosphorus PN"] = row["Phosphorus PN"];
+        // singleResult["Heparin PN"] = row["Heparin PN"];
+        // singleResult["Ranitidine PN"] = row["Ranitidine PN"];
+        // singleResult["Extra Phytonadione PN"] = row["Extra Phytonadione PN"];
+        // singleResult["Sodium PN"] = row["Sodium PN"];
+        // // singleResult["Vitamin PN"] = row["Vitamin PN"];
+        // singleResult["Carnitine PN"] = row["Carnitine PN"];
 
         if (!type1Dict[calTime]) {
           type1Dict[calTime] = {
@@ -505,21 +543,20 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             weight: getWeightOnTime(calTime, weightArray),
             Nutrition: {
               acc_value: 0,
-              items: [{ acc_value: 0, name: "TPN", items: [singleResult] }]
+              items: [{ acc_value: 0, name: "TPN", items: tpnResultArr }]
             }
           };
         } else if (!type1Dict[calTime].Nutrition) {
           type1Dict[calTime].Nutrition = {
             acc_value: 0,
-            items: [{ acc_value: 0, name: "TPN", items: [singleResult] }]
+            items: [{ acc_value: 0, name: "TPN", items: tpnResultArr }]
           };
         } else {
-          type1Dict[calTime].Nutrition.items[0].items.push(singleResult);
+          type1Dict[calTime].Nutrition.items[0].items = tpnResultArr;
         }
         type1Dict[calTime].acc_value += value;
         type1Dict[calTime].Nutrition.acc_value += value;
         type1Dict[calTime].Nutrition.items[0].acc_value += value;
-
       }
     }
   }
