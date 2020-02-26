@@ -66,7 +66,7 @@ async function inOutEventTooltipQuerySQLExecutor(conn, query) {
 
   let SQL_GET_IN_OUT_EVENT = SQL_GET_IN_OUT_EVENT_PART1 + query[PERSON_ID] + SQL_GET_IN_OUT_EVENT_PART2 + query[FROM] * 1 +
     SQL_GET_IN_OUT_EVENT_PART3 + query[TO] * 1 + SQL_GET_IN_OUT_EVENT_PART4;
-  console.log("SQL for in-out Event: ", SQL_GET_IN_OUT_EVENT);
+  console.log("~~SQL for in-out Event: ", SQL_GET_IN_OUT_EVENT);
   console.time('getInOutEvent-sql' + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT_EVENT);
   console.timeEnd('getInOutEvent-sql' + timestampLable);
@@ -83,7 +83,7 @@ async function inOutDiluentsTooltipQuerySQLExecutor(conn, query) {
     OR (START_UNIX >= ` + query[FROM] + ` AND END_UNIX <= ` + query[TO] + ` )
     OR (START_UNIX < ` + query[TO] + ` AND END_UNIX >  ` + query[TO] + `))` +
     SQL_GET_IN_OUT_DILUENTS_PART2;
-  console.log("SQL for in-out Diluents: ", SQL_GET_IN_OUT_DILUENTS);
+  console.log("~~SQL for in-out Diluents: ", SQL_GET_IN_OUT_DILUENTS);
   console.time('getInOutDiluents-sql' + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT_DILUENTS);
   console.timeEnd('getInOutDiluents-sql' + timestampLable);

@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-11 11:50:13
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 12:12:02
+ * @Last Modified time: 2020-02-26 12:05:35
  */
 
 const database = require("../services/database");
@@ -69,14 +69,14 @@ WHERE PERSON_ID = :person_id
 ORDER BY DRUG`;
 
 async function getInfusionsUnitSqlExecutor(conn, binds) {
-  console.log("SQL Get Infusions Unit = " + SQL_INFUSIONS_UNIT);
+  console.log("~~SQL Get Infusions Unit = " + SQL_INFUSIONS_UNIT);
   let infusionsUnitRecords = await conn.execute(SQL_INFUSIONS_UNIT, binds);
   return infusionsUnitRecords.rows;
 }
 
 async function getSuctionSqlExecutor(conn, binds) {
   let SQL_SUCTION = SQL_SUCTION_PART1;
-  console.log("SQL Get Suction = " + SQL_SUCTION);
+  console.log("~~SQL Get Suction = " + SQL_SUCTION);
   let suctionRecords = await conn.execute(SQL_SUCTION, binds);
   return suctionRecords.rows;
 }
@@ -92,7 +92,7 @@ async function getINFUSIONSSqlExecutor(conn, binds) {
     ""
   );
   let SQL_ALL = SQL_INFUSIONS_PART1 + SQL_Infusions + SQL_INFUSIONS_PART2;
-  console.log("SQL Get Drug Infusions = " + SQL_ALL);
+  console.log("~~SQL Get Drug Infusions (part) = " + SQL_INFUSIONS_PART1);
 
   let drugRecords = await conn.execute(SQL_ALL, binds);
   return drugRecords.rows;
@@ -105,7 +105,7 @@ async function getIntermittentSqlExecutor(conn, binds) {
   );
   let SQL_ALL =
     SQL_INTERMITTENT_PART1 + SQL_Intermittent + SQL_INTERMITTENT_PART2;
-  console.log("SQL Get Drug Intermittent = " + SQL_ALL);
+  console.log("~~SQL Get Drug Intermittent (part) = " + SQL_INTERMITTENT_PART1);
 
   let drugRecords = await conn.execute(SQL_ALL, binds);
   return drugRecords.rows;

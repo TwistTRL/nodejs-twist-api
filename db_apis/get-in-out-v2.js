@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 16:21:35
+ * @Last Modified time: 2020-02-26 12:01:45
  */
 
 const database = require("../services/database");
@@ -92,7 +92,7 @@ async function tpnQuerySQLExecutor(conn, query) {
     SQL_GET_TPN_PART3 +
     Number(query[FROM]) +
     SQL_GET_TPN_PART4;
-  console.log("SQL for TPN: ", SQL_GET_TPN);
+  console.log("~~SQL for TPN: ", SQL_GET_TPN);
   console.time("getTPN-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_TPN);
   console.timeEnd("getTPN-sql" + timestampLable);
@@ -110,7 +110,7 @@ async function inOutEventQuerySQLExecutor(conn, query) {
     SQL_GET_IN_OUT_EVENT_PART3 +
     query[TO] * 1 +
     SQL_GET_IN_OUT_EVENT_PART4;
-  console.log("SQL for in-out Event: ", SQL_GET_IN_OUT_EVENT);
+  console.log("~~SQL for in-out Event: ", SQL_GET_IN_OUT_EVENT);
   console.time("getInOutEvent-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT_EVENT);
   console.timeEnd("getInOutEvent-sql" + timestampLable);
@@ -140,7 +140,7 @@ async function inOutDiluentsQuerySQLExecutor(conn, query) {
     query[TO] +
     `))` +
     SQL_GET_IN_OUT_DILUENTS_PART2;
-  console.log("SQL for in-out Diluents: ", SQL_GET_IN_OUT_DILUENTS);
+  console.log("~~SQL for in-out Diluents: ", SQL_GET_IN_OUT_DILUENTS);
   console.time("getInOutDiluents-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT_DILUENTS);
   console.timeEnd("getInOutDiluents-sql" + timestampLable);
@@ -149,12 +149,8 @@ async function inOutDiluentsQuerySQLExecutor(conn, query) {
 
 function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   let { arr1, arr2, arr3 } = rawRecords;
-
-  console.log("arr3.length :", arr3.length);
-  console.log("arr3 :", arr3);
-
+  
   let resultEvent = [];
-
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
     let countValue0 = 0;

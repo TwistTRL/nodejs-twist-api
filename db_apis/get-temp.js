@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-25 12:59:10
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 15:59:36
+ * @Last Modified time: 2020-02-26 11:59:30
  */
 
 const database = require("../services/database");
@@ -47,10 +47,10 @@ async function tempSQLExecutor(conn, query) {
     ` AND DTUNIX <= ` +
     query.to +
     SQL_GET_TEMP_PART2;
-  console.log("SQL for get temp: ", SQL_GET_TEMP);
-  console.time("temp-v500");
+  console.log("~~SQL for get temp: ", SQL_GET_TEMP);
+  // console.time("temp-v500");
   let rawRecord = await conn.execute(SQL_GET_TEMP);
-  console.timeEnd("temp-v500");
+  // console.timeEnd("temp-v500");
   return rawRecord.rows;
 }
 
@@ -63,10 +63,10 @@ async function tempVitalSQLExecutor(conn, query) {
   ` AND DTUNIX <= ` +
   query.to +
   SQL_GET_VITAL_TEMP_PART2;
-console.log("SQL for get raw temp: ", SQL_GET_VITAL_TEMP);
-console.time("temp-vitals");
+console.log("~~SQL for get raw temp: ", SQL_GET_VITAL_TEMP);
+// console.time("temp-vitals");
 let rawRecord = await conn.execute(SQL_GET_VITAL_TEMP);
-console.timeEnd("temp-vitals");
+// console.timeEnd("temp-vitals");
 return rawRecord.rows;
 }
 

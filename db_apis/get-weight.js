@@ -26,7 +26,7 @@ WHERE PERSON_ID = `
 async function weightQuerySQLExecutor(conn, person_id) {
   let timestampLable = timeLable++;
   let SQL_GET_WEIGHT = SQL_GET_WEIGHT_PART1 + person_id + SQL_GET_WEIGHT_PART2;
-  console.log("SQL for get weight: ", SQL_GET_WEIGHT);
+  console.log("~~SQL for get weight: ", SQL_GET_WEIGHT);
   console.time('getWeight-sql' + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_WEIGHT);
   console.timeEnd('getWeight-sql' + timestampLable);
@@ -36,7 +36,7 @@ async function weightQuerySQLExecutor(conn, person_id) {
 async function weightCalcQuerySQLExecutor(conn, person_id) {
   let timestampLable = timeLable++;
   let SQL_GET_WEIGHT_CALC = SQL_GET_WEIGHT_CALC_PART1 + person_id + SQL_GET_WEIGHT_PART2;
-  console.log("SQL for get weight: ", SQL_GET_WEIGHT_CALC);
+  console.log("~~SQL for get weight: ", SQL_GET_WEIGHT_CALC);
   console.time('getWeightCalc-sql' + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_WEIGHT_CALC);
   console.timeEnd('getWeightCalc-sql' + timestampLable);

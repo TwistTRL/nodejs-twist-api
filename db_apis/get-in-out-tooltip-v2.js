@@ -102,7 +102,7 @@ async function tpnQuerySQLExecutor(conn, query) {
     SQL_GET_TPN_PART3 +
     Number(query[FROM]) +
     SQL_GET_TPN_PART4;
-  console.log("SQL for TPN: ", SQL_GET_TPN);
+  console.log("~~SQL for TPN: ", SQL_GET_TPN);
   console.time("getTPN-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_TPN);
   console.timeEnd("getTPN-sql" + timestampLable);
@@ -119,7 +119,7 @@ async function inOutEventTooltipQuerySQLExecutor(conn, query) {
     SQL_GET_IN_OUT_EVENT_PART3 +
     query[TO] * 1 +
     SQL_GET_IN_OUT_EVENT_PART4;
-  console.log("SQL for in-out Event: ", SQL_GET_IN_OUT_EVENT);
+  console.log("~~SQL for in-out Event: ", SQL_GET_IN_OUT_EVENT);
   console.time("getInOutEvent-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT_EVENT);
   console.timeEnd("getInOutEvent-sql" + timestampLable);
@@ -148,7 +148,7 @@ async function inOutDiluentsTooltipQuerySQLExecutor(conn, query) {
     query[TO] +
     `))` +
     SQL_GET_IN_OUT_DILUENTS_PART2;
-  console.log("SQL for in-out Diluents: ", SQL_GET_IN_OUT_DILUENTS);
+  console.log("~~SQL for in-out Diluents: ", SQL_GET_IN_OUT_DILUENTS);
   console.time("getInOutDiluents-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT_DILUENTS);
   console.timeEnd("getInOutDiluents-sql" + timestampLable);
@@ -159,7 +159,7 @@ async function weightQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
   let SQL_GET_WEIGHT =
     SQL_GET_WEIGHT_PART1 + query[PERSON_ID] + SQL_GET_WEIGHT_PART2;
-  console.log("SQL for get weight: ", SQL_GET_WEIGHT);
+  console.log("~~SQL for get weight: ", SQL_GET_WEIGHT);
   console.time("getWeight-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_WEIGHT);
   console.timeEnd("getWeight-sql" + timestampLable);
