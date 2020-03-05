@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-28 10:58:46
+ * @Last Modified time: 2020-03-05 16:45:52
  */
 
 /**
@@ -56,6 +56,23 @@ const SQL_GET_TPN_PART3 = ` AND END_UNIX >= `;
 const SQL_GET_TPN_PART4 = ` 
 ORDER BY START_UNIX`;
 
+const SQL_GET_EN_PART1 = `
+SELECT  
+  START_TIME_DTUNIX,
+  "VOLUME",
+  Display_Line,
+  UNITS,
+  CAL_DEN,
+  G_PTN,
+  G_FAT
+FROM EN
+WHERE PERSON_ID = `;
+const SQL_GET_EN_PART2 = `
+AND START_TIME_DTUNIX <= `;
+const SQL_GET_EN_PART3 = ` AND START_TIME_DTUNIX >= `;
+const SQL_GET_EN_PART4 = ` 
+ORDER BY START_TIME_DTUNIX`;
+
 // get raw in-out by event between two timestamp
 const SQL_GET_IN_OUT_EVENT_PART1 = `
 SELECT  
@@ -101,6 +118,23 @@ ORDER BY START_UNIX`;
 // WHERE PERSON_ID = `;
 // const SQL_GET_WEIGHT_PART2 = `
 // ORDER BY DT_UNIX`;
+
+async function enQuerySQLExecutor(conn, query) {
+  let timestampLable = timeLable++;
+  let SQL_GET_EN =
+    SQL_GET_EN_PART1 +
+    query[PERSON_ID] +
+    SQL_GET_EN_PART2 +
+    Number(query[TO]) +
+    SQL_GET_EN_PART3 +
+    Number(query[FROM]) +
+    SQL_GET_EN_PART4;
+  console.log("~~SQL for EN: ", SQL_GET_EN);
+  console.time("getEN-sql" + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_EN);
+  console.timeEnd("getEN-sql" + timestampLable);
+  return rawRecord.rows;
+}
 
 async function tpnQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
@@ -181,7 +215,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   let type1Dict = {};
   let type2Dict = {};
 
-  let { arr1, arr2, arr3 } = rawRecords;
+  let { arr1, arr2, arr3, arrEN } = rawRecords;
 
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
@@ -551,6 +585,47 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     }
   }
 
+  if (arrEN && arrEN.length) {
+    console.log("EN record size :", arrEN.length);
+    for (let row of arrEN) {
+      //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
+      let currentTime = startTime;
+
+      let value = row.VOLUME;
+
+      let enList = ["Display_Line", "UNITS", "CAL_DEN", "G_PTN", "G_FAT"];
+      let singleResult = {};
+
+      singleResult.name = row["Display_Line"];
+      singleResult.value = row["VOLUME"];
+      singleResult.unit = row["UNITS"];
+
+      // here suppose `EN` is after `TPN`
+
+      if (!type1Dict[calTime]) {
+        type1Dict[calTime] = {
+          value: 0,
+          Nutrition: {
+            value: 0,
+            items: [{ value: 0, name: "EN", items: [singleResult] }]
+          }
+        };
+      } else if (!type1Dict[calTime].Nutrition) {
+        type1Dict[calTime].Nutrition = {
+          value: 0,
+          items: [{ value: 0, name: "EN", items: [singleResult] }]
+        };
+      } else if (!type1Dict[calTime].Nutrition.items.map(x => x.name).includes("EN")){
+        type1Dict[calTime].Nutrition.items.push({ value: 0, name: "EN", items: [singleResult] });
+      } else {
+        type1Dict[calTime].Nutrition.items[type1Dict[calTime].Nutrition.items.map(x => x.name).indexOf("EN")].items.push(singleResult);
+      }
+      type1Dict[calTime].value += value;
+      type1Dict[calTime].Nutrition.value += value;      
+      type1Dict[calTime].Nutrition.items[type1Dict[calTime].Nutrition.items.map(x => x.name).indexOf("EN")].value += value;
+    }
+  }
+
   let inDict = {};
   let outDict = {};
   Object.entries(type1Dict).forEach(([timestampKey, timestampValue]) => {
@@ -760,16 +835,15 @@ function comp(a, b) {
 
 async function parallelQuery(conn, new_query) {
   // should parallel do the sql query
-  console.time("parallel-query");
   const task1 = await inOutEventTooltipQuerySQLExecutor(conn, new_query);
   const task2 = await inOutDiluentsTooltipQuerySQLExecutor(conn, new_query);
   const task3 = await tpnQuerySQLExecutor(conn, new_query);
-  // const task4 = await weightQuerySQLExecutor(conn, new_query);
-  console.timeEnd("parallel-query");
+  const task4 = await enQuerySQLExecutor(conn, new_query);
   return {
     arr1: await task1,
     arr2: await task2,
-    arr3: await task3
+    arr3: await task3,
+    arrEN: await task4
   };
 }
 
