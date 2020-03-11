@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-26 15:50:32
+ * @Last Modified time: 2020-03-11 14:34:24
  */
 const sleep = require("util").promisify(setTimeout);
 
@@ -54,6 +54,8 @@ const { testAbnormalMRN } = require("../test/test_abnormal_mrn");
 
 const settingsFluid = require("../db_relation/in-out-db-relation");
 const settingsMed = require("../db_relation/drug-category-relation");
+
+const {getAccessToken, getPDFUrl} = require("../cerner_apis/get-FHIR-api");
 
 // ------------------------------------------------------------------------
 // apidoc folder is a static files folder
@@ -2262,7 +2264,55 @@ router.get("/settings/med", (req, res) => {
 });
 
 // ~~~~~~~~~~
-// api end
+// db api end
 // ~~~~~~~~~~
+
+
+
+// ~~~~~~~~~~~
+// cerner api
+// ~~~~~~~~~~
+
+
+/**
+ * @api {get} /FHIR/token get access token
+ * @apiVersion 0.0.1
+ * @apiName get-access-token
+ * @apiGroup FHIR
+ * @apiDescription get access token OAUTH2
+ * 
+
+ * @apiSuccessExample Success-Response:
+ *    {
+        "access_token": "abcdefg_",
+        "scope": "system/Patient.read system/Encounter.read system/DocumentReference.read",
+        "token_type": "Bearer",
+        "expires_in": 570
+      }
+ */
+router.get("/FHIR/token", async (req, res) => {
+  // getAccessToken().then(val => res.send(val));
+  res.send(await getAccessToken());
+});
+
+/**
+ * @api {get} /FHIR/notes/:mrn check mrn FHIR
+ * @apiVersion 0.0.1
+ * @apiName get-mrn-fhir
+ * @apiGroup FHIR
+ * @apiDescription get mrn FHIR
+ * @apiParam {Number} mrn Patient MRN.
+
+ * @apiSuccessExample Success-Response:
+ *    {
+
+      }
+ */
+router.get("/FHIR/notes/:mrn", async (req, res) => {
+  const mrn = parseInt(req.params.mrn);
+  console.log("mrn is: " + mrn);
+  let result = await getPDFUrl(mrn);
+  res.send(result);
+});
 
 module.exports = router;

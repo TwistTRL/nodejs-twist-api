@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-11 11:50:13
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-26 12:05:35
+ * @Last Modified time: 2020-03-11 16:15:09
  */
 
 const database = require("../services/database");
@@ -46,19 +46,19 @@ ORDER BY DT_UNIX, DRUG`;
 
 const SQL_SUCTION_PART1 = `
 SELECT
-EVENT_START_DT_TM,
-LVL,
-"COMMENT",
-"Suction Device",
-"Suction Instillation",
-"Suction Pre-Medication",
-"Suction Pre-Oxygenation",
-"Suction Type",
-"Trach Suction Catheter Size",
-"Trach Suction Depth"
+  DATETIMEUTC,
+  LVL,
+  "COMMENT",
+  SUCTION_DEVICE,
+  SUCTION_INSTILLATION,
+  SUCTION_PRE_MEDICATION,
+  SUCTION_PRE_OXYGENATION,
+  SUCTION_TYPE,
+  TRACH_SUCTION_CATHETER_SIZE,
+  TRACH_SUCTION_DEPTH
 FROM SUCTION
 WHERE PERSON_ID = :person_id
-ORDER BY EVENT_START_DT_TM`;
+ORDER BY DATETIMEUTC`;
 
 const SQL_INFUSIONS_UNIT = `
 SELECT
@@ -125,16 +125,16 @@ function _calculateRawRecords(rawRecords) {
       let singleResult = {};
       singleResult.name = "suction";
       singleResult.time =
-        new Date(element["EVENT_START_DT_TM"]).getTime() / 1000;
+        new Date(element["DATETIMEUTC"]).getTime() / 1000;
       singleResult.start =
-        new Date(element["EVENT_START_DT_TM"]).getTime() / 1000;
+        new Date(element["DATETIMEUTC"]).getTime() / 1000;
       singleResult.lvl = element.LVL;
       singleResult.comment = element.COMMENT;
-      singleResult.device = element["Suction Device"];
-      singleResult.instillation = element["Suction Instillation"];
-      singleResult.medication = element["Suction Pre-Medication"];
-      singleResult.oxygenation = element["Suction Pre-Oxygenation"];
-      singleResult.type = element["Suction Type"];
+      singleResult.device = element["SUCTION_DEVICE"];
+      singleResult.instillation = element["SUCTION_INSTILLATION"];
+      singleResult.medication = element["SUCTION_PRE_MEDICATION"];
+      singleResult.oxygenation = element["SUCTION_PRE_OXYGENATION"];
+      singleResult.type = element["SUCTION_TYPE"];
       suctionArray.push(singleResult);
     });
   }
