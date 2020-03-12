@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-11 11:50:13
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-11 17:28:00
+ * @Last Modified time: 2020-03-12 14:18:28
  */
 
 const database = require("../services/database");
@@ -48,7 +48,7 @@ const SQL_SUCTION_PART1 = `
 SELECT
   DATETIMEUTC,
   LVL,
-  "COMMENT",
+  COMMENT_TXT,
   SUCTION_DEVICE,
   SUCTION_INSTILLATION,
   SUCTION_PRE_MEDICATION,
@@ -129,7 +129,7 @@ function _calculateRawRecords(rawRecords) {
       singleResult.start =
         new Date(element["DATETIMEUTC"]).getTime() / 1000;
       singleResult.lvl = element.LVL;
-      singleResult.comment = element.COMMENT;
+      singleResult.comment = element["COMMENT_TXT"];
       singleResult.device = element["SUCTION_DEVICE"];
       singleResult.instillation = element["SUCTION_INSTILLATION"];
       singleResult.medication = element["SUCTION_PRE_MEDICATION"];
