@@ -1572,11 +1572,11 @@ router.post("/test/hr", async (req, res) => {
  * "lab_names" could be: [ "Albumin", "Alk Phos", "BNP", "HCO3", "BUN", "Cr",
  *  "D-dimer", "Lactate", "SvO2", "SaO2", "PaCO2", "pH", "PaO2", "TnI", "TnT" ]
  *  * 
- * 1. [POST http://twist:3300/api/labs] 
+ * 1. [POST http://twist:3100/api/labs] 
  * 
  *    Get Labs for patient
  * 
- * 2. [GET http://twist:3300/api/person/:person_id/labs]
+ * 2. [GET http://twist:3100/api/person/:person_id/labs]
  * 
  *    Get Patient Labs
  *  
