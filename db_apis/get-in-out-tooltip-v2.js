@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-05 16:45:52
+ * @Last Modified time: 2020-03-16 10:02:33
  */
 
 /**
@@ -60,7 +60,7 @@ const SQL_GET_EN_PART1 = `
 SELECT  
   START_TIME_DTUNIX,
   "VOLUME",
-  Display_Line,
+  DISPLAY_LINE,
   UNITS,
   CAL_DEN,
   G_PTN,
@@ -512,7 +512,6 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           console.log("rowStart :", rowStart);
           console.log("rowEnd :", rowEnd);
           console.log("row.RESULT_VAL :", row.RESULT_VAL);
-
           console.log(
             "Math.min(currentTime + timeInterval, rowEnd) :",
             Math.min(currentTime + timeInterval, rowEnd)
@@ -589,17 +588,17 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
       //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
-      let currentTime = startTime;
-
+      let calTime = startTime;
       let value = row.VOLUME;
 
-      let enList = ["Display_Line", "UNITS", "CAL_DEN", "G_PTN", "G_FAT"];
+      let enList = ["DISPLAY_LINE", "UNITS", "CAL_DEN", "G_PTN", "G_FAT"];
       let singleResult = {};
-
-      singleResult.name = row["Display_Line"];
+      singleResult.name = row["DISPLAY_LINE"];
       singleResult.value = row["VOLUME"];
       singleResult.unit = row["UNITS"];
-
+      singleResult.fat = row["G_FAT"];
+      singleResult.ptn = row["G_PTN"];
+      singleResult.den = row["CAL_DEN"];
       // here suppose `EN` is after `TPN`
 
       if (!type1Dict[calTime]) {

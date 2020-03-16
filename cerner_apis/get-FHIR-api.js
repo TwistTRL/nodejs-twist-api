@@ -2,15 +2,15 @@
  * @Author: Peng
  * @Date: 2020-03-09 16:28:13
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-12 12:47:36
+ * @Last Modified time: 2020-03-16 12:07:29
  */
 
 const fetch = require("node-fetch");
 const { base64data } = require("./cerner-FHIR-config");
 const TOKEN_URL_1 =
   "https://authorization.sandboxcerner.com/tenants/96976f07-eccb-424c-9825-e0d0b887148b/protocols/oauth2/profiles/smart-v1/token";
-const TOKEN_URL_2 =
-  "https://authorization.sandboxcerner.com/tenants/0b8a0111-e8e6-4c26-a91c-5069cbc6b1ca/protocols/oauth2/profiles/smart-v1/token";
+// const TOKEN_URL_2 =
+//   "https://authorization.sandboxcerner.com/tenants/0b8a0111-e8e6-4c26-a91c-5069cbc6b1ca/protocols/oauth2/profiles/smart-v1/token";
 
 const method = "post";
 const body =
@@ -108,11 +108,13 @@ getPDFUrl = async mrn => {
   encounterList = await getNextEncounters(encounterJson, encounterList);
   console.timeEnd("get-encounters");
   console.log("~~ getting all encounter, encounterList :", encounterList);
+  console.log('encounterList.length :', encounterList.length);
 
   console.time("get-docs");
   let documentList = await Promise.all(encounterList.map(getDocsFromEncounter));
   console.timeEnd("get-docs");
   // console.log(' documentList :',  documentList);
+  return documentList;
 
   let result = [];
   let docIdDic = {};
@@ -141,6 +143,7 @@ const getNextPageUrl = arr => {
 
 const getNextEncounters = async (curPageEncouterJson, encounterList) => {
   let nextPageUrl = getNextPageUrl(curPageEncouterJson["link"]);
+  console.log('nextPageUrl :', nextPageUrl);
   if (!nextPageUrl) {
     return encounterList;
   }
