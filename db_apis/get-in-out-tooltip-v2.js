@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-03-16 15:05:49
+ * @Last Modified time: 2020-03-16 15:20:57
  */
 
 /**
@@ -767,13 +767,33 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         };
 
         catValue.short_labels.forEach(slDict => {
-          let newSlDict = {
-            name: slDict.short_labels,
-            value: slDict.value,
-            // unit: null,
-            sub_cat: slDict.sub_cat,
-            label: slDict.label
-          };
+          let newSlDict;
+            // item name is short label ,if no short label then label, then cat
+            if (slDict.short_labels) {
+              newSlDict = {
+                name: slDict.short_labels,
+                value: slDict.value,
+                // unit: null,
+                sub_cat: slDict.sub_cat,
+                label: slDict.label
+              };
+            } else if (slDict.label) {
+              newSlDict = {
+                name: slDict.label,
+                value: slDict.value,
+                // unit: null,
+                sub_cat: slDict.sub_cat,
+                label: slDict.label
+              };
+            } else {
+              newSlDict = {
+                name: catKey,
+                value: slDict.value,
+                // unit: null,
+                sub_cat: slDict.sub_cat
+              };
+            }
+            
           currentCatDict.items.push(newSlDict);
         });
         outDict[timestampKey].push(currentCatDict);
