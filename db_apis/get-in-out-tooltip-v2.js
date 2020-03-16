@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
- * @Last Modified by: Peng
- * @Last Modified time: 2020-03-16 10:02:33
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-03-16 15:05:49
  */
 
 /**
@@ -599,7 +599,37 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       singleResult.fat = row["G_FAT"];
       singleResult.ptn = row["G_PTN"];
       singleResult.den = row["CAL_DEN"];
-      // here suppose `EN` is after `TPN`
+
+
+      // for EN, will combine same name records, for example: 
+      // [
+      //   {
+      //     name: "Vivonex Pediatric (24 cal/oz)",
+      //     value: 20,
+      //     unit: "mL",
+      //     fat: 2,
+      //     ptn: 1,
+      //     den: 24
+      //   },
+      //   {
+      //     name: "Vivonex Pediatric (24 cal/oz)",
+      //     value: 30,
+      //     unit: "mL",
+      //     fat: 3,
+      //     ptn: 1.5,
+      //     den: 24
+      //   }
+      // ]
+      //
+      // => will added to 
+      //   {
+      //     name: "Vivonex Pediatric (24 cal/oz)",
+      //     value: 20+30,
+      //     unit: "mL",
+      //     fat: 2+3,
+      //     ptn: 1+1.5,
+      //     den: 24
+      //   }
 
       if (!type1Dict[calTime]) {
         type1Dict[calTime] = {
@@ -617,7 +647,22 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       } else if (!type1Dict[calTime].Nutrition.items.map(x => x.name).includes("EN")){
         type1Dict[calTime].Nutrition.items.push({ value: 0, name: "EN", items: [singleResult] });
       } else {
-        type1Dict[calTime].Nutrition.items[type1Dict[calTime].Nutrition.items.map(x => x.name).indexOf("EN")].items.push(singleResult);
+        let enItems = type1Dict[calTime].Nutrition.items[type1Dict[calTime].Nutrition.items.map(x => x.name).indexOf("EN")].items;
+        let itemInItems = false;
+        // if already has this name item, added together
+        // if not, push it to array
+        for (let item of enItems) {
+          if(item.name === singleResult.name) {
+            item.value += singleResult.value;
+            item.fat += singleResult.fat;
+            item.ptn += singleResult.ptn;
+            itemInItems = true;
+            break;
+          }
+        }
+        if (!itemInItems) {
+          enItems.push(singleResult);          
+        }        
       }
       type1Dict[calTime].value += value;
       type1Dict[calTime].Nutrition.value += value;      
@@ -674,13 +719,34 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           currentCatDict.items.sort((a, b) => b.rate - a.rate);
         } else {
           catValue.short_labels.forEach(slDict => {
-            let newSlDict = {
-              name: slDict.short_labels,
-              value: slDict.value,
-              // unit: null,
-              sub_cat: slDict.sub_cat,
-              label: slDict.label
-            };
+
+            let newSlDict;
+            // item name is short label ,if no short label then label, then cat
+            if (slDict.short_labels) {
+              newSlDict = {
+                name: slDict.short_labels,
+                value: slDict.value,
+                // unit: null,
+                sub_cat: slDict.sub_cat,
+                label: slDict.label
+              };
+            } else if (slDict.label) {
+              newSlDict = {
+                name: slDict.label,
+                value: slDict.value,
+                // unit: null,
+                sub_cat: slDict.sub_cat,
+                label: slDict.label
+              };
+            } else {
+              newSlDict = {
+                name: catKey,
+                value: slDict.value,
+                // unit: null,
+                sub_cat: slDict.sub_cat
+              };
+            }
+            
             currentCatDict.items.push(newSlDict);
           });
         }
