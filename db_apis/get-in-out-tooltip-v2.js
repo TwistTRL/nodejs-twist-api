@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-03-16 15:20:57
+ * @Last Modified time: 2020-03-17 15:00:59
  */
 
 /**
@@ -64,7 +64,8 @@ SELECT
   UNITS,
   CAL_DEN,
   G_PTN,
-  G_FAT
+  G_FAT,
+  G_CHO
 FROM EN
 WHERE PERSON_ID = `;
 const SQL_GET_EN_PART2 = `
@@ -591,7 +592,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       let calTime = startTime;
       let value = row.VOLUME;
 
-      let enList = ["DISPLAY_LINE", "UNITS", "CAL_DEN", "G_PTN", "G_FAT"];
+      let enList = ["DISPLAY_LINE", "UNITS", "CAL_DEN", "G_PTN", "G_FAT", "G_CHO"];
       let singleResult = {};
       singleResult.name = row["DISPLAY_LINE"];
       singleResult.value = row["VOLUME"];
@@ -599,37 +600,35 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       singleResult.fat = row["G_FAT"];
       singleResult.ptn = row["G_PTN"];
       singleResult.den = row["CAL_DEN"];
+      singleResult.cho = row["G_CHO"];
 
 
       // for EN, will combine same name records, for example: 
-      // [
-      //   {
-      //     name: "Vivonex Pediatric (24 cal/oz)",
-      //     value: 20,
-      //     unit: "mL",
-      //     fat: 2,
-      //     ptn: 1,
-      //     den: 24
-      //   },
-      //   {
-      //     name: "Vivonex Pediatric (24 cal/oz)",
-      //     value: 30,
-      //     unit: "mL",
-      //     fat: 3,
-      //     ptn: 1.5,
-      //     den: 24
-      //   }
-      // ]
-      //
+      // {
+      //   display_line: "a",
+      //   value: 1,
+      //   unit: "mL",
+      //   fat: 1,
+      //   ptn: 1,
+      //   den: 100
+      // },
+      // {
+      //   display_line: "b",
+      //   value: 3,
+      //   unit: "mL",
+      //   fat: 3,
+      //   ptn: 3,
+      //   CAL_DEN: 200
+      // }
       // => will added to 
-      //   {
-      //     name: "Vivonex Pediatric (24 cal/oz)",
-      //     value: 20+30,
-      //     unit: "mL",
-      //     fat: 2+3,
-      //     ptn: 1+1.5,
-      //     den: 24
-      //   }
+      // {
+      //   display_line: "b",
+      //   value: 4,
+      //   unit: "mL",
+      //   fat: 4,
+      //   ptn: 4,
+      //   CAL_DEN: 200
+      // }
 
       if (!type1Dict[calTime]) {
         type1Dict[calTime] = {
@@ -647,22 +646,13 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       } else if (!type1Dict[calTime].Nutrition.items.map(x => x.name).includes("EN")){
         type1Dict[calTime].Nutrition.items.push({ value: 0, name: "EN", items: [singleResult] });
       } else {
-        let enItems = type1Dict[calTime].Nutrition.items[type1Dict[calTime].Nutrition.items.map(x => x.name).indexOf("EN")].items;
-        let itemInItems = false;
-        // if already has this name item, added together
-        // if not, push it to array
-        for (let item of enItems) {
-          if(item.name === singleResult.name) {
-            item.value += singleResult.value;
-            item.fat += singleResult.fat;
-            item.ptn += singleResult.ptn;
-            itemInItems = true;
-            break;
-          }
-        }
-        if (!itemInItems) {
-          enItems.push(singleResult);          
-        }        
+        let enItem = type1Dict[calTime].Nutrition.items[type1Dict[calTime].Nutrition.items.map(x => x.name).indexOf("EN")].items[0];
+        enItem.value += singleResult.value;
+        enItem.fat += singleResult.fat;
+        enItem.ptn += singleResult.ptn;
+        enItem.cho += singleResult.cho;
+        enItem.name = singleResult.name;
+        enItem.den = singleResult.den;        
       }
       type1Dict[calTime].value += value;
       type1Dict[calTime].Nutrition.value += value;      
