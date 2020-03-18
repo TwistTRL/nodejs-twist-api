@@ -1,11 +1,10 @@
 /*
  * @Author: Mingyu/Peng
  * @Date:
- * @Last Modified by: Peng
- * @Last Modified time: 2020-03-11 14:34:24
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-03-17 20:01:55
  */
 const sleep = require("util").promisify(setTimeout);
-
 const express = require("express");
 const path = require("path");
 const router = new express.Router();
@@ -36,6 +35,8 @@ const { getInOutTooltipQueryV3 } = require("../db_apis/get-in-out-tooltip-v3");
 const { getInOutQuery } = require("../db_apis/get-in-out");
 
 const { getInOutQueryV2 } = require("../db_apis/get-in-out-v2");
+const { getMacroNutrients } = require("../db_apis/getMacroNutrients");
+
 const { getTemp } = require("../db_apis/get-temp");
 
 const { testHr } = require("../test/test-vitals");
@@ -776,15 +777,7 @@ router.post("/inout", async (req, res) => {
  * 
  *   ├──part 1: data from `INTAKE_OUTPUT`, value accumulated by `short_label` and records with timestamp during `resolution` time.
  * 
- *   ├──part 2: data from `DRUG_DILUENTS`, if drug is 'papavarine' or 'heparin flush', then cat = "Flushes", value accumulated in each binned time box;
- * other drug , then cat = "Infusions", value accumulated in each binned time box;
- * 
- *   └──final response: mixed part1 and part2, sorted by time.
- * 
- * Input notes: 
- * 
- *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
- * 
+  
  *   └──`from` should be divisible by `resolution`.
  * 
  * Response notes:
@@ -852,6 +845,73 @@ router.post("/inout-v2", async (req, res) => {
     res.send(e.toString());
   }
 });
+
+/**
+ * @api {post} /nutrition/macronutrients Macro Nutrients for Patient
+ * @apiVersion 0.0.2
+ * @apiName macro-nutrients-for-patient
+ * @apiGroup Person
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {Number} [from=0] Start timestamp.
+ * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
+ * @apiParam {Number} [resolution=3600] Binned time resolution.
+ * @apiParamExample {json} Example of request in-out data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from":1541030400,
+          "to":1542018000
+        }
+
+ * @apiSuccessExample Success-Response:
+ *  {
+      fat: [
+        {
+          time: unix,
+          value: Number,
+          unit: String
+        },
+        ...
+      ],
+      protein: [
+        {
+          time: unix,
+          value: Number,
+          unit: String
+        },
+        ...
+      ],
+      cho: [
+        {
+          time: unix,
+          value: Number,
+          unit: String
+        },
+        ...
+      ]
+    }
+ *
+ */
+
+router.post("/nutrition/macronutrients", async (req, res) => {
+  const query = req.body;
+  const person_id = query.person_id;
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  
+  try {
+    const toSend = await getMacroNutrients(query);
+    res.send(toSend);
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
+});
+
 
 /**
  * @api {post} /inout-tooltip In-Out Tooltip for Patient
