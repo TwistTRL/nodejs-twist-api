@@ -1,8 +1,8 @@
 /*
  * @Author: Mingyu/Peng
  * @Date:
- * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-03-17 20:01:55
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-03-17 20:05:54
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -35,7 +35,7 @@ const { getInOutTooltipQueryV3 } = require("../db_apis/get-in-out-tooltip-v3");
 const { getInOutQuery } = require("../db_apis/get-in-out");
 
 const { getInOutQueryV2 } = require("../db_apis/get-in-out-v2");
-const { getMacroNutrients } = require("../db_apis/getMacroNutrients");
+const { getMacroNutrients } = require("../db_apis/get-macro-nutrients");
 
 const { getTemp } = require("../db_apis/get-temp");
 

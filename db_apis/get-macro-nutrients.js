@@ -1,8 +1,8 @@
 /*
  * @Author: Peng Zeng 
  * @Date: 2020-03-17 19:19:52 
- * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-03-17 19:57:17
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-03-17 20:07:04
  */
 
 const database = require("../services/database");
@@ -111,7 +111,7 @@ const getMacroNutrients = database.withConnection(async function(
   let new_query = {
     person_id: query.person_id,
     from: query.from || 0,
-    to: query.to || new Date().getTime / 1000;
+    to: query.to || (new Date()).getTime() / 1000
   };
   console.log("query = ", new_query);
 
