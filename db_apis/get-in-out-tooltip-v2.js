@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-18 14:45:23
+ * @Last Modified time: 2020-03-18 16:30:05
  */
 
 /**
@@ -258,8 +258,6 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     }
     console.log("null value number for In-Out Event records: ", countNull);
   }
-
-  console.log('type2Dict-- :', type2Dict["1550664000"]["STOOL"]);
 
   //example arr2 = {
   // START_UNIX,
