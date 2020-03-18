@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-18 16:30:05
+ * @Last Modified time: 2020-03-18 18:02:59
  */
 
 /**
@@ -561,7 +561,10 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           singleResult.name = element;
           singleResult.value = row[element];
           singleResult.unit = TPN_UNIT_DICT[element];
-          tpnResultArr.push(singleResult);
+          // if value is 0, won't be pushed
+          if (singleResult.value) {
+            tpnResultArr.push(singleResult);
+          }          
         });
 
         if (!type1Dict[calTime]) {
