@@ -22,27 +22,27 @@ const options = {
 
 const options1 = {
   files: "./config/apidoc-config/apidoc.json",
-  from: "3300",
+  from: "3100",
   to: "3333"
 };
 const options2 = {
   files: "./config/apidoc-config/apidoc.json",
-  from: "3300",
+  from: "3100",
   to: "3333"
 };
 const options3 = {
   files: "./config/apidoc2-config/apidoc.json",
-  from: "3300",
+  from: "3100",
   to: "3333"
 };
 const options4 = {
   files: "./config/apidoc2-config/apidoc.json",
-  from: "3300",
+  from: "3100",
   to: "3333"
 };
 const options5 = {
   files: "./config/web-server-config.js",
-  from: "3300",
+  from: "3100",
   to: "3333"
 };
 

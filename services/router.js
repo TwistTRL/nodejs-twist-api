@@ -2,10 +2,9 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-26 15:50:32
+ * @Last Modified time: 2020-03-18 11:26:37
  */
 const sleep = require("util").promisify(setTimeout);
-
 const express = require("express");
 const path = require("path");
 const router = new express.Router();
@@ -36,6 +35,8 @@ const { getInOutTooltipQueryV3 } = require("../db_apis/get-in-out-tooltip-v3");
 const { getInOutQuery } = require("../db_apis/get-in-out");
 
 const { getInOutQueryV2 } = require("../db_apis/get-in-out-v2");
+const { getMacroNutrients } = require("../db_apis/get-macro-nutrients");
+
 const { getTemp } = require("../db_apis/get-temp");
 
 const { testHr } = require("../test/test-vitals");
@@ -54,6 +55,8 @@ const { testAbnormalMRN } = require("../test/test_abnormal_mrn");
 
 const settingsFluid = require("../db_relation/in-out-db-relation");
 const settingsMed = require("../db_relation/drug-category-relation");
+
+const {getAccessToken, getPDFUrl} = require("../cerner_apis/get-FHIR-api");
 
 // ------------------------------------------------------------------------
 // apidoc folder is a static files folder
@@ -774,15 +777,7 @@ router.post("/inout", async (req, res) => {
  * 
  *   ├──part 1: data from `INTAKE_OUTPUT`, value accumulated by `short_label` and records with timestamp during `resolution` time.
  * 
- *   ├──part 2: data from `DRUG_DILUENTS`, if drug is 'papavarine' or 'heparin flush', then cat = "Flushes", value accumulated in each binned time box;
- * other drug , then cat = "Infusions", value accumulated in each binned time box;
- * 
- *   └──final response: mixed part1 and part2, sorted by time.
- * 
- * Input notes: 
- * 
- *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
- * 
+  
  *   └──`from` should be divisible by `resolution`.
  * 
  * Response notes:
@@ -849,6 +844,56 @@ router.post("/inout-v2", async (req, res) => {
     res.status(400);
     res.send(e.toString());
   }
+});
+
+/**
+ * @api {get} /person/:person_id/nutrition/macronutrients Macro Nutrients
+ * @apiVersion 0.0.2
+ * @apiName macro-nutrients-for-patient
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *  {
+      fat: [
+        {
+          time: 150000000,
+          value: 0.1,
+          unit: "g"
+        },
+        ...
+      ],
+      protein: [
+        {
+          time: 150000000,
+          value: 0.2,
+          unit: "g"
+        },
+        ...
+      ],
+      cho: [
+        {
+          time: 150000000,
+          value: 0.15,
+          unit: "g"
+        },
+        ...
+      ]
+    }
+ *
+ */
+
+router.get("/person/:person_id/nutrition/macronutrients", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log('person_id :', person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting macronutrients for %s ...", person_id);
+  const binds = {
+    person_id
+  };
+  res.send(await getMacroNutrients(binds));
 });
 
 /**
@@ -1570,11 +1615,11 @@ router.post("/test/hr", async (req, res) => {
  * "lab_names" could be: [ "Albumin", "Alk Phos", "BNP", "HCO3", "BUN", "Cr",
  *  "D-dimer", "Lactate", "SvO2", "SaO2", "PaCO2", "pH", "PaO2", "TnI", "TnT" ]
  *  * 
- * 1. [POST http://twist:3300/api/labs] 
+ * 1. [POST http://twist:3100/api/labs] 
  * 
  *    Get Labs for patient
  * 
- * 2. [GET http://twist:3300/api/person/:person_id/labs]
+ * 2. [GET http://twist:3100/api/person/:person_id/labs]
  * 
  *    Get Patient Labs
  *  
@@ -2262,7 +2307,55 @@ router.get("/settings/med", (req, res) => {
 });
 
 // ~~~~~~~~~~
-// api end
+// db api end
 // ~~~~~~~~~~
+
+
+
+// ~~~~~~~~~~~
+// cerner api
+// ~~~~~~~~~~
+
+
+/**
+ * @api {get} /FHIR/token get access token
+ * @apiVersion 0.0.1
+ * @apiName get-access-token
+ * @apiGroup FHIR
+ * @apiDescription get access token OAUTH2
+ * 
+
+ * @apiSuccessExample Success-Response:
+ *    {
+        "access_token": "abcdefg_",
+        "scope": "system/Patient.read system/Encounter.read system/DocumentReference.read",
+        "token_type": "Bearer",
+        "expires_in": 570
+      }
+ */
+router.get("/FHIR/token", async (req, res) => {
+  // getAccessToken().then(val => res.send(val));
+  res.send(await getAccessToken());
+});
+
+/**
+ * @api {get} /FHIR/notes/:mrn check mrn FHIR
+ * @apiVersion 0.0.1
+ * @apiName get-mrn-fhir
+ * @apiGroup FHIR
+ * @apiDescription get mrn FHIR
+ * @apiParam {Number} mrn Patient MRN.
+
+ * @apiSuccessExample Success-Response:
+ *    {
+
+      }
+ */
+router.get("/FHIR/notes/:mrn", async (req, res) => {
+  const mrn = parseInt(req.params.mrn);
+  console.log("mrn is: " + mrn);
+  let result = await getPDFUrl(mrn);
+  res.send(result);
+});
 
 module.exports = router;

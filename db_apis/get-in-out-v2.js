@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-26 12:01:45
+ * @Last Modified time: 2020-03-05 16:26:08
  */
 
 const database = require("../services/database");
@@ -23,6 +23,18 @@ const FROM = "from";
 const TO = "to";
 const RESOLUTION = "resolution";
 var timeLable = 0;
+
+const SQL_GET_EN_PART1 = `
+SELECT  
+  START_TIME_DTUNIX,
+  "VOLUME"
+FROM EN
+WHERE PERSON_ID = `;
+const SQL_GET_EN_PART2 = `
+AND START_TIME_DTUNIX <= `;
+const SQL_GET_EN_PART3 = ` AND START_TIME_DTUNIX >= `;
+const SQL_GET_EN_PART4 = ` 
+ORDER BY START_TIME_DTUNIX`;
 
 const SQL_GET_TPN_PART1 = `
 SELECT  
@@ -81,6 +93,23 @@ FROM DRUG_DILUENTS
 WHERE PERSON_ID = `;
 const SQL_GET_IN_OUT_DILUENTS_PART2 = ` 
 ORDER BY START_UNIX`;
+
+async function enQuerySQLExecutor(conn, query) {
+  let timestampLable = timeLable++;
+  let SQL_GET_EN =
+    SQL_GET_EN_PART1 +
+    query[PERSON_ID] +
+    SQL_GET_EN_PART2 +
+    Number(query[TO]) +
+    SQL_GET_EN_PART3 +
+    Number(query[FROM]) +
+    SQL_GET_EN_PART4;
+  console.log("~~SQL for EN: ", SQL_GET_EN);
+  console.time("getEN-sql" + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_EN);
+  console.timeEnd("getEN-sql" + timestampLable);
+  return rawRecord.rows;
+}
 
 async function tpnQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
@@ -148,8 +177,8 @@ async function inOutDiluentsQuerySQLExecutor(conn, query) {
 }
 
 function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
-  let { arr1, arr2, arr3 } = rawRecords;
-  
+  let { arr1, arr2, arr3, arrEN } = rawRecords;
+
   let resultEvent = [];
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
@@ -364,7 +393,6 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
 
-
       let rowStart = row.START_UNIX;
       let rowEnd = row.END_UNIX + 1;
 
@@ -381,14 +409,12 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
 
       let zoneNumber =
-        Math.floor(
-          (Math.min(rowEnd, endTime) - currentTime) / timeInterval
-        ) + 1;
+        Math.floor((Math.min(rowEnd, endTime) - currentTime) / timeInterval) +
+        1;
       for (let i = 0; i < zoneNumber; i++) {
         let singleResult = {};
         let value = 0;
         let cTime = currentTime + i * timeInterval;
-
 
         if (i == 0) {
           value =
@@ -422,7 +448,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           value = (timeInterval * row.RESULT_VAL) / 3600;
         }
 
-        if (value < 0 ) {
+        if (value < 0) {
           console.log("error value <= 0: ", value);
         }
 
@@ -444,12 +470,41 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     }
   }
 
+  //example arrEN[indexArrEN] = {
+  // START_TIME_DTUNIX
+  // VOLUME
+
+  let timeENDict = {};
+  if (arrEN && arrEN.length) {
+    console.log("EN record size :", arrEN.length);
+    for (let row of arrEN) {
+      //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
+      let currentTime =
+        Math.floor(Math.max(row.START_TIME_DTUNIX, startTime) / timeInterval) *
+        timeInterval;
+
+      let singleResult = {};
+      let value = row.VOLUME;
+
+      if (currentTime in timeENDict) {
+        timeENDict[currentTime].value += value;
+      } else {
+        singleResult.value = value;
+        singleResult.short_label = "EN";
+        singleResult.time = currentTime;
+        singleResult.type = "1";
+        timeENDict[singleResult.time] = singleResult;
+      }
+    }
+  }
+
   let resultFlush = Object.values(timeFlushDict);
   let resultDrips = Object.values(timeDripsDict);
   let resultTPN = Object.values(timeTPNDict);
+  let resultEN = Object.values(timeENDict);
 
   //unsorted array from Event, Flush, Drips, TPN
-  let arr = [...resultEvent, ...resultFlush, ...resultDrips, ...resultTPN];
+  let arr = [...resultEvent, ...resultFlush, ...resultDrips, ...resultTPN, ...resultEN];
   arr.sort(function(a, b) {
     let keyA = a.time;
     let keyB = b.time;
@@ -519,10 +574,12 @@ async function parallelQuery(conn, new_query) {
   const task1 = await inOutEventQuerySQLExecutor(conn, new_query);
   const task2 = await inOutDiluentsQuerySQLExecutor(conn, new_query);
   const task3 = await tpnQuerySQLExecutor(conn, new_query);
+  const task4 = await enQuerySQLExecutor(conn, new_query);
   return {
     arr1: await task1,
     arr2: await task2,
-    arr3: await task3
+    arr3: await task3,
+    arrEN: await task4
   };
 }
 

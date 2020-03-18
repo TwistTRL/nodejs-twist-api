@@ -2,7 +2,7 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-26 12:24:41
+ * @Last Modified time: 2020-03-18 10:40:32
  */
 const express = require("express");
 const timeout = require("connect-timeout");
@@ -70,7 +70,12 @@ function initialize() {
     app.post("/login", function(req, res, next) {
       console.log("req.body :", req.body);
       var user = findUser(req.body.name, req.body.password);
+      console.log("user found: ", user);
+      currentAddress = req.connection.remoteAddress;
+      console.log('post login currentAddress :', currentAddress);
+
       if (user) {
+        console.log('ipWhiteList.includes(currentAddress) :', ipWhiteList.includes(currentAddress));
         if (currentAddress && !ipWhiteList.includes(currentAddress)) {
           ipWhiteList.push(currentAddress);
           console.log("ipWhiteList updated:", ipWhiteList);
@@ -104,9 +109,10 @@ function initialize() {
     app.use(haltOnTimedout);
 
     // all other go to /login
-    app.get("*", function(req, res) {
-      res.redirect("/login");
-    });
+    // app.get("*", function(req, res) {
+    //   console.log("any other pages to login");
+    //   res.sendFile(path.join(__dirname, "/login.html"));
+    // });
 
     function haltOnTimedout(req, res, next) {
       if (!req.timedout) {
