@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
- * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-03-17 15:00:59
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-03-18 14:45:23
  */
 
 /**
@@ -29,6 +29,7 @@ const FROM = "from";
 const TO = "to";
 const RESOLUTION = "resolution";
 var timeLable = 0;
+const UNIT_ML = "ml";
 
 const SQL_GET_TPN_PART1 = `
 SELECT  
@@ -250,12 +251,15 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         type1Dict = _updateRowToDict(currentTime, row, type1Dict);
       } else if (io_calcs == "2") {
         type2Dict = _updateRowToDict(currentTime, row, type2Dict);
+
       } else {
         console.log("Error IO_CALCS");
       }
     }
     console.log("null value number for In-Out Event records: ", countNull);
   }
+
+  console.log('type2Dict-- :', type2Dict["1550664000"]["STOOL"]);
 
   //example arr2 = {
   // START_UNIX,
@@ -669,24 +673,20 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         let currentCatDict = {
           name: catKey,
           value: catValue.value,
-          // unit: null, // see table intake_output
+          unit: UNIT_ML,
           items: []
         };
         if (catKey === "Nutrition") {
           Object.entries(catValue).forEach(([slKey, slValue]) => {
             if (slKey !== "value") {
-              console.log("catValue :", catValue);
-              console.log("slKey :", slKey);
-              console.log("slValue :", slValue);
-
               slValue.forEach(element => {
                 let currentSlDict = {
                   name: element.name,
                   value: element.value,
-                  // unit: null,
+                  unit: UNIT_ML,
                   items: element.items
                 };
-                console.log("currentSlDict :", currentSlDict);
+                // console.log("currentSlDict :", currentSlDict);
                 currentCatDict.items.push(currentSlDict);
               });
             }
@@ -712,11 +712,11 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
             let newSlDict;
             // item name is short label ,if no short label then label, then cat
-            if (slDict.short_labels) {
+            if (slDict.short_label) {
               newSlDict = {
-                name: slDict.short_labels,
+                name: slDict.short_label,
                 value: slDict.value,
-                // unit: null,
+                unit: UNIT_ML,
                 sub_cat: slDict.sub_cat,
                 label: slDict.label
               };
@@ -724,7 +724,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
               newSlDict = {
                 name: slDict.label,
                 value: slDict.value,
-                // unit: null,
+                unit: UNIT_ML,
                 sub_cat: slDict.sub_cat,
                 label: slDict.label
               };
@@ -732,7 +732,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
               newSlDict = {
                 name: catKey,
                 value: slDict.value,
-                // unit: null,
+                unit: UNIT_ML,
                 sub_cat: slDict.sub_cat
               };
             }
@@ -746,24 +746,25 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   });
 
   Object.entries(type2Dict).forEach(([timestampKey, timestampValue]) => {
+
     outDict[timestampKey] = [];
     Object.entries(timestampValue).forEach(([catKey, catValue]) => {
       if (catKey !== "value") {
         let currentCatDict = {
           name: catKey,
           value: catValue.value,
-          // unit: null, // see talbe intake_output
+          unit: UNIT_ML, // see talbe intake_output
           items: []
         };
 
         catValue.short_labels.forEach(slDict => {
           let newSlDict;
             // item name is short label ,if no short label then label, then cat
-            if (slDict.short_labels) {
+            if (slDict.short_label) {
               newSlDict = {
-                name: slDict.short_labels,
+                name: slDict.short_label,
                 value: slDict.value,
-                // unit: null,
+                unit: UNIT_ML,
                 sub_cat: slDict.sub_cat,
                 label: slDict.label
               };
@@ -771,7 +772,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
               newSlDict = {
                 name: slDict.label,
                 value: slDict.value,
-                // unit: null,
+                unit: UNIT_ML,
                 sub_cat: slDict.sub_cat,
                 label: slDict.label
               };
@@ -779,7 +780,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
               newSlDict = {
                 name: catKey,
                 value: slDict.value,
-                // unit: null,
+                unit: UNIT_ML,
                 sub_cat: slDict.sub_cat
               };
             }
@@ -791,20 +792,6 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     });
   });
 
-  // Object.values(type1Dict).forEach(elementTimestamp => {
-  //   for (let [key, value] of Object.entries(elementTimestamp)) {
-  //     if (key == "Infusions" || key == "Flushes") {
-  //       if (value && value.drugs) {
-  //         value.drugs.forEach(element => {
-  //           delete element.end_time;
-  //         });
-  //         value.drugs.sort((a, b) => b.rate - a.rate);
-  //       }
-  //     }
-  //   }
-  // });
-
-  // console.log('type1Dict :', type1Dict);
   return [inDict, outDict];
 }
 
@@ -856,29 +843,6 @@ function _updateRowToDict(currentTime, row, dict) {
   }
   return dict;
 }
-
-// function getWeightOnTime(timestamp, weightArray) {
-//   let timeArr = weightArray.map(item => item.DT_UNIX);
-//   let index = getBinarySearchNearest(timestamp, timeArr);
-//   let roundWeight =
-//     Math.round((weightArray[index].WEIGHT + Number.EPSILON) * 1000) / 1000;
-//   return roundWeight;
-// }
-
-// "short_labels": [
-//   {
-//       "short_label": "FOL",
-//       "value": -1685,
-//       "sub_cat": "Foley",
-//       "label": "FOLEY"
-//   },
-//   {
-//       "short_label": "UOP",
-//       "value": -10,
-//       "sub_cat": "Void",
-//       "label": "UOP"
-//   }
-// ]
 
 function binarySearch(ar, el, compare_fn) {
   if (compare_fn(ar[0].short_label, el.short_label)) {
