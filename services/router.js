@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-17 20:05:54
+ * @Last Modified time: 2020-03-18 11:26:37
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -847,45 +847,34 @@ router.post("/inout-v2", async (req, res) => {
 });
 
 /**
- * @api {post} /nutrition/macronutrients Macro Nutrients for Patient
+ * @api {get} /person/:person_id/nutrition/macronutrients Macro Nutrients
  * @apiVersion 0.0.2
  * @apiName macro-nutrients-for-patient
  * @apiGroup Person
- * 
  * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {Number} [from=0] Start timestamp.
- * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
- * @apiParam {Number} [resolution=3600] Binned time resolution.
- * @apiParamExample {json} Example of request in-out data
-        {
-          "person_id": EXAMPLE_PERSON_ID,
-          "from":1541030400,
-          "to":1542018000
-        }
-
  * @apiSuccessExample Success-Response:
  *  {
       fat: [
         {
-          time: unix,
-          value: Number,
-          unit: String
+          time: 150000000,
+          value: 0.1,
+          unit: "g"
         },
         ...
       ],
       protein: [
         {
-          time: unix,
-          value: Number,
-          unit: String
+          time: 150000000,
+          value: 0.2,
+          unit: "g"
         },
         ...
       ],
       cho: [
         {
-          time: unix,
-          value: Number,
-          unit: String
+          time: 150000000,
+          value: 0.15,
+          unit: "g"
         },
         ...
       ]
@@ -893,25 +882,19 @@ router.post("/inout-v2", async (req, res) => {
  *
  */
 
-router.post("/nutrition/macronutrients", async (req, res) => {
-  const query = req.body;
-  const person_id = query.person_id;
+router.get("/person/:person_id/nutrition/macronutrients", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log('person_id :', person_id);
   if (!Number.isInteger(person_id)) {
     res.send("Invalid person_id, should be integer.");
     return;
   }
-  
-  try {
-    const toSend = await getMacroNutrients(query);
-    res.send(toSend);
-  } catch (e) {
-    console.log(new Date());
-    console.log(e);
-    res.status(400);
-    res.send(e.toString());
-  }
+  console.log("getting macronutrients for %s ...", person_id);
+  const binds = {
+    person_id
+  };
+  res.send(await getMacroNutrients(binds));
 });
-
 
 /**
  * @api {post} /inout-tooltip In-Out Tooltip for Patient
