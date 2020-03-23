@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-23 15:11:19
+ * @Last Modified time: 2020-03-23 15:15:56
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2258,7 +2258,7 @@ router.post("/relational-query", async (req, res) => {
  */
 router.get("/settings/fluid/:item", (req, res) => {
   const item = req.params.item;
-  if (!item || !(item in settingsFluid)) {
+  if (!req || !(item in settingsFluid)) {
     res.send(settingsFluid)
   } else {
     res.send(settingsFluid[item]);
