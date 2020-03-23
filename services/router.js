@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-23 15:06:03
+ * @Last Modified time: 2020-03-23 15:11:19
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -153,7 +153,7 @@ router.post("/labs", async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(400);
+    // res.status(400);
     res.send(e.toString());
   }
 });
@@ -761,7 +761,7 @@ router.post("/inout", async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(400);
+    // res.status(400);
     res.send(e.toString());
   }
 });
@@ -842,7 +842,7 @@ router.post("/inout-v2", async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(400);
+    // res.status(400);
     res.send(e.toString());
   }
 });
@@ -997,7 +997,7 @@ router.post("/inout-tooltip", async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(400);
+    // res.status(400);
     res.send(e.toString());
   }
 });
@@ -1129,7 +1129,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(400);
+    // res.status(400);
     res.send(e.toString());
   }
 });
@@ -1260,7 +1260,7 @@ router.post("/vitals", async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(400);
+    // res.status(400);
     res.send(e.toString());
   }
 });
@@ -1426,7 +1426,7 @@ router.post("/vitalsv2", async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(400);
+    // res.status(400);
     res.send(e.toString());
   }
 });
@@ -1483,7 +1483,7 @@ router.post("/vitals/temperature", async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(400);
+    // res.status(400);
     res.send(e.toString());
   }
 });
@@ -1599,7 +1599,7 @@ router.post("/test/hr", async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(400);
+    // res.status(400);
     res.send(e.toString());
   }
 });
@@ -1654,7 +1654,7 @@ router.post("/test/labs", async (req, res) => {
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    res.status(400);
+    // res.status(400);
     res.send(e.toString());
   }
 });
