@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-23 15:15:56
+ * @Last Modified time: 2020-03-23 15:38:29
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2232,6 +2232,7 @@ router.post("/relational-query", async (req, res) => {
         `SL_TO_CAT`,
         `SL_TO_CALCS`,
         `SL_ORDER_ARRAY`,
+        `SL_COLOR_DICT`,
         `CAT_ARRRY`,
         `CAT_TO_SL`,
         `CAT_COLOR_DICT`,
@@ -2247,6 +2248,7 @@ router.post("/relational-query", async (req, res) => {
         SL_TO_CAT,
         SL_TO_CALCS,
         SL_ORDER_ARRAY,
+        SL_COLOR_DICT,
         CAT_ARRRY,
         CAT_TO_SL,
         CAT_COLOR_DICT,
