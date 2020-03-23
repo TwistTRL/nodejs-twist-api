@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-23 14:47:04
+ * @Last Modified time: 2020-03-23 15:06:03
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2237,10 +2237,6 @@ router.post("/relational-query", async (req, res) => {
         `CAT_COLOR_DICT`,
         `CAT_CAP_TO_LOWER_MAP`,
         `CAT_ORDER_ARRAY`,
-        `RXCUI_TO_CAT_TITLE_DICT`,
-        `DRUG_TO_CAT_TITLE_DICT`,
-        `CAT_TITLE_TO_CAT_DICT`,
-        `MORPHINE_EQUIVALENTS_DICT`,
         `IN_OUT_CODES_XLSX_PATH`} item for in-out-code
 
  * @apiSuccessExample Success-Response:
@@ -2256,17 +2252,10 @@ router.post("/relational-query", async (req, res) => {
         CAT_COLOR_DICT,
         CAT_CAP_TO_LOWER_MAP,
         CAT_ORDER_ARRAY,
-        RXCUI_TO_CAT_TITLE_DICT,
-        DRUG_TO_CAT_TITLE_DICT,
-        CAT_TITLE_TO_CAT_DICT,
-        MORPHINE_EQUIVALENTS_DICT,
         IN_OUT_CODES_XLSX_PATH
       }
  
  */
-router.get("/settings/fluid/", (req, res) => {  
-  res.send(settingsFluid);
-});
 router.get("/settings/fluid/:item", (req, res) => {
   const item = req.params.item;
   if (!item || !(item in settingsFluid)) {
@@ -2284,6 +2273,7 @@ router.get("/settings/fluid/:item", (req, res) => {
  * @apiDescription some setting of displaying med charts
  * 
  *  from [medcat.xlsx](./files/medcat.xlsx)
+ * if `item` is empty or not valid, return all settings json
 
  * @apiParam {String=`DRUG_INFUSIONS_LIST`,
         `DRUG_INTERMITTENT_LIST`,
@@ -2294,7 +2284,11 @@ router.get("/settings/fluid/:item", (req, res) => {
         `RXCUI_BY_CAT_ORDER_DICT`,
         `RXCUI_TO_CAT_DICT`,
         `DRUG_BY_CAT_ORDER_DICT`,
-        `MEDICATION_CATEGORY_STRUCTURE`,
+        `RXCUI_TO_CAT_TITLE_DICT`,
+        `DRUG_TO_CAT_TITLE_DICT`,
+        `CAT_TITLE_TO_CAT_DICT`,
+        `MORPHINE_EQUIVALENTS_DICT`,
+        `MEDICATION_CATEGORY_STRUCTURE`,        
         `MED_CAT_XLSX_PATH`} item default `MEDICATION_CATEGORY_STRUCTURE`.
  * @apiSuccessExample Success-Response:
  *    {
@@ -2307,6 +2301,10 @@ router.get("/settings/fluid/:item", (req, res) => {
         RXCUI_BY_CAT_ORDER_DICT,
         RXCUI_TO_CAT_DICT,
         DRUG_BY_CAT_ORDER_DICT,
+        RXCUI_TO_CAT_TITLE_DICT,
+        DRUG_TO_CAT_TITLE_DICT,
+        CAT_TITLE_TO_CAT_DICT,
+        MORPHINE_EQUIVALENTS_DICT,
         MEDICATION_CATEGORY_STRUCTURE,
         MED_CAT_XLSX_PATH,
       }
