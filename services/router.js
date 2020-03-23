@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-18 11:26:37
+ * @Last Modified time: 2020-03-23 14:47:04
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -54,6 +54,7 @@ const test_crash = require("../test/test-crash");
 const { testAbnormalMRN } = require("../test/test_abnormal_mrn");
 
 const settingsFluid = require("../db_relation/in-out-db-relation");
+
 const settingsMed = require("../db_relation/drug-category-relation");
 
 const {getAccessToken, getPDFUrl} = require("../cerner_apis/get-FHIR-api");
@@ -2223,7 +2224,9 @@ router.post("/relational-query", async (req, res) => {
  * @apiDescription some setting of displaying fluid charts
  * 
  * from [inoutcode.xlsx](./files/inoutcode.xlsx)
- * @apiParam {String=`EVENT_CD_DICT`,
+ * if `item` is empty or not valid, return all settings json
+ * @apiParam {String=``,
+        `EVENT_CD_DICT`,
         `SL_TO_LABEL`,
         `SL_TO_SUBCAT`,
         `SL_TO_CAT`,
@@ -2234,6 +2237,10 @@ router.post("/relational-query", async (req, res) => {
         `CAT_COLOR_DICT`,
         `CAT_CAP_TO_LOWER_MAP`,
         `CAT_ORDER_ARRAY`,
+        `RXCUI_TO_CAT_TITLE_DICT`,
+        `DRUG_TO_CAT_TITLE_DICT`,
+        `CAT_TITLE_TO_CAT_DICT`,
+        `MORPHINE_EQUIVALENTS_DICT`,
         `IN_OUT_CODES_XLSX_PATH`} item for in-out-code
 
  * @apiSuccessExample Success-Response:
@@ -2249,13 +2256,24 @@ router.post("/relational-query", async (req, res) => {
         CAT_COLOR_DICT,
         CAT_CAP_TO_LOWER_MAP,
         CAT_ORDER_ARRAY,
+        RXCUI_TO_CAT_TITLE_DICT,
+        DRUG_TO_CAT_TITLE_DICT,
+        CAT_TITLE_TO_CAT_DICT,
+        MORPHINE_EQUIVALENTS_DICT,
         IN_OUT_CODES_XLSX_PATH
       }
  
  */
+router.get("/settings/fluid/", (req, res) => {  
+  res.send(settingsFluid);
+});
 router.get("/settings/fluid/:item", (req, res) => {
   const item = req.params.item;
-  res.send(settingsFluid[item]);
+  if (!item || !(item in settingsFluid)) {
+    res.send(settingsFluid)
+  } else {
+    res.send(settingsFluid[item]);
+  } 
 });
 
 /**
