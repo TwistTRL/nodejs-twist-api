@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-23 15:38:29
+ * @Last Modified time: 2020-03-24 11:54:56
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2233,7 +2233,7 @@ router.post("/relational-query", async (req, res) => {
         `SL_TO_CALCS`,
         `SL_ORDER_ARRAY`,
         `SL_COLOR_DICT`,
-        `CAT_ARRRY`,
+        `CAT_ARRAY`,
         `CAT_TO_SL`,
         `CAT_COLOR_DICT`,
         `CAT_CAP_TO_LOWER_MAP`,
@@ -2249,7 +2249,7 @@ router.post("/relational-query", async (req, res) => {
         SL_TO_CALCS,
         SL_ORDER_ARRAY,
         SL_COLOR_DICT,
-        CAT_ARRRY,
+        CAT_ARRAY,
         CAT_TO_SL,
         CAT_COLOR_DICT,
         CAT_CAP_TO_LOWER_MAP,
@@ -2265,6 +2265,10 @@ router.get("/settings/fluid/:item", (req, res) => {
   } else {
     res.send(settingsFluid[item]);
   } 
+});
+
+router.get("/settings/fluid", (req, res) => {
+  res.send(settingsFluid);
 });
 
 /**
@@ -2290,6 +2294,7 @@ router.get("/settings/fluid/:item", (req, res) => {
         `DRUG_TO_CAT_TITLE_DICT`,
         `CAT_TITLE_TO_CAT_DICT`,
         `MORPHINE_EQUIVALENTS_DICT`,
+        `MORPHINE_EQUIVALENTS_ORDER_ARRAY`,
         `MEDICATION_CATEGORY_STRUCTURE`,        
         `MED_CAT_XLSX_PATH`} item default `MEDICATION_CATEGORY_STRUCTURE`.
  * @apiSuccessExample Success-Response:
@@ -2307,6 +2312,7 @@ router.get("/settings/fluid/:item", (req, res) => {
         DRUG_TO_CAT_TITLE_DICT,
         CAT_TITLE_TO_CAT_DICT,
         MORPHINE_EQUIVALENTS_DICT,
+        MORPHINE_EQUIVALENTS_ORDER_ARRAY,
         MEDICATION_CATEGORY_STRUCTURE,
         MED_CAT_XLSX_PATH,
       }
