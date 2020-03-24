@@ -1,17 +1,22 @@
 /*
- * @Author: Peng 
- * @Date: 2019-12-27 12:54:04 
+ * @Author: Peng
+ * @Date: 2019-12-27 12:54:04
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-24 11:52:29
+ * @Last Modified time: 2020-03-24 16:06:42
  */
 
-
- //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // define the category based on drug string
 // will updating for more
 // Table: DRUG_INFUSIONS
 
-const DRUG_INFUSIONS_LIST = ["DOPamine", "EPINEPHrine", "milrinone", "vasopressin", "norepinephrine"];
+const DRUG_INFUSIONS_LIST = [
+  "DOPamine",
+  "EPINEPHrine",
+  "milrinone",
+  "vasopressin",
+  "norepinephrine"
+];
 const DRUG_INTERMITTENT_LIST = [
   "epinephrine",
   "calcium chloride",
@@ -23,14 +28,7 @@ const DRUG_INTERMITTENT_LIST = [
   "albumin human (albumin human 25% intravenous solution)"
 ];
 
-
-const ORANGE_DRUG_LIST = [
-  "cisatracurium",
-  "vecuronium",
-  "pancuronium",
-  "rocuronium",
-  "atracurium"
-];
+const ORANGE_DRUG_LIST = ["cisatracurium", "vecuronium", "pancuronium", "rocuronium", "atracurium"];
 
 const {
   RXCUI_LIST,
@@ -63,8 +61,8 @@ const FLUID_SETTINGS = {
   CAT_TITLE_TO_CAT_DICT,
   MORPHINE_EQUIVALENTS_DICT,
   MORPHINE_EQUIVALENTS_ORDER_ARRAY,
-  MED_CAT_XLSX_PATH,
-}
+  MED_CAT_XLSX_PATH
+};
 
 /**
  * 
@@ -123,12 +121,39 @@ albumin human (albumin human 25% intravenous solution)
 
  */
 
+const color_array = [
+  "#00429d",
+  "#2b57a7",
+  "#426cb0",
+  "#5681b9",
+  "#6997c2",
+  "#7daeca",
+  "#93c4d2",
+  "#abdad9",
+  "#caefdf",
+  "#ffffe0",
+  "#ffe2ca",
+  "#ffc4b4",
+  "#ffa59e",
+  "#f98689",
+  "#ed6976",
+  "#dd4c65",
+  "#ca2f55",
+  "#b11346",
+  "#93003a"
+];
+
+var MORPHINE_EQUIVALENTS_COLOR_DICT = {};
+for (let i = 0; i < MORPHINE_EQUIVALENTS_ORDER_ARRAY.length; i++) {
+  MORPHINE_EQUIVALENTS_COLOR_DICT[MORPHINE_EQUIVALENTS_ORDER_ARRAY[i]] =
+    color_array[i % color_array.length];
+}
 
 module.exports = {
   DRUG_INFUSIONS_LIST,
   DRUG_INTERMITTENT_LIST,
   ORANGE_DRUG_LIST,
-  
+
   RXCUI_LIST,
   DRUG_LIST,
   CAT_LIST,
@@ -142,6 +167,7 @@ module.exports = {
   CAT_TITLE_TO_CAT_DICT,
   MORPHINE_EQUIVALENTS_DICT,
   MORPHINE_EQUIVALENTS_ORDER_ARRAY,
+  MORPHINE_EQUIVALENTS_COLOR_DICT,
   MED_CAT_XLSX_PATH,
-  FLUID_SETTINGS,
-}
+  FLUID_SETTINGS
+};

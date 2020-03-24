@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-24 11:54:56
+ * @Last Modified time: 2020-03-24 16:07:10
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2295,6 +2295,7 @@ router.get("/settings/fluid", (req, res) => {
         `CAT_TITLE_TO_CAT_DICT`,
         `MORPHINE_EQUIVALENTS_DICT`,
         `MORPHINE_EQUIVALENTS_ORDER_ARRAY`,
+        `MORPHINE_EQUIVALENTS_COLOR_DICT`,
         `MEDICATION_CATEGORY_STRUCTURE`,        
         `MED_CAT_XLSX_PATH`} item default `MEDICATION_CATEGORY_STRUCTURE`.
  * @apiSuccessExample Success-Response:
@@ -2313,6 +2314,7 @@ router.get("/settings/fluid", (req, res) => {
         CAT_TITLE_TO_CAT_DICT,
         MORPHINE_EQUIVALENTS_DICT,
         MORPHINE_EQUIVALENTS_ORDER_ARRAY,
+        MORPHINE_EQUIVALENTS_COLOR_DICT,
         MEDICATION_CATEGORY_STRUCTURE,
         MED_CAT_XLSX_PATH,
       }
