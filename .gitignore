@@ -2,6 +2,7 @@
 .vscode
 apidoc/
 temp/
+config/ipList.txt
 docs/apidoc
 docs/apidoc2
 docs/files/*

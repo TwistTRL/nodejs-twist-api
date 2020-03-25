@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-24 16:07:10
+ * @Last Modified time: 2020-03-25 18:58:20
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2293,6 +2293,7 @@ router.get("/settings/fluid", (req, res) => {
         `RXCUI_TO_CAT_TITLE_DICT`,
         `DRUG_TO_CAT_TITLE_DICT`,
         `CAT_TITLE_TO_CAT_DICT`,
+        `CAT_TITLE_COLOR_DICT`,
         `MORPHINE_EQUIVALENTS_DICT`,
         `MORPHINE_EQUIVALENTS_ORDER_ARRAY`,
         `MORPHINE_EQUIVALENTS_COLOR_DICT`,
@@ -2312,6 +2313,7 @@ router.get("/settings/fluid", (req, res) => {
         RXCUI_TO_CAT_TITLE_DICT,
         DRUG_TO_CAT_TITLE_DICT,
         CAT_TITLE_TO_CAT_DICT,
+        CAT_TITLE_COLOR_DICT,
         MORPHINE_EQUIVALENTS_DICT,
         MORPHINE_EQUIVALENTS_ORDER_ARRAY,
         MORPHINE_EQUIVALENTS_COLOR_DICT,

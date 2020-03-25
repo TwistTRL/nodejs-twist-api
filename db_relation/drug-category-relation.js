@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2019-12-27 12:54:04
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-24 21:52:37
+ * @Last Modified time: 2020-03-25 18:58:23
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,80 +47,7 @@ const {
   MED_CAT_XLSX_PATH
 } = require("twist-xlsx");
 
-const FLUID_SETTINGS = {
-  RXCUI_LIST,
-  DRUG_LIST,
-  CAT_LIST,
-  RXCUI_BY_CAT_ORDER_DICT,
-  RXCUI_TO_CAT_DICT,
-  DRUG_BY_CAT_ORDER_DICT,
-  DRUG_TO_CAT_DICT,
-  MEDICATION_CATEGORY_STRUCTURE,
-  RXCUI_TO_CAT_TITLE_DICT,
-  DRUG_TO_CAT_TITLE_DICT,
-  CAT_TITLE_TO_CAT_DICT,
-  MORPHINE_EQUIVALENTS_DICT,
-  MORPHINE_EQUIVALENTS_ORDER_ARRAY,
-  MED_CAT_XLSX_PATH
-};
-
-/**
- * 
- * defination of these drugs:
- * 
- * Peng 1/2/20
- * 
-
-`epinephrine` is :
-epinephrine
-
-
-<!-- epinephrine OR preparation
-epinephrine topical
-epinephrine-lidocaine
-epinephrine-lidocaine (lidocaine (buffered) 1% with EPInephrine 1:200,000 inj)
-epinephrine/lidocaine/tetracaine topical
-epinephrine/lidocaine/tetracaine topical (LET) -->
-
-
-
-`calcium` is :
-calcium chloride
-calcium gluconate
-calcium gluconate (calcium GLUCONATE dose (PIV))
-
-<!-- calcium acetate
-calcium carbonate
-calcium carbonate-magnesium hydroxide
-calcium citrate
-calcium glubionate
-calcium phosphate/placebo
-calcium-vitamin D
-calcium-vitamin D (Citracal + D) -->
-
-
-
-`hydrocortisone` is :
-hydrocortisone
-
-<!-- hydrocortisone topical
-hydrocortisone topical (Anusol HC)
-hydrocortisone topical (hydrocortisone 1% topical cream)
-hydrocortisone topical (hydrocortisone 1% topical ointment)
-hydrocortisone topical (hydrocortisone 2.5% topical ointment)
-hydrocortisone-lidocaine topical w psyll
-hydrocortisone/neomycin/poly B ophth
-hydrocortisone/neomycin/polymyxin B otic -->
-
-`albumin 5%` is:
-albumin human
-albumin human (albumin human 5% intravenous solution)
-
-`albumin 25%` is :
-albumin human (albumin human 25% intravenous solution)
-
- */
-
+// right now color_array hard coded for both class color and drug color 
 const color_array = [
   "#B33300",
   "#CC80CC",
@@ -157,6 +84,48 @@ for (let i = 0; i < MORPHINE_EQUIVALENTS_ORDER_ARRAY.length; i++) {
     color_array[i % color_array.length];
 }
 
+var CAT_TITLE_COLOR_DICT = {};
+let index = 0;
+for (let catTitle in CAT_TITLE_TO_CAT_DICT) {
+  CAT_TITLE_COLOR_DICT[catTitle] = color_array[index % color_array.length];
+  index ++;
+}
+
+MEDICATION_CATEGORY_STRUCTURE.forEach(catObj => {
+  catObj.children.forEach(drugObj => {
+    let drugColor = "#AED6F1";
+    if (drugObj.name in DRUG_TO_CAT_TITLE_DICT) {
+      DRUG_TO_CAT_TITLE_DICT[drugObj.name].forEach(catTitle => {
+        if (CAT_TITLE_TO_CAT_DICT[catTitle] === catObj.name) {
+          drugColor = CAT_TITLE_COLOR_DICT[catTitle];
+        }
+      });  
+    }        
+    drugObj.classColor = drugColor;    
+  });
+});
+
+// console.log('MEDICATION_CATEGORY_STRUCTURE :', MEDICATION_CATEGORY_STRUCTURE);
+
+const FLUID_SETTINGS = {
+  RXCUI_LIST,
+  DRUG_LIST,
+  CAT_LIST,
+  RXCUI_BY_CAT_ORDER_DICT,
+  RXCUI_TO_CAT_DICT,
+  DRUG_BY_CAT_ORDER_DICT,
+  DRUG_TO_CAT_DICT,
+  MEDICATION_CATEGORY_STRUCTURE,
+  RXCUI_TO_CAT_TITLE_DICT,
+  DRUG_TO_CAT_TITLE_DICT,
+  CAT_TITLE_TO_CAT_DICT,
+  CAT_TITLE_COLOR_DICT,
+  MORPHINE_EQUIVALENTS_DICT,
+  MORPHINE_EQUIVALENTS_ORDER_ARRAY,
+  MORPHINE_EQUIVALENTS_COLOR_DICT,
+  MED_CAT_XLSX_PATH
+};
+
 module.exports = {
   DRUG_INFUSIONS_LIST,
   DRUG_INTERMITTENT_LIST,
@@ -173,6 +142,7 @@ module.exports = {
   RXCUI_TO_CAT_TITLE_DICT,
   DRUG_TO_CAT_TITLE_DICT,
   CAT_TITLE_TO_CAT_DICT,
+  CAT_TITLE_COLOR_DICT,
   MORPHINE_EQUIVALENTS_DICT,
   MORPHINE_EQUIVALENTS_ORDER_ARRAY,
   MORPHINE_EQUIVALENTS_COLOR_DICT,
