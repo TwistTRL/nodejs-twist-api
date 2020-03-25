@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2019-12-27 12:54:04
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-24 16:06:42
+ * @Last Modified time: 2020-03-24 21:52:37
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -122,25 +122,33 @@ albumin human (albumin human 25% intravenous solution)
  */
 
 const color_array = [
-  "#00429d",
-  "#2b57a7",
-  "#426cb0",
-  "#5681b9",
-  "#6997c2",
-  "#7daeca",
-  "#93c4d2",
-  "#abdad9",
-  "#caefdf",
-  "#ffffe0",
-  "#ffe2ca",
-  "#ffc4b4",
-  "#ffa59e",
-  "#f98689",
-  "#ed6976",
-  "#dd4c65",
-  "#ca2f55",
-  "#b11346",
-  "#93003a"
+  "#B33300",
+  "#CC80CC",
+  "#66664D",
+  "#991AFF",
+  "#E666FF",
+  "#4DB3FF",
+  "#1AB399",
+  "#E666B3",
+  "#33991A",
+  "#CC9999",
+  "#B3B31A",
+  "#00E680",
+  "#4D8066",
+  "#809980",
+  "#E6FF80",
+  "#1AFF33",
+  "#999933",
+  "#FF3380",
+  "#CCCC00",
+  "#66E64D",
+  "#4D80CC",
+  "#9900B3",
+  "#E64D66",
+  "#4DB380",
+  "#FF4D4D",
+  "#99E6E6",
+  "#6666FF"
 ];
 
 var MORPHINE_EQUIVALENTS_COLOR_DICT = {};
