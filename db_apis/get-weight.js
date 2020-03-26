@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-02-12 12:04:55 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-12 12:55:53
+ * @Last Modified time: 2020-03-26 12:40:59
  */
 
 const database = require("../services/database");
@@ -40,7 +40,16 @@ async function weightCalcQuerySQLExecutor(conn, person_id) {
   console.time('getWeightCalc-sql' + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_WEIGHT_CALC);
   console.timeEnd('getWeightCalc-sql' + timestampLable);
-  return rawRecord.rows;
+
+  console.log('rawRecord.rows :', rawRecord.rows);
+
+  let ret = [];
+  rawRecord.rows.forEach(element => {
+    if (element["WEIGHT_CALC"]) {
+      ret.push(element);
+    }
+  });
+  return ret;
 }
 
 function getWeightOnTime(timestamp, weightArray) {

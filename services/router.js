@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-26 12:33:34
+ * @Last Modified time: 2020-03-26 12:36:34
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2045,7 +2045,7 @@ router.get("/person/:person_id/weight-calc", async (req, res) => {
     res.send("Invalid person_id. Should be integer.");
     return;
   }
-  res.send(await getWeight(person_id));
+  res.send(await getWeightCalc(person_id));
 });
 
 /**
