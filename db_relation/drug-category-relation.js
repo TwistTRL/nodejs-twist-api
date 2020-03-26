@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2019-12-27 12:54:04
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-25 18:58:23
+ * @Last Modified time: 2020-03-26 13:36:39
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -98,6 +98,7 @@ MEDICATION_CATEGORY_STRUCTURE.forEach(catObj => {
       DRUG_TO_CAT_TITLE_DICT[drugObj.name].forEach(catTitle => {
         if (CAT_TITLE_TO_CAT_DICT[catTitle] === catObj.name) {
           drugColor = CAT_TITLE_COLOR_DICT[catTitle];
+          drugObj.drugClass = catTitle;
         }
       });  
     }        
