@@ -37,20 +37,20 @@ async function enQuerySQLExecutor(conn, binds) {
 }
 
 function _calculateRawRecords(arrEN) {
-  let fatArr = [];
-  let proteinArr = [];
-  let choArr = [];
+  let fat = [];
+  let protein = [];
+  let cho = [];
   if (arrEN && arrEN.length) {
     console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
       //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
       let time = row["START_TIME_DTUNIX"];
-      fatArr.push({time: time, value: row["G_FAT"], unit: "g"});
-      proteinArr.push({time: time, value: row["G_PTN"], unit: "g"});
-      choArr.push({time: time, value: row["G_CHO"], unit: "g"});
+      fat.push({time: time, value: row["G_FAT"], unit: "g"});
+      protein.push({time: time, value: row["G_PTN"], unit: "g"});
+      cho.push({time: time, value: row["G_CHO"], unit: "g"});
     }
   }
-  return {fatArr, proteinArr, choArr};
+  return {fat, protein, cho};
 }
 
 // {
@@ -80,18 +80,6 @@ function _calculateRawRecords(arrEN) {
 //   ]
 // }
 
-
-/**
- * query:
- * {
-    "person_id": 11111111,
-    "from":3600,   //optional
-    "to":7200,     //optional
-}
-
- * @param {*} conn 
- * @param {*} query 
- */
 const getMacroNutrients = database.withConnection(async function(
   conn,
   binds
