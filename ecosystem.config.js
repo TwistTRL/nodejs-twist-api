@@ -27,5 +27,8 @@ module.exports = {
             "DWTST_DB":process.env.DWTST_CONNECTION_STRING
         }
       }
-  ]
+  ],
+  DEV_PORT,
+  STA_PORT,
+  PROD_PORT
 }

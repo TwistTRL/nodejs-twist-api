@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-28 10:45:44
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-27 22:47:16
+ * @Last Modified time: 2020-03-27 23:13:28
  */
 
 const replace = require("replace-in-file");
@@ -10,8 +10,9 @@ const fs = require("fs");
 const path = require("path");
 const XLSX = require("xlsx");
 
-const { IN_OUT_CODES_XLSX_PATH } = require("./db_relation/in-out-db-relation");
+const { DEV_PORT, HTTP_PORT } = require("./ecosystem.config");
 
+const { IN_OUT_CODES_XLSX_PATH } = require("./db_relation/in-out-db-relation");
 const { MED_CAT_XLSX_PATH } = require("./db_relation/drug-category-relation");
 
 const options = {
@@ -22,32 +23,32 @@ const options = {
 
 const options1 = {
   files: "./config/apidoc-config/apidoc.json",
-  from: process.env.DEV_PORT.toString(),
-  to: process.env.HTTP_PORT.toString()
+  from: DEV_PORT.toString(),
+  to: HTTP_PORT.toString()
 };
 const options2 = {
   files: "./config/apidoc-config/apidoc.json",
-  from: process.env.DEV_PORT.toString(),
-  to: process.env.HTTP_PORT.toString()
+  from: DEV_PORT.toString(),
+  to: HTTP_PORT.toString()
 };
 const options3 = {
   files: "./config/apidoc2-config/apidoc.json",
-  from: process.env.DEV_PORT.toString(),
-  to: process.env.HTTP_PORT.toString()
+  from: DEV_PORT.toString(),
+  to: HTTP_PORT.toString()
 };
 const options4 = {
   files: "./config/apidoc2-config/apidoc.json",
-  from: process.env.DEV_PORT.toString(),
-  to: process.env.HTTP_PORT.toString()
+  from: DEV_PORT.toString(),
+  to: HTTP_PORT.toString()
 };
 const options5 = {
   files: "./config/web-server-config.js",
-  from: process.env.DEV_PORT.toString(),
-  to: process.env.HTTP_PORT.toString()
+  from: DEV_PORT.toString(),
+  to: HTTP_PORT.toString()
 };
 
 async function startReplacString() {
-  if (process.env.HTTP_PORT == null) {
+  if (HTTP_PORT == null) {
     await replace(options1);
     await replace(options2);
     await replace(options3);
