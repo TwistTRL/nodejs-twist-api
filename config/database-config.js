@@ -8,7 +8,7 @@ function splitConnectionString(rawConnectionString){
 }
 
 console.log('process.env.NODE_ENV :', process.env.NODE_ENV);
-let {user,password,connectString} = splitConnectionString(process.env.DWTST_DB)
+let {user,password,connectString} = splitConnectionString(process.env.DWTST_DB || process.env.DWTST_CONNECTION_STRING)
 
 module.exports = {
   user,
