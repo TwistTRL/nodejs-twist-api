@@ -10,7 +10,6 @@ function splitConnectionString(rawConnectionString) {
   throw new Error('database connection user or password error!')
 }
 
-console.log("process.env.NODE_ENV :", process.env.NODE_ENV);
 let { user, password, connectString } = splitConnectionString(
   process.env.DWTST_DB || process.env.DWTST_CONNECTION_STRING
 );

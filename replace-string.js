@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-01-28 10:45:44
- * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-02-25 06:36:28
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-03-27 22:47:16
  */
 
 const replace = require("replace-in-file");
@@ -22,28 +22,28 @@ const options = {
 
 const options1 = {
   files: "./config/apidoc-config/apidoc.json",
-  from: "3100",
-  to: "3333"
+  from: process.env.DEV_PORT.toString(),
+  to: process.env.HTTP_PORT.toString()
 };
 const options2 = {
   files: "./config/apidoc-config/apidoc.json",
-  from: "3100",
-  to: "3333"
+  from: process.env.DEV_PORT.toString(),
+  to: process.env.HTTP_PORT.toString()
 };
 const options3 = {
   files: "./config/apidoc2-config/apidoc.json",
-  from: "3100",
-  to: "3333"
+  from: process.env.DEV_PORT.toString(),
+  to: process.env.HTTP_PORT.toString()
 };
 const options4 = {
   files: "./config/apidoc2-config/apidoc.json",
-  from: "3100",
-  to: "3333"
+  from: process.env.DEV_PORT.toString(),
+  to: process.env.HTTP_PORT.toString()
 };
 const options5 = {
   files: "./config/web-server-config.js",
-  from: "3100",
-  to: "3333"
+  from: process.env.DEV_PORT.toString(),
+  to: process.env.HTTP_PORT.toString()
 };
 
 async function startReplacString() {
@@ -130,8 +130,11 @@ function copyXlsxFile() {
           item.RXCUI,
           item.MEDICATION,
           item["TWIST CLASS"],
+          item["CLASS TITLE"],
           item.WITHIN_CLASS_DISPLAY_HIERARCHY,
-          item.CONDITION,
+          item.Route,
+          item["Equivalents (mg)"],
+          item.Comments,
           item.DRUG_CLASS,
           item.DRUG_CLASS_MoA,
           item.DRUG_CLASS_THERAPEUTIC
