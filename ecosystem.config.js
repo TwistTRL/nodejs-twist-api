@@ -3,7 +3,7 @@ module.exports = {
       {
         name: "nodejs-twist-api",
         script: "./index.js",
-        watch: true,
+        watch: false,
         env: {
             "HTTP_PORT": 3100,
             "NODE_ENV": "development",

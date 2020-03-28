@@ -7,7 +7,7 @@ function splitConnectionString(rawConnectionString) {
     let connectString = splited[1];
     return { user, password, connectString };
   }
-  return { user: null, password: null, connectString: null };
+  throw new Error('database connection user or password error!')
 }
 
 console.log("process.env.NODE_ENV :", process.env.NODE_ENV);
