@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-28 10:45:44
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-27 23:26:49
+ * @Last Modified time: 2020-03-27 23:42:00
  */
 
 const replace = require("replace-in-file");
@@ -104,12 +104,12 @@ function copyXlsxFile() {
 
         fs.writeFile("./docs/files/xlsx.log", new Date().toString(), function(err) {
           if (err) throw err;
-          console.log("Saved current time!");
+          // console.log("Saved current time!");
         });
 
         fs.writeFile("./docs/files/xlsx.json", JSON.stringify(datatable_json), function(err) {
           if (err) throw err;
-          console.log("Saved json file!");
+          // console.log("Saved json file!");
         });
       });
 
@@ -136,14 +136,14 @@ function copyXlsxFile() {
 
         fs.writeFile("./docs/files/xlsx_medcat.log", new Date().toString(), function(err) {
           if (err) throw err;
-          console.log("Saved current time for medcat!");
+          // console.log("Saved current time for medcat!");
         });
 
         fs.writeFile("./docs/files/xlsx_medcat.json", JSON.stringify(datatable_json), function(
           err
         ) {
           if (err) throw err;
-          console.log("Saved json file for medcat!");
+          // console.log("Saved json file for medcat!");
         });
       });
     });
