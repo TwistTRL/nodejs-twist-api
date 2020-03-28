@@ -10,7 +10,7 @@ const fs = require("fs");
 const path = require("path");
 const XLSX = require("xlsx");
 
-const { DEV_PORT, HTTP_PORT } = require("./ecosystem.config");
+const { DEV_PORT } = require("./ecosystem.config");
 
 const { IN_OUT_CODES_XLSX_PATH } = require("./db_relation/in-out-db-relation");
 const { MED_CAT_XLSX_PATH } = require("./db_relation/drug-category-relation");
@@ -24,37 +24,35 @@ const options = {
 const options1 = {
   files: "./config/apidoc-config/apidoc.json",
   from: DEV_PORT.toString(),
-  to: HTTP_PORT.toString()
+  to: process.env.HTTP_PORT.toString()
 };
 const options2 = {
   files: "./config/apidoc-config/apidoc.json",
   from: DEV_PORT.toString(),
-  to: HTTP_PORT.toString()
+  to: process.env.HTTP_PORT.toString()
 };
 const options3 = {
   files: "./config/apidoc2-config/apidoc.json",
   from: DEV_PORT.toString(),
-  to: HTTP_PORT.toString()
+  to: process.env.HTTP_PORT.toString()
 };
 const options4 = {
   files: "./config/apidoc2-config/apidoc.json",
   from: DEV_PORT.toString(),
-  to: HTTP_PORT.toString()
+  to: process.env.HTTP_PORT.toString()
 };
 const options5 = {
   files: "./config/web-server-config.js",
   from: DEV_PORT.toString(),
-  to: HTTP_PORT.toString()
+  to: process.env.HTTP_PORT.toString()
 };
 
 async function startReplacString() {
-  if (HTTP_PORT == null) {
-    await replace(options1);
-    await replace(options2);
-    await replace(options3);
-    await replace(options4);
-    await replace(options5);
-  }
+  await replace(options1);
+  await replace(options2);
+  await replace(options3);
+  await replace(options4);
+  await replace(options5);
 
   if (process.env.TEST_PERSON_ID != null) {
     replaceID();
