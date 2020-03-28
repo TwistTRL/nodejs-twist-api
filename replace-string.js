@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-28 10:45:44
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-27 23:13:28
+ * @Last Modified time: 2020-03-27 23:26:49
  */
 
 const replace = require("replace-in-file");
@@ -41,18 +41,12 @@ const options4 = {
   from: DEV_PORT.toString(),
   to: process.env.HTTP_PORT.toString()
 };
-const options5 = {
-  files: "./config/web-server-config.js",
-  from: DEV_PORT.toString(),
-  to: process.env.HTTP_PORT.toString()
-};
 
 async function startReplacString() {
   await replace(options1);
   await replace(options2);
   await replace(options3);
   await replace(options4);
-  await replace(options5);
 
   if (process.env.TEST_PERSON_ID != null) {
     replaceID();
