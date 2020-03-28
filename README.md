@@ -26,8 +26,6 @@ npm test
 ```
 
 API documentation: web browser `twist:3333/api/`
-
-(port: process.env.HTTP_PORT || 3333)
  
 ![flow](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/flowchart.iuml)
 
@@ -119,10 +117,9 @@ API documentation: web browser `twist:3333/api/`
 
 ## TODO list
 
-- [ ] get-in-out-v2 TPN data
-- [ ] get-in-out-tooltip-v2 TPN data
-- [ ] temperature data
-- [ ] add users.js
+- [ ] FHIR files
+- [ ] Nutrition data
+
 
 ## Special Thanks
 This repo starts from a clone of the code here:
