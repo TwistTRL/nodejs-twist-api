@@ -1,7 +1,7 @@
 {
     "name": "Twist Backend API",
     "title": "Twist API with Node.js-Oracle database",
-    "version": "0.0.2", 
+    "version": "0.1.0", 
     "description": "API with Node.js and Oracle Database to get person/vitals infomatin", 
     "url": "http://twist:3100/api",
     "sampleUrl": "http://twist:3100/api",

@@ -62,11 +62,6 @@ function initialize() {
       res.sendFile(path.join(__dirname, "/login.html"));
     });
 
-    app.post("/logout", function(req, res) {
-      console.log("reaching /logout");
-      res.sendFile(path.join(__dirname, "/logout.html"));
-    });
-
     app.post("/login", function(req, res, next) {
       console.log("req.body :", req.body);
       var user = findUser(req.body.name, req.body.password);
