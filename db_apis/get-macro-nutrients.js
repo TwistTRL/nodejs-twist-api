@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-03-17 19:19:52 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-18 11:29:22
+ * @Last Modified time: 2020-03-30 09:56:01
  */
 
 const database = require("../services/database");
@@ -48,9 +48,12 @@ function _calculateRawRecords(arrEN) {
       fat.push({time: time, value: row["G_FAT"], unit: "g"});
       protein.push({time: time, value: row["G_PTN"], unit: "g"});
       cho.push({time: time, value: row["G_CHO"], unit: "g"});
+      fatArr.push({time: time, value: row["G_FAT"], unit: "g"});
+      proteinArr.push({time: time, value: row["G_PTN"], unit: "g"});
+      choArr.push({time: time, value: row["G_CHO"], unit: "g"});
     }
   }
-  return {fat, protein, cho};
+  return {fat, protein, cho, fatArr, proteinArr, choArr};
 }
 
 // {
