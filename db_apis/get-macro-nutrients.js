@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-03-17 19:19:52 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-30 09:56:01
+ * @Last Modified time: 2020-03-30 13:31:46
  */
 
 const database = require("../services/database");
@@ -40,6 +40,9 @@ function _calculateRawRecords(arrEN) {
   let fat = [];
   let protein = [];
   let cho = [];
+  let fatArr = [];
+  let proteinArr = [];
+  let choArr = [];
   if (arrEN && arrEN.length) {
     console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
