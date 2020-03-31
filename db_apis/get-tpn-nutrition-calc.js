@@ -2,18 +2,14 @@
  * @Author: Peng 
  * @Date: 2020-03-27 10:26:44 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-27 18:06:15
+ * @Last Modified time: 2020-03-31 09:52:11
  */
 
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
 
-const PERSON_ID = "person_id";
-const FROM = "from";
-const TO = "to";
 var timeLable = 0;
-
 const SQL_GET_TPN_NUTR = `
 SELECT 
   START_UNIX,
@@ -34,19 +30,21 @@ async function tpnNutrQuerySQLExecutor(conn, binds) {
 }
 
 function _calculateRawRecords(arrTpnNutr) {
-  // let fat = [];
   let amino_acids = [];
   let dextrose = [];
   if (arrTpnNutr && arrTpnNutr.length) {
     console.log("TpnNutr record size :", arrTpnNutr.length);
     for (let row of arrTpnNutr) {
-      //example row = {"START_UNIX": 1524700800, "AMINO_ACIDS G/KG": 2}
+      //example row = {"START_UNIX": 1524700800, "Amino_Acids g/kg": 2}
       let start = row["START_UNIX"];
       let end = row["END_UNIX"]
-      // fat.push({start: start, end: end, value: null, unit: "g/kg"});
       if (start && end) {
-        amino_acids.push({start: start, end: end, amino_acids: row["AMINO_ACIDS G/KG"], unit: "g/kg"});
-        dextrose.push({start: start, end: end, value: row["DEXTROSE G/KG"], unit: "g/kg"});
+        if (row["Amino_Acids g/kg"]) {
+          amino_acids.push({start: start, end: end, value: row["Amino_Acids g/kg"], unit: "g/kg"});
+        }
+        if (row["Dextrose g/kg"]) {
+          dextrose.push({start: start, end: end, value: row["Dextrose g/kg"], unit: "g/kg"});
+        }
       } else {
         console.log('start or end time null :', row);
       }      

@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-27 22:57:50
+ * @Last Modified time: 2020-03-31 10:52:09
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -38,7 +38,7 @@ const { getInOutQueryV2 } = require("../db_apis/get-in-out-v2");
 const { getMacroNutrients } = require("../db_apis/get-macro-nutrients");
 const { getECMO } = require("../db_apis/get-ecmo");
 const { getTpnNutrients } = require("../db_apis/get-tpn-nutrition-calc");
-
+const { getDiluNutrients } = require("../db_apis/get-diluent-nutrition-calc");
 
 const { getTemp } = require("../db_apis/get-temp");
 
@@ -851,7 +851,7 @@ router.post("/inout-v2", async (req, res) => {
 });
 
 /**
- * @api {get} /person/:person_id/nutrition/macronutrients Macro Nutrients
+ * @api {get} /person/:person_id/nutrition/macronutrients Nutrients - Macro
  * @apiVersion 0.0.2
  * @apiName macro-nutrients-for-patient
  * @apiGroup Person
@@ -2339,7 +2339,7 @@ router.get("/settings/med", (req, res) => {
 
 
 /**
- * @api {get} /person/:person_id/nutrition/tpn TPN Nutrients
+ * @api {get} /person/:person_id/nutrition/tpn Nutrients - TPN
  * @apiVersion 0.0.1
  * @apiName TPN-nutrients-for-patient
  * @apiGroup Person
@@ -2351,14 +2351,16 @@ router.get("/settings/med", (req, res) => {
         {
            "start": 1520000000,
             "end": 1530000000,
+            "value": 0.1,
             "unit": "g/kg"
         },
         ...
       ],
-      Dextrose: [
+      dextrose: [
         {
           "start": 1520000000,
             "end": 1530000000,
+            "value": 0.1,
             "unit": "g/kg"
         },
         ...
@@ -2379,6 +2381,41 @@ router.get("/person/:person_id/nutrition/tpn", async (req, res) => {
     person_id
   };
   res.send(await getTpnNutrients(binds));
+});
+
+
+/**
+ * @api {get} /person/:person_id/nutrition/diluents Nutrients - Diluents
+ * @apiVersion 0.0.1
+ * @apiName diluents-nutrients-for-patient
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *    [
+        {
+           "start": 1520000000,
+            "end": 1530000000,
+            "rate": 0.1,
+            "unit": "g/hr"
+        },
+        ...
+      ]
+     
+ *
+ */
+
+router.get("/person/:person_id/nutrition/diluents", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log('person_id :', person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting Diluents nutrients for %s ...", person_id);
+  const binds = {
+    person_id
+  };
+  res.send(await getDiluNutrients(binds));
 });
 
 
