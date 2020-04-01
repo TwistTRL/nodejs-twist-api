@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-31 10:52:09
+ * @Last Modified time: 2020-03-31 19:51:11
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -39,6 +39,7 @@ const { getMacroNutrients } = require("../db_apis/get-macro-nutrients");
 const { getECMO } = require("../db_apis/get-ecmo");
 const { getTpnNutrients } = require("../db_apis/get-tpn-nutrition-calc");
 const { getDiluNutrients } = require("../db_apis/get-diluent-nutrition-calc");
+const { getNutriFatProCho } = require("../db_apis/get-nutrition-fat-pro-cho");
 
 const { getTemp } = require("../db_apis/get-temp");
 
@@ -128,7 +129,7 @@ router.get("/person/:person_id/labs", async (req, res) => {
  * @apiParam {String[]} lab_names Array of lab's category name.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "lab_names": ["SvO2", "PaCO2"]
         }
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
@@ -719,7 +720,7 @@ router.get("/person/:person_id/med", async (req, res) => {
  * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "from":1541030400,
           "to":1542018000,
           "resolution":3600
@@ -800,7 +801,7 @@ router.post("/inout", async (req, res) => {
  * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "from":1541030400,
           "to":1542018000,
           "resolution":3600
@@ -935,7 +936,7 @@ router.get("/person/:person_id/nutrition/macronutrients", async (req, res) => {
  * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "from":0,
           "to":1541037600,
           "resolution":3600
@@ -1042,7 +1043,7 @@ router.post("/inout-tooltip", async (req, res) => {
  * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "from":1539568800,
           "resolution":3600
         }
@@ -1150,7 +1151,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "data_type": "binned",
           "data_resolution": "1D"
@@ -1194,7 +1195,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "data_type": "calc",
           "data_resolution": "1D"
@@ -1236,7 +1237,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "from":1542014000,
           "to":1542018000
@@ -1289,7 +1290,7 @@ router.post("/vitals", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "data_type": "binned",
           "data_resolution": "1D"
@@ -1344,7 +1345,7 @@ router.post("/vitals", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "sbp",
           "data_type": "calc",
           "data_resolution": "1D"
@@ -1399,7 +1400,7 @@ router.post("/vitals", async (req, res) => {
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "vital_type": "mbp",
           "from":1542014000,
           "to":1542018000
@@ -1456,7 +1457,7 @@ router.post("/vitalsv2", async (req, res) => {
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": EXAMPLE_PERSON_ID,
+          "person_id": 25796315,
           "from":1542014000,
           "to":1542018000
         }
@@ -1577,7 +1578,7 @@ router.get("/person/:person_id/vitals/hr/raw", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-            "person_id": EXAMPLE_PERSON_ID,
+            "person_id": 25796315,
             "vital_type": "hr",
             "data_type": "binned",
             "data_resolution": "1D"
@@ -1632,7 +1633,7 @@ router.post("/test/hr", async (req, res) => {
  * @apiParam {String} lab_names Lab category name.
  * @apiParamExample {json} POST json example
         {
-            "person_id": EXAMPLE_PERSON_ID,
+            "person_id": 25796315,
             "lab_names": 
                 [
                      "SvO2",
@@ -2416,6 +2417,40 @@ router.get("/person/:person_id/nutrition/diluents", async (req, res) => {
     person_id
   };
   res.send(await getDiluNutrients(binds));
+});
+
+/**
+ * @api {get} /person/:person_id/nutrition/fat-pro-cho Nutrients - Fat-Pro-Cho
+ * @apiVersion 0.0.1
+ * @apiName nutrients-fat-pro-cho
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *    [
+        {
+           "start": 1520000000,
+            "end": 1530000000,
+            "rate": 0.1,
+            "unit": "g/hr"
+        },
+        ...
+      ]
+     
+ *
+ */
+
+router.get("/person/:person_id/nutrition/fat-pro-cho", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log('person_id :', person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting Diluents nutrients for %s ...", person_id);
+  const binds = {
+    person_id
+  };
+  res.send(await getNutriFatProCho(binds));
 });
 
 

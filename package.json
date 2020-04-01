@@ -16,6 +16,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "apidoc": "^0.20.0",
+    "bisect-js": "github:TwistTRL/bisect-js",
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
