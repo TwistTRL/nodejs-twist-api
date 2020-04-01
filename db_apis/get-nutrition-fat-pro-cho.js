@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-03-31 18:13:54
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-01 00:03:12
+ * @Last Modified time: 2020-04-01 00:22:05
  */
 
 const { bisect_left } = require("bisect-js");
@@ -254,7 +254,6 @@ const getNutriFatProCho = database.withConnection(async function(conn, binds) {
   let weightArr = await weightCalcQuerySQLExecutor(conn, binds);
   let tpnRaw = await tpnNutrQuerySQLExecutor(conn, binds);
   let tpnLipidRaw = await tpnLipidQuerySQLExecutor(conn, binds);
-  console.log("tpnLipidRaw :", tpnLipidRaw);
   let enRaw = await enQuerySQLExecutor(conn, binds);
   let diluRaw = await diluNutrQuerySQLExecutor(conn, binds);
   let result = _calculateRawRecords(tpnRaw, tpnLipidRaw, enRaw, diluRaw, weightArr);
