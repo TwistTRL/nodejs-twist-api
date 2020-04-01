@@ -1,11 +1,11 @@
 /*
- * @Author: Peng 
- * @Date: 2020-03-31 18:13:54 
+ * @Author: Peng
+ * @Date: 2020-03-31 18:13:54
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-31 23:02:11
+ * @Last Modified time: 2020-04-01 00:03:12
  */
 
-const { bisect_left } = require("bisect"); 
+const { bisect_left } = require("bisect-js");
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
@@ -18,7 +18,7 @@ SELECT
   WEIGHT_CALC
 FROM WEIGHTS_CALCS
 WHERE PERSON_ID = :person_id
-ORDER BY DT_UNIX`
+ORDER BY DT_UNIX`;
 
 const SQL_GET_TPN_NUTR = `
 SELECT 
@@ -53,31 +53,41 @@ WHERE PERSON_ID = :person_id
 ORDER BY START_UNIX`;
 
 const DEXTROSE_DICT = {
-"Dextrose 5% in Water": 0.05,
-"Dextrose 30% in Water": 0.3,
-"Dextrose 10% in Water": 0.1,
-"Dextrose 40% in Water": 0.4,
-"Dextrose 25% in Water": 0.25,
-"Dextrose 12.5% in Water": 0.125,
-"Dextrose 10% with 0.2% NaCl": 0.1,
-"Dextrose 5% in Lactated Ringers Injection": 0.05,
-"Dextrose 15% in Water": 0.15,
-"Dextrose 5% with 0.225% NaCl": 0.05,
-"Dextrose 20% in Water": 0.2,
-"Dextrose 5% with 0.9% NaCl": 0.05,
-"Dextrose 5% with 0.45% NaCl": 0.05,
-"Dextrose 10% with 0.9% NaCl": 0.1,
-"Dextrose 7.5% in Water": 0.075,
-"Dextrose 17.5% in Water": 0.175,
-"Dextrose 2.5% in Water": 0.025,
-}
+  "Dextrose 5% in Water": 0.05,
+  "Dextrose 30% in Water": 0.3,
+  "Dextrose 10% in Water": 0.1,
+  "Dextrose 40% in Water": 0.4,
+  "Dextrose 25% in Water": 0.25,
+  "Dextrose 12.5% in Water": 0.125,
+  "Dextrose 10% with 0.2% NaCl": 0.1,
+  "Dextrose 5% in Lactated Ringers Injection": 0.05,
+  "Dextrose 15% in Water": 0.15,
+  "Dextrose 5% with 0.225% NaCl": 0.05,
+  "Dextrose 20% in Water": 0.2,
+  "Dextrose 5% with 0.9% NaCl": 0.05,
+  "Dextrose 5% with 0.45% NaCl": 0.05,
+  "Dextrose 10% with 0.9% NaCl": 0.1,
+  "Dextrose 7.5% in Water": 0.075,
+  "Dextrose 17.5% in Water": 0.175,
+  "Dextrose 2.5% in Water": 0.025
+};
+
+const SQL_GET_TPN_LIPID = `
+SELECT
+  EVENT_START_DT_TM_UTC,
+  RESULT_VAL
+FROM TPN_LIPID
+WHERE PERSON_ID = :person_id
+ORDER BY EVENT_START_DT_TM_UTC`;
+
+const TPN_LIPID_RATIO = 0.2; //20% lipid, which is 0.2 grams fat/mL
 
 async function weightCalcQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
   console.log("~~SQL getting weight for fat-pro-cho: ", SQL_GET_WEIGHT_CALC);
-  console.time('getWeightCalc-sql' + timestampLable);
+  console.time("getWeightCalc-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_WEIGHT_CALC, binds);
-  console.timeEnd('getWeightCalc-sql' + timestampLable);
+  console.timeEnd("getWeightCalc-sql" + timestampLable);
   let ret = [];
   rawRecord.rows.forEach(element => {
     if (element["WEIGHT_CALC"]) {
@@ -93,6 +103,16 @@ async function tpnNutrQuerySQLExecutor(conn, binds) {
   console.time("getTpnNutr-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_TPN_NUTR, binds);
   console.timeEnd("getTpnNutr-sql" + timestampLable);
+  return rawRecord.rows;
+}
+
+async function tpnLipidQuerySQLExecutor(conn, binds) {
+  let timestampLable = timeLable++;
+  console.log("~~SQL for TPN Lipid all time: ", SQL_GET_TPN_LIPID);
+  console.time("getTpnLipid-sql" + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_TPN_LIPID, binds);
+  console.timeEnd("getTpnLipid-sql" + timestampLable);
+  console.log("rawRecord.rows :", rawRecord.rows);
   return rawRecord.rows;
 }
 
@@ -114,9 +134,8 @@ async function diluNutrQuerySQLExecutor(conn, binds) {
   return rawRecord.rows;
 }
 
-
-function _calculateRawRecords(arrTpnNutr, arrEN, arrDiluNutr, weightArr) {
-  // get hour binned pro, fat, cho data 
+function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weightArr) {
+  // get hour binned pro, fat, cho data
   let retDict = {};
 
   if (arrTpnNutr && arrTpnNutr.length) {
@@ -127,42 +146,38 @@ function _calculateRawRecords(arrTpnNutr, arrEN, arrDiluNutr, weightArr) {
       let start = row["START_UNIX"];
       let end = row["END_UNIX"];
       if (start >= end) {
-        console.log('TPN row error start/end time:', row);
+        console.warn('TPN row error start/end time:', row);
         continue;
       }
       if (start && end) {
         let timestamp = Math.floor(start / 3600) * 3600;
-        if (timestamp-start) {
-          if (timestamp- Math.floor((end-1) / 3600) * 3600) {
-            console.log('TPN row has abnormal start/end time :', row);
+        if (timestamp - start) {
+          if (timestamp - Math.floor((end - 1) / 3600) * 3600) {
+            // console.log('TPN row has abnormal start/end time :', row);
           }
         }
-        
+
         if (row["Amino_Acids g/kg"]) {
-          if (timestamp in retDict) {
-            if ("pro" in retDict[timestamp]) {
-              retDict[timestamp]["pro"] += row["Amino_Acids g/kg"];
-            } else {
-              retDict[timestamp]["pro"] = row["Amino_Acids g/kg"];
-            }
-          } else {
-            retDict[timestamp] = {pro: row["Amino_Acids g/kg"]};
-          }
+          accValueToDict(row["Amino_Acids g/kg"], timestamp, "pro", retDict);
         }
         if (row["Dextrose g/kg"]) {
-          if (timestamp in retDict) {
-            if ("cho" in retDict[timestamp]) {
-              retDict[timestamp]["cho"] += row["Dextrose g/kg"];
-            } else {
-              retDict[timestamp]["cho"] = row["Dextrose g/kg"];
-            }
-          } else {
-            retDict[timestamp] = {cho: row["Dextrose g/kg"]};
-          }      
+          accValueToDict(row["Dextrose g/kg"], timestamp, "cho", retDict);
         }
       } else {
-        console.log('TPN start or end time null :', row);
-      }      
+        console.log("TPN start or end time null :", row);
+      }
+    }
+  }
+
+  if (arrTpnLipid && arrTpnLipid.length) {
+    // TPN database is already binned by hour
+    console.log("TpnLipid record size :", arrTpnLipid.length);
+    for (let row of arrTpnLipid) {
+      let timestamp = new Date(row["EVENT_START_DT_TM_UTC"]).getTime() / 1000;
+      if (timestamp) {
+        let fatValue = (row["RESULT_VAL"] * TPN_LIPID_RATIO) / getWeight(timestamp, weightArr);
+        accValueToDict(fatValue, timestamp, "fat", retDict);
+      }
     }
   }
 
@@ -173,44 +188,20 @@ function _calculateRawRecords(arrTpnNutr, arrEN, arrDiluNutr, weightArr) {
       let timestamp = Math.floor(row["START_TIME_DTUNIX"] / 3600) * 3600;
       if (row["G_FAT"]) {
         let fatValue = row["G_FAT"] / getWeight(timestamp, weightArr);
-        if (timestamp in retDict) {
-          if ("fat" in retDict[timestamp]) {
-            retDict[timestamp]["fat"] += fatValue;
-          } else {
-            retDict[timestamp]["fat"] = fatValue;
-          }
-        } else {
-          retDict[timestamp] = {fat: fatValue};
-        }     
+        accValueToDict(fatValue, timestamp, "fat", retDict);
       }
 
       if (row["G_PTN"]) {
-        if (timestamp in retDict) {
-          if ("pro" in retDict[timestamp]) {
-            retDict[timestamp]["pro"] += row["G_PTN"];
-          } else {
-            retDict[timestamp]["pro"] = row["G_PTN"];
-          }
-        } else {
-          retDict[timestamp] = {pro: row["G_PTN"]};
-        }     
+        accValueToDict(row["G_PTN"], timestamp, "pro", retDict);
       }
 
       if (row["G_CHO"]) {
-        if (timestamp in retDict) {
-          if ("cho" in retDict[timestamp]) {
-            retDict[timestamp]["cho"] += row["G_CHO"];
-          } else {
-            retDict[timestamp]["cho"] = row["G_CHO"];
-          }
-        } else {
-          retDict[timestamp] = {cho: row["G_CHO"]};
-        }     
+        accValueToDict(row["G_CHO"], timestamp, "cho", retDict);
       }
     }
   }
 
-if (arrDiluNutr && arrDiluNutr.length) {
+  if (arrDiluNutr && arrDiluNutr.length) {
     console.log("DiluNutr record size :", arrDiluNutr.length);
     for (let row of arrDiluNutr) {
       if (row["DILUENT"] in DEXTROSE_DICT) {
@@ -218,53 +209,55 @@ if (arrDiluNutr && arrDiluNutr.length) {
         let start = row["START_UNIX"];
         let end = row["END_UNIX"];
         if (start && end && rate && end > start) {
-
           let startTimestamp = Math.floor(start / 3600) * 3600;
           let binNumber = Math.ceil(end / 3600) - Math.floor(start / 3600);
 
           for (let i = 0; i < binNumber; i++) {
             let timestamp = startTimestamp + 3600 * i;
-            if (timestamp in retDict) {
-              if ("cho" in retDict[timestamp]) {
-                retDict[timestamp]["cho"] += rate;
-              } else {
-                retDict[timestamp]["cho"] = rate;
-              }
-            } else {
-              retDict[timestamp] = {cho: rate};
-            }     
+            accValueToDict(rate, timestamp, "cho", retDict);
           }
         } else {
-          console.warn('error: on start/end/rate for this row :', row);
+          console.warn("error: on start/end/rate for this row :", row);
         }
       } else if (row["DILUENT"].includes("Dextrose")) {
         console.warn("error: Dextrose key not in list: ", row);
-      }      
+      }
     }
   }
   return retDict;
 }
 
 const getWeight = (timestamp, weightArr) => {
-  let index = bisect_left(weightArr, timestamp, x=>x["DT_UNIX"]);
+  let index = bisect_left(weightArr, timestamp, x => x["DT_UNIX"]);
   if (index < 0) {
-    console.log('at timestamp has no weight:', timestamp);
-    return weightArr[0];
+    console.log("at timestamp has no weight:", timestamp);
+    return weightArr[0]["WEIGHT_CALC"];
   } else {
-    return weightArr[index];
+    return weightArr[index]["WEIGHT_CALC"];
   }
-}
+};
 
-const getNutriFatProCho = database.withConnection(async function(
-  conn,
-  binds
-) {
-  let weightArr = await weightCalcQuerySQLExecutor(coon, binds)
+const accValueToDict = (value, catKey, childKey, dict) => {
+  if (catKey in dict) {
+    if (childKey in dict[catKey]) {
+      dict[catKey][childKey] += value;
+    } else {
+      dict[catKey][childKey] = value;
+    }
+  } else {
+    dict[catKey] = {};
+    dict[catKey][childKey] = value;
+  }
+};
+
+const getNutriFatProCho = database.withConnection(async function(conn, binds) {
+  let weightArr = await weightCalcQuerySQLExecutor(conn, binds);
   let tpnRaw = await tpnNutrQuerySQLExecutor(conn, binds);
+  let tpnLipidRaw = await tpnLipidQuerySQLExecutor(conn, binds);
+  console.log("tpnLipidRaw :", tpnLipidRaw);
   let enRaw = await enQuerySQLExecutor(conn, binds);
   let diluRaw = await diluNutrQuerySQLExecutor(conn, binds);
-  // TODO add TPN_LIPID
-  let result = _calculateRawRecords(tpnRaw, enRaw, diluRaw, weightArr);
+  let result = _calculateRawRecords(tpnRaw, tpnLipidRaw, enRaw, diluRaw, weightArr);
   return result;
 });
 
