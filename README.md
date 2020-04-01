@@ -119,6 +119,10 @@ API documentation: web browser `twist:3333/api/`
 
 - [ ] FHIR files
 - [ ] Nutrition data
+- [ ] api cache layer
+
+![db-api-front](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/db-api-front.iuml)
+
 
 
 ## Special Thanks

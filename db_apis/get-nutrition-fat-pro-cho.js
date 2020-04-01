@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-03-31 18:13:54
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-01 00:22:05
+ * @Last Modified time: 2020-04-01 15:24:01
  */
 
 const { bisect_left } = require("bisect-js");
@@ -24,6 +24,7 @@ const SQL_GET_TPN_NUTR = `
 SELECT 
   START_UNIX,
   END_UNIX,
+  RESULT_VAL,
   "Amino_Acids g/kg",
   "Dextrose g/kg"
 FROM TPN
@@ -34,6 +35,7 @@ const SQL_GET_EN = `
 SELECT  
   START_TIME_DTUNIX,
   DISPLAY_LINE,
+  "VOLUME",
   G_PTN,
   G_FAT,
   G_CHO
@@ -45,6 +47,7 @@ const SQL_GET_DILUENTS_NUTRI = `
 SELECT  
   START_UNIX,
   END_UNIX,
+  DRUG,
   DILUENT,
   INFUSION_RATE,
   INFUSION_RATE_UNITS
@@ -74,11 +77,11 @@ const DEXTROSE_DICT = {
 
 const SQL_GET_TPN_LIPID = `
 SELECT
-  EVENT_START_DT_TM_UTC,
+  DT_UNIX,
   RESULT_VAL
 FROM TPN_LIPID
 WHERE PERSON_ID = :person_id
-ORDER BY EVENT_START_DT_TM_UTC`;
+ORDER BY DT_UNIX`;
 
 const TPN_LIPID_RATIO = 0.2; //20% lipid, which is 0.2 grams fat/mL
 
@@ -146,7 +149,7 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
       let start = row["START_UNIX"];
       let end = row["END_UNIX"];
       if (start >= end) {
-        console.warn('TPN row error start/end time:', row);
+        // console.warn("TPN row error start/end time:", row);
         continue;
       }
       if (start && end) {
@@ -158,10 +161,10 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
         }
 
         if (row["Amino_Acids g/kg"]) {
-          accValueToDict(row["Amino_Acids g/kg"], timestamp, "pro", retDict);
+          accValueToDict(row["Amino_Acids g/kg"], timestamp, "pro_tpn", retDict);
         }
         if (row["Dextrose g/kg"]) {
-          accValueToDict(row["Dextrose g/kg"], timestamp, "cho", retDict);
+          accValueToDict(row["Dextrose g/kg"], timestamp, "cho_tpn", retDict);
         }
       } else {
         console.log("TPN start or end time null :", row);
@@ -169,14 +172,19 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
     }
   }
 
+  console.log("~~");
+
   if (arrTpnLipid && arrTpnLipid.length) {
     // TPN database is already binned by hour
     console.log("TpnLipid record size :", arrTpnLipid.length);
     for (let row of arrTpnLipid) {
-      let timestamp = new Date(row["EVENT_START_DT_TM_UTC"]).getTime() / 1000;
-      if (timestamp) {
+      let timestamp = Math.floor(row["DT_UNIX"] / 3600) * 3600;
+      if (timestamp && row["RESULT_VAL"]) {
+        if (timestamp == "1547259015") {
+          console.log('row["RESULT_VAL"] :', row["RESULT_VAL"]);
+        }
         let fatValue = (row["RESULT_VAL"] * TPN_LIPID_RATIO) / getWeight(timestamp, weightArr);
-        accValueToDict(fatValue, timestamp, "fat", retDict);
+        accValueToDict(fatValue, timestamp, "fat_tpnlipid", retDict);
       }
     }
   }
@@ -188,15 +196,15 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
       let timestamp = Math.floor(row["START_TIME_DTUNIX"] / 3600) * 3600;
       if (row["G_FAT"]) {
         let fatValue = row["G_FAT"] / getWeight(timestamp, weightArr);
-        accValueToDict(fatValue, timestamp, "fat", retDict);
+        accValueToDict(fatValue, timestamp, "fat_en", retDict);
       }
 
       if (row["G_PTN"]) {
-        accValueToDict(row["G_PTN"], timestamp, "pro", retDict);
+        accValueToDict(row["G_PTN"], timestamp, "pro_en", retDict);
       }
 
       if (row["G_CHO"]) {
-        accValueToDict(row["G_CHO"], timestamp, "cho", retDict);
+        accValueToDict(row["G_CHO"], timestamp, "cho_en", retDict);
       }
     }
   }
@@ -211,10 +219,9 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
         if (start && end && rate && end > start) {
           let startTimestamp = Math.floor(start / 3600) * 3600;
           let binNumber = Math.ceil(end / 3600) - Math.floor(start / 3600);
-
           for (let i = 0; i < binNumber; i++) {
             let timestamp = startTimestamp + 3600 * i;
-            accValueToDict(rate, timestamp, "cho", retDict);
+            accValueToDict(rate, timestamp, "cho_dilu", retDict);
           }
         } else {
           console.warn("error: on start/end/rate for this row :", row);
@@ -224,7 +231,57 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
       }
     }
   }
-  return retDict;
+
+  let retArr = [];
+  for (let timestamp in retDict) {
+    let curObj = { timestamp: Number(timestamp) };
+    if (retDict[timestamp].pro_tpn || retDict[timestamp].pro_en) {
+      let proObj = { sum: (retDict[timestamp].pro_tpn || 0) + (retDict[timestamp].pro_en || 0) };
+      if (retDict[timestamp].pro_tpn) {
+        proObj.tpn = retDict[timestamp].pro_tpn;
+      }
+      if (retDict[timestamp].pro_en) {
+        proObj.en = retDict[timestamp].pro_en;
+      }
+      curObj.pro = proObj;
+    }
+
+    if (retDict[timestamp].cho_tpn || retDict[timestamp].cho_en || retDict[timestamp].cho_dilu) {
+      let choObj = {
+        sum:
+          (retDict[timestamp].cho_tpn || 0) +
+          (retDict[timestamp].cho_en || 0) +
+          (retDict[timestamp].cho_dilu || 0)
+      };
+      if (retDict[timestamp].cho_tpn) {
+        choObj.tpn = retDict[timestamp].cho_tpn;
+      }
+      if (retDict[timestamp].cho_en) {
+        choObj.en = retDict[timestamp].cho_en;
+      }
+      if (retDict[timestamp].cho_dilu) {
+        choObj.diluents = retDict[timestamp].cho_dilu;
+      }
+      curObj.cho = choObj;
+    }
+
+    if (retDict[timestamp].fat_en || retDict[timestamp].fat_tpnlipid) {
+      let fatObj = {
+        sum: (retDict[timestamp].fat_en || 0) + (retDict[timestamp].fat_tpnlipid || 0)
+      };
+      if (retDict[timestamp].fat_en) {
+        fatObj.tpn = retDict[timestamp].fat_en;
+      }
+      if (retDict[timestamp].fat_tpnlipid) {
+        fatObj.tpnlipid = retDict[timestamp].fat_tpnlipid;
+      }
+      curObj.fat = fatObj;
+    }
+
+    retArr.push(curObj);
+  }
+
+  return retArr.sort((a,b) => a.timestamp - b.timestamp);
 }
 
 const getWeight = (timestamp, weightArr) => {

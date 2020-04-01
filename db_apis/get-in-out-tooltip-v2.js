@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-23 14:18:51
+ * @Last Modified time: 2020-04-01 15:10:49
  */
 
 /**
@@ -457,7 +457,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             value.drugs.forEach(element => {
               delete element.end_time;
             });
-            value.drugs.sort((a, b) => b.rate - a.rate);
+            value.drugs.sort((a, b) => b.rate - a.rate); // sorted by rate from high to low
           }
         }
       }

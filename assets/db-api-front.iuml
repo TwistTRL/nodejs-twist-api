@@ -1,0 +1,41 @@
+@startuml db-api-frontend
+package "TWIST FRONT END" {
+  [Nutrition Table] -- [Nutrition Volume]
+  [Nutrition Table] -- [Nutrition fat-pro-cho]
+  [I/O Table] 
+  [Medications]
+}
+
+package "TWIST API" {
+  [TPN_LIPID] -down- dbConnector
+  [EN] -down- dbConnector
+  [TPN] -down- dbConnector
+  [INTAKE_OUTPUT] -down- dbConnector
+  [DRUG_INTERMITTENT] -down- dbConnector
+  [DRUG_DILUENTS] -down- dbConnector
+}
+
+package "DATABASE DWTST" {
+  database DWTST
+}
+
+[Nutrition Volume] <-- [TPN_LIPID]
+[Nutrition Volume] <-- [TPN]
+[Nutrition Volume] <-- [EN]
+[Nutrition Volume] <-- [INTAKE_OUTPUT]
+[Nutrition Volume] <-- [DRUG_INTERMITTENT]
+[Nutrition Volume] <-- [DRUG_DILUENTS]
+
+[Nutrition fat-pro-cho] <-- [TPN_LIPID]
+[Nutrition fat-pro-cho] <-- [TPN]
+[Nutrition fat-pro-cho] <-- [EN]
+[Nutrition fat-pro-cho] <-- [DRUG_DILUENTS]
+
+[I/O Table] <-- [TPN]
+[I/O Table] <-- [EN]
+[I/O Table] <-- [INTAKE_OUTPUT]
+[I/O Table] <-- [DRUG_DILUENTS]
+[Medications] <-- [DRUG_INTERMITTENT]
+
+DWTST -up- dbConnector
+@enduml
