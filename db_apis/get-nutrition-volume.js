@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-01 23:19:38
+ * @Last Modified time: 2020-04-02 10:50:12
  */
 
 const { bisect_left } = require("bisect-js");
@@ -252,7 +252,7 @@ function _calculateRawRecords(
     for (let row of arrInout) {
       // DT_UNIX,  EVENT_CD,  VALUE
       let timestamp = Math.floor(row["DT_UNIX"] / 3600) * 3600;
-      if (timestamp && row["VALUE"]) {
+      if (timestamp > 0 && row["VALUE"]) {
         let tpnlipid = row["VALUE"] / getWeight(timestamp, weightArr);
         if (EVENT_CD_DICT[row["EVENT_CD"]]["IO_CAT"] === "IVF") {
           accValueToDict(tpnlipid, timestamp, "IVF", retDict);
