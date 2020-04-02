@@ -1,0 +1,77 @@
+@startuml db-api-frontend
+
+' skinparam componentStyle uml2
+
+package "TWIST FRONT END" {
+    frame "log in page" {
+        [Auth] -- [MRN input]
+    }
+
+    frame "main page" {
+        [Nutrition Table] -- [Nutrition Volume]
+        [Nutrition Table] -- [Nutrition fat-pro-cho]
+        [I/O Table]
+        [Medications]
+    }
+}
+
+package "TWIST API" {
+    package "single table fetch" {
+        [TPN_LIPID]
+        [EN]
+        [TPN]
+        [INTAKE_OUTPUT]
+        [DRUG_INTERMITTENT]
+        [DRUG_DILUENTS]
+    }
+
+    frame "cache" {
+        [Cache] <-left- [Initial Fetch] :has cache
+    }
+
+    [Initial Fetch] -down-> dbConnector :no cache
+    [TPN_LIPID] -down- dbConnector
+    [EN] -down- dbConnector
+    [TPN] -down- dbConnector
+    [INTAKE_OUTPUT] -down- dbConnector
+    [DRUG_INTERMITTENT] -down- dbConnector
+    [DRUG_DILUENTS] -down- dbConnector
+
+    frame "interface" {
+        interface "fat-pro-cho" as fpc
+        interface volume
+        interface "inout-tooltip" as iot
+        interface inout
+        interface med
+        interface "weight-calc" as weightc
+        interface others
+    }
+}
+
+database DWTST
+
+[MRN input] -down-> [Initial Fetch]
+[Cache] <-- [TPN_LIPID]
+[Cache] <-- [TPN]
+[Cache] <-- [EN]
+[Cache] <-- [INTAKE_OUTPUT]
+[Cache] <-- [DRUG_INTERMITTENT]
+[Cache] <-- [DRUG_DILUENTS]
+
+[Nutrition Volume] <-- volume
+[Nutrition fat-pro-cho] <-- fpc
+[I/O Table] <-- inout
+[I/O Table] <-- iot
+[Medications] <-- med
+
+[Cache] -up-> volume
+[Cache] -up-> fpc
+[Cache] -up-> inout
+[Cache] -up-> iot
+[Cache] -up-> med
+[Cache] -up-> weightc
+[Cache] -up-> others
+
+DWTST -up- dbConnector
+
+@enduml
