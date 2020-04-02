@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-01 15:10:49
+ * @Last Modified time: 2020-04-02 18:02:15
  */
 
 /**
@@ -30,6 +30,19 @@ const TO = "to";
 const RESOLUTION = "resolution";
 var timeLable = 0;
 const UNIT_ML = "ml";
+
+
+const SQL_GET_TPN_LIPID_PART1 = `
+SELECT
+  DT_UNIX,
+  RESULT_VAL
+FROM TPN_LIPID
+WHERE PERSON_ID = `;
+const SQL_GET_TPN_LIPID_PART2 = `
+AND DT_UNIX <= `;
+const SQL_GET_TPN_LIPID_PART3 = ` AND DT_UNIX >= `;
+const SQL_GET_TPN_LIPID_PART4 = ` 
+ORDER BY DT_UNIX`;
 
 const SQL_GET_TPN_PART1 = `
 SELECT  
@@ -155,6 +168,24 @@ async function tpnQuerySQLExecutor(conn, query) {
   return rawRecord.rows;
 }
 
+async function lipidsQuerySQLExecutor(conn, query) {
+  let timestampLable = timeLable++;
+  let SQL_GET_LIPIDS =
+    SQL_GET_TPN_LIPID_PART1 +
+    query[PERSON_ID] +
+    SQL_GET_TPN_LIPID_PART2 +
+    Number(query[TO]) +
+    SQL_GET_TPN_LIPID_PART3 +
+    Number(query[FROM]) +
+    SQL_GET_TPN_LIPID_PART4;
+  console.log("~~SQL for LIPIDS: ", SQL_GET_LIPIDS);
+  console.time("getLipids-sql" + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_LIPIDS);
+  console.timeEnd("getLipids-sql" + timestampLable);
+  return rawRecord.rows;
+}
+
+
 async function inOutEventTooltipQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
   let SQL_GET_IN_OUT_EVENT =
@@ -217,7 +248,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   let type1Dict = {};
   let type2Dict = {};
 
-  let { arr1, arr2, arr3, arrEN } = rawRecords;
+  let { arr1, arr2, arr3, arrEN, arrLipids } = rawRecords;
 
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
@@ -526,7 +557,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         }
 
         let tpnResultArr = [];
-        let tpnList = [
+        const tpnList = [
           "Dextrose PN",
           "Amino Acid PN",
           "Selenium PN",
@@ -541,7 +572,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           "Carnitine PN"
         ];
 
-        let TPN_UNIT_DICT = {
+        const TPN_UNIT_DICT = {
           "Dextrose PN": "g/L",
           "Amino Acid PN": "g/L",
           "Selenium PN": "mcg/L",
@@ -587,6 +618,43 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         type1Dict[calTime].Nutrition.value += value;
         type1Dict[calTime].Nutrition.items[0].value += value;
       }
+    }
+  }
+
+  if (arrLipids && arrLipids.length) {
+    console.log("TPN Lipids record size :", arrLipids.length);
+
+    for (let row of arrLipids) {
+      let currentTime = startTime;
+      if (currentTime + timeInterval <= row.DT_UNIX) {
+        // this row record has different time zone with currentTime, setting new currentTime
+        currentTime = Math.floor(row.DT_UNIX / timeInterval) * timeInterval;
+      }
+
+      let value = Number(row["RESULT_VAL"]);
+      let name = "Lipids";
+      let unit = "ml";
+      if (!type1Dict[currentTime]) {
+        type1Dict[currentTime] = {
+          value: 0,
+          Nutrition: {
+            value: 0,
+            items: [{ value, name, unit }]
+          }
+        };
+      } else if (!type1Dict[currentTime].Nutrition) {
+        type1Dict[currentTime].Nutrition = {
+          value: 0,
+          items: [{ value: 0, name, unit }]
+        };
+      } else if (!type1Dict[currentTime].Nutrition.items.map(x => x.name).includes("Lipids")){
+        type1Dict[currentTime].Nutrition.items.push({ value, name, unit });
+      } else {
+        let lipidsItem = type1Dict[currentTime].Nutrition.items[type1Dict[currentTime].Nutrition.items.map(x => x.name).indexOf("Lipids")];
+        lipidsItem.value += value;        
+      }
+      type1Dict[currentTime].value += value;
+      type1Dict[currentTime].Nutrition.value += value;      
     }
   }
 
@@ -879,11 +947,13 @@ async function parallelQuery(conn, new_query) {
   const task2 = await inOutDiluentsTooltipQuerySQLExecutor(conn, new_query);
   const task3 = await tpnQuerySQLExecutor(conn, new_query);
   const task4 = await enQuerySQLExecutor(conn, new_query);
+  const task5 = await lipidsQuerySQLExecutor(conn, new_query);
   return {
     arr1: await task1,
     arr2: await task2,
     arr3: await task3,
-    arrEN: await task4
+    arrEN: await task4,
+    arrLipids: await task5,
   };
 }
 

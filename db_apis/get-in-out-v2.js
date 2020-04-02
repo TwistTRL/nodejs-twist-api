@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-05 16:26:08
+ * @Last Modified time: 2020-04-02 18:22:45
  */
 
 const database = require("../services/database");
@@ -48,6 +48,18 @@ AND START_UNIX <= `;
 const SQL_GET_TPN_PART3 = ` AND END_UNIX >= `;
 const SQL_GET_TPN_PART4 = ` 
 ORDER BY START_UNIX`;
+
+const SQL_GET_TPN_LIPID_PART1 = `
+SELECT
+  DT_UNIX,
+  RESULT_VAL
+FROM TPN_LIPID
+WHERE PERSON_ID = `;
+const SQL_GET_TPN_LIPID_PART2 = `
+AND DT_UNIX <= `;
+const SQL_GET_TPN_LIPID_PART3 = ` AND DT_UNIX >= `;
+const SQL_GET_TPN_LIPID_PART4 = ` 
+ORDER BY DT_UNIX`;
 
 // get raw in-out by event between two timestamp
 // const SQL_GET_IN_OUT_EVENT_PART1 = `
@@ -128,6 +140,23 @@ async function tpnQuerySQLExecutor(conn, query) {
   return rawRecord.rows;
 }
 
+async function lipidsQuerySQLExecutor(conn, query) {
+  let timestampLable = timeLable++;
+  let SQL_GET_LIPIDS =
+    SQL_GET_TPN_LIPID_PART1 +
+    query[PERSON_ID] +
+    SQL_GET_TPN_LIPID_PART2 +
+    Number(query[TO]) +
+    SQL_GET_TPN_LIPID_PART3 +
+    Number(query[FROM]) +
+    SQL_GET_TPN_LIPID_PART4;
+  console.log("~~SQL for LIPIDS: ", SQL_GET_LIPIDS);
+  console.time("getLipids-sql" + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_LIPIDS);
+  console.timeEnd("getLipids-sql" + timestampLable);
+  return rawRecord.rows;
+}
+
 async function inOutEventQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
 
@@ -177,7 +206,7 @@ async function inOutDiluentsQuerySQLExecutor(conn, query) {
 }
 
 function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
-  let { arr1, arr2, arr3, arrEN } = rawRecords;
+  let { arr1, arr2, arr3, arrEN, arrLipids } = rawRecords;
 
   let resultEvent = [];
   if (arr1 && arr1.length) {
@@ -470,6 +499,31 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     }
   }
 
+
+  let timeLipidsDict = {};
+  if (arrLipids && arrLipids.length) {
+    console.log("Lipids record size :", arrLipids.length);
+    for (let row of arrLipids) {
+      //example row = {"DT_UNIX": 1524700800, "RESULT_VAL": 2}
+      let currentTime =
+        Math.floor(Math.max(row.DT_UNIX, startTime) / timeInterval) *
+        timeInterval;
+
+      let singleResult = {};
+      let value = Number(row.RESULT_VAL);
+
+      if (currentTime in timeLipidsDict) {
+        timeLipidsDict[currentTime].value += value;
+      } else {
+        singleResult.value = value;
+        singleResult.short_label = "Lipids";
+        singleResult.time = currentTime;
+        singleResult.type = "1";
+        timeLipidsDict[singleResult.time] = singleResult;
+      }
+    }
+  }
+
   //example arrEN[indexArrEN] = {
   // START_TIME_DTUNIX
   // VOLUME
@@ -502,9 +556,10 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   let resultDrips = Object.values(timeDripsDict);
   let resultTPN = Object.values(timeTPNDict);
   let resultEN = Object.values(timeENDict);
+  let resultLipids = Object.values(timeLipidsDict);
 
   //unsorted array from Event, Flush, Drips, TPN
-  let arr = [...resultEvent, ...resultFlush, ...resultDrips, ...resultTPN, ...resultEN];
+  let arr = [...resultEvent, ...resultFlush, ...resultDrips, ...resultTPN, ...resultEN, ...resultLipids];
   arr.sort(function(a, b) {
     let keyA = a.time;
     let keyB = b.time;
@@ -575,11 +630,13 @@ async function parallelQuery(conn, new_query) {
   const task2 = await inOutDiluentsQuerySQLExecutor(conn, new_query);
   const task3 = await tpnQuerySQLExecutor(conn, new_query);
   const task4 = await enQuerySQLExecutor(conn, new_query);
+  const task5 = await lipidsQuerySQLExecutor(conn, new_query);
   return {
     arr1: await task1,
     arr2: await task2,
     arr3: await task3,
-    arrEN: await task4
+    arrEN: await task4,
+    arrLipids: await task5,
   };
 }
 
