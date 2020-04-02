@@ -115,7 +115,6 @@ async function tpnLipidQuerySQLExecutor(conn, binds) {
   console.time("getTpnLipid-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_TPN_LIPID, binds);
   console.timeEnd("getTpnLipid-sql" + timestampLable);
-  console.log("rawRecord.rows :", rawRecord.rows);
   return rawRecord.rows;
 }
 
@@ -172,17 +171,12 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
     }
   }
 
-  console.log("~~");
-
   if (arrTpnLipid && arrTpnLipid.length) {
     // TPN database is already binned by hour
     console.log("TpnLipid record size :", arrTpnLipid.length);
     for (let row of arrTpnLipid) {
       let timestamp = Math.floor(row["DT_UNIX"] / 3600) * 3600;
       if (timestamp && row["RESULT_VAL"]) {
-        if (timestamp == "1547259015") {
-          console.log('row["RESULT_VAL"] :', row["RESULT_VAL"]);
-        }
         let fatValue = (row["RESULT_VAL"] * TPN_LIPID_RATIO) / getWeight(timestamp, weightArr);
         accValueToDict(fatValue, timestamp, "fat_tpnlipid", retDict);
       }

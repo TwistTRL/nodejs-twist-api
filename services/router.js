@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-31 19:51:11
+ * @Last Modified time: 2020-04-01 23:27:28
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -40,6 +40,7 @@ const { getECMO } = require("../db_apis/get-ecmo");
 const { getTpnNutrients } = require("../db_apis/get-tpn-nutrition-calc");
 const { getDiluNutrients } = require("../db_apis/get-diluent-nutrition-calc");
 const { getNutriFatProCho } = require("../db_apis/get-nutrition-fat-pro-cho");
+const { getNutriVolume } = require("../db_apis/get-nutrition-volume");
 
 const { getTemp } = require("../db_apis/get-temp");
 
@@ -79,7 +80,7 @@ router.use("/files", express.static(__dirname + "/../docs/files"));
  * @api {get} /person/:person_id/labs Labs for Patient
  * @apiVersion 0.0.1
  * @apiName Get Patient Labs
- * @apiGroup Person
+ * @apiGroup _Deprecated
  * @apiParam {Number} person_id patient unique ID.
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
  * @apiSuccess {Number} timestamp UNIX Timestamp seconds of the lab.
@@ -255,7 +256,7 @@ router.get("/person/:person_id/abg", async (req, res) => {
  * @api {get} /person/:person_id/vitals/hr/binned/:data_resolution Binned Heart Rate
  * @apiVersion 0.0.1
  * @apiName Get Person Hr Binned
- * @apiGroup Person
+ * @apiGroup _Deprecated
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiSuccess {String} range Range of the binned heart rate, for example, "90-100".
@@ -683,7 +684,7 @@ router.get("/person/:person_id/med", async (req, res) => {
  * @api {post} /inout In-Out for Patient
  * @apiVersion 0.0.2
  * @apiName Get in-out for patient
- * @apiGroup Person
+ * @apiGroup _Deprecated
  * @apiDeprecated use now (#Person:in-out-patient-V2).
 
  * @apiDescription 
@@ -771,7 +772,7 @@ router.post("/inout", async (req, res) => {
 });
 
 /**
- * @api {post} /inout-v2 In-Out for Patient V2
+ * @api {post} /inout-v2 In-Out V2
  * @apiVersion 0.0.2
  * @apiName in-out-patient-V2
  * @apiGroup Person
@@ -855,7 +856,7 @@ router.post("/inout-v2", async (req, res) => {
  * @api {get} /person/:person_id/nutrition/macronutrients Nutrients - Macro
  * @apiVersion 0.0.2
  * @apiName macro-nutrients-for-patient
- * @apiGroup Person
+ * @apiGroup _Deprecated
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
  *  {
@@ -905,7 +906,7 @@ router.get("/person/:person_id/nutrition/macronutrients", async (req, res) => {
  * @api {post} /inout-tooltip In-Out Tooltip for Patient
  * @apiVersion 0.0.3
  * @apiName Get in-out tooltip for patient
- * @apiGroup Person
+ * @apiGroup _Deprecated
  * @apiDeprecated use now (#Person:in-out-tooltip-v2).
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`,
@@ -1007,7 +1008,7 @@ router.post("/inout-tooltip", async (req, res) => {
 });
 
 /**
- * @api {post} /inout-tooltip-v2 In-Out Tooltip for Patient V2
+ * @api {post} /inout-tooltip-v2 In-Out Tooltip V2
  * @apiVersion 0.0.1
  * @apiName in-out-tooltip-v2
  * @apiGroup Person
@@ -2343,7 +2344,7 @@ router.get("/settings/med", (req, res) => {
  * @api {get} /person/:person_id/nutrition/tpn Nutrients - TPN
  * @apiVersion 0.0.1
  * @apiName TPN-nutrients-for-patient
- * @apiGroup Person
+ * @apiGroup _Deprecated
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
  *  {
@@ -2389,7 +2390,7 @@ router.get("/person/:person_id/nutrition/tpn", async (req, res) => {
  * @api {get} /person/:person_id/nutrition/diluents Nutrients - Diluents
  * @apiVersion 0.0.1
  * @apiName diluents-nutrients-for-patient
- * @apiGroup Person
+ * @apiGroup _Deprecated
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
  *    [
@@ -2426,16 +2427,25 @@ router.get("/person/:person_id/nutrition/diluents", async (req, res) => {
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
- *    [
-        {
-           "start": 1520000000,
-            "end": 1530000000,
-            "rate": 0.1,
-            "unit": "g/hr"
+ * 
+ *  [  
+ *    {
+        "timestamp": 1535176800,
+        "pro": {
+            "sum": 0.1,
+            "tpn": 0.1
         },
-        ...
-      ]
-     
+        "cho": {
+            "sum": 0.2,
+            "tpn": 0.1,
+            "diluents": 0.1
+        },
+        "fat": {
+            "sum": 0.1,
+            "tpnlipid": 0.1
+        }
+      },
+    ]     
  *
  */
 
@@ -2446,13 +2456,50 @@ router.get("/person/:person_id/nutrition/fat-pro-cho", async (req, res) => {
     res.send("Invalid person_id, should be integer.");
     return;
   }
-  console.log("getting Diluents nutrients for %s ...", person_id);
+  console.log("getting fat-pro-cho for %s ...", person_id);
   const binds = {
     person_id
   };
   res.send(await getNutriFatProCho(binds));
 });
 
+
+/**
+ * @api {get} /person/:person_id/nutrition/volume Nutrients - Volume
+ * @apiVersion 0.0.1
+ * @apiName nutrients-volume
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *    [
+        {
+          "timestamp": 1543251600,
+          "TPN": 1,
+          "LIPIDS": 1,
+          "MEDICATIONS": 1,
+          "INFUSIONS": 1,
+          "FLUSHES": 1,
+          "FEEDS": 1,
+          "IVF": 1,
+          "BLOOD PRODUCT": 1
+        },
+      ]     
+ *
+ */
+
+router.get("/person/:person_id/nutrition/volume", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log('person_id :', person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting nutrition volume for %s ...", person_id);
+  const binds = {
+    person_id
+  };
+  res.send(await getNutriVolume(binds));
+});
 
 /**
  * @api {get} /person/:person_id/ecmo ECMO Score
