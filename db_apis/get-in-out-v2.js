@@ -2,8 +2,18 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-02 18:22:45
+ * @Last Modified time: 2020-04-02 21:49:46
  */
+
+
+ /**
+  * arr1 from table `INTAKE_OUTPUT`,
+  * arr2 from table `DRUG_DILUENTS`,
+  * arr3 from table `TPN`,
+  * arrEN from table `EN`,
+  * arrLipids from table `TPN_LIPIDS` 
+  * 
+  */
 
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");

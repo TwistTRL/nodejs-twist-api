@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-02 10:50:12
+ * @Last Modified time: 2020-04-02 21:43:52
  */
 
 const { bisect_left } = require("bisect-js");
@@ -178,7 +178,7 @@ function _calculateRawRecords(
           }
         }
         accValueToDict(tpn, timestamp, "TPN", retDict);
-      } else {
+      } else if (!start || !end){
         console.log("TPN start or end time null :", row);
       }
     }

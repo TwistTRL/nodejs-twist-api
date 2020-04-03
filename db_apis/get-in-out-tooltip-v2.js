@@ -7,8 +7,12 @@
 
 /**
  * arr1 from table `INTAKE_OUTPUT`,
- *
  * arr2 from table `DRUG_DILUENTS`,
+ * arr3 from table `TPN`,
+ * arrEN from table `EN`,
+ * arrLipids from table `TPN_LIPIDS` 
+ * 
+ * 
  * unit is mL only, because
  * `select distinct INFUSION_RATE_UNITS from drug_diluents` is `mL/hr`
  *
