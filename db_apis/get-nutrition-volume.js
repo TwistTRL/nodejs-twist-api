@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-02 21:43:52
+ * @Last Modified time: 2020-04-03 12:33:27
  */
 
 const { bisect_left } = require("bisect-js");
@@ -165,7 +165,6 @@ function _calculateRawRecords(
       //example row = {"START_UNIX": 1524700800, "Amino_Acids g/kg": 2}
       let start = row["START_UNIX"];
       let end = row["END_UNIX"];
-      let tpn = row["RESULT_VAL"];
       if (start >= end) {
         // console.warn("TPN row error start/end time:", row);
         continue;
@@ -177,6 +176,7 @@ function _calculateRawRecords(
             // console.log('TPN row has abnormal start/end time :', row);
           }
         }
+        let tpn = row["RESULT_VAL"] / getWeight(timestamp, weightArr);
         accValueToDict(tpn, timestamp, "TPN", retDict);
       } else if (!start || !end){
         console.log("TPN start or end time null :", row);
@@ -224,16 +224,17 @@ function _calculateRawRecords(
     console.log("arrDilu record size :", arrDilu.length);
     for (let row of arrDilu) {
       // START_UNIX,  END_UNIX,  DRUG,  DILUENT,  INFUSION_RATE,  INFUSION_RATE_UNITS
-      let rate = row["INFUSION_RATE"];
+      // the unit of rate is mL/hr, since this volume API we binned by hour, the rate stands for "mL" 
       let start = row["START_UNIX"];
       let end = row["END_UNIX"];
-      if (start && end && rate && end > start) {
+      if (start && end && row["INFUSION_RATE"] && end > start) {
         let startTimestamp = Math.floor(start / 3600) * 3600;
         let binNumber = Math.ceil(end / 3600) - Math.floor(start / 3600);
 
         // flushes
         for (let i = 0; i < binNumber; i++) {
           let timestamp = startTimestamp + 3600 * i;
+          let rate = row["INFUSION_RATE"] / getWeight(timestamp, weightArr);
           if (row["DRUG"] === "papavarine" || row["DRUG"] === "heparin flush") {
             accValueToDict(rate, timestamp, "FLUSHES", retDict);
           } else {
