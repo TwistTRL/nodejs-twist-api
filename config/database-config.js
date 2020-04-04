@@ -1,5 +1,4 @@
 function splitConnectionString(rawConnectionString) {
-  console.log('rawConnectionString :', rawConnectionString);
   if (rawConnectionString) {
     let splited = rawConnectionString.split("#");
     let user = splited[0];

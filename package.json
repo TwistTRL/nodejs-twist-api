@@ -10,7 +10,8 @@
     "docs": "HTTP_PORT=3333 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
     "stadocs": "HTTP_PORT=3300 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
     "devdocs": "HTTP_PORT=3100 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
-    "test": "node replace-pre-push.js && mocha"
+    "pre-push": "HTTP_PORT=3100 node replace-pre-push.js",
+    "test": "mocha"
   },
   "keywords": [],
   "license": "Apache-2.0",
@@ -51,7 +52,8 @@
   },
   "husky": {
     "hooks": {
-      "pre-push": ""
+      "pre-commit": "npm run pre-push",
+      "pre-push": "npm run pre-push"
     }
   }
 }

@@ -1,8 +1,8 @@
 /*
  * @Author: Mingyu/Peng
  * @Date:
- * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-04-03 16:33:28
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-04-03 23:16:49
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2501,8 +2501,38 @@ router.get("/person/:person_id/nutrition/volume", async (req, res) => {
   res.send(await getNutriVolume(apiInput));
 });
 
+/**
+ * @api {post} /nutrition/volume Nutrients - Volume resoluton
+ * @apiVersion 0.0.1
+ * @apiName nutrients-volume-resolution
+ * @apiGroup Person
+ * @apiParam {Number} person_id patient unique ID.
+ * @apiParam {Number} from timestamp get data from.
+ * @apiParam {Number} resolution response data timestamp resolution.
+ * @apiParamExample {json} POST json example
+        {
+          "person_id": 25796315,
+          "from": 1543251600,
+          "resolution": 86400
+        }
+ * @apiSuccessExample Success-Response:
+ *    [
+        {
+          "timestamp": 1543251600,
+          "TPN": 1,
+          "LIPIDS": 1,
+          "MEDICATIONS": 1,
+          "INFUSIONS": 1,
+          "FLUSHES": 1,
+          "FEEDS": 1,
+          "IVF": 1,
+          "BLOOD PRODUCT": 1
+        },
+      ]     
+ *
+ */
+
 router.post("/nutrition/volume", async (req, res) => {
-  const query = req.body;
   const person_id = req.body.person_id;
   let resolution = req.body.resolution;
   let from = req.body.from;
@@ -2516,13 +2546,14 @@ router.post("/nutrition/volume", async (req, res) => {
   } else if (!Number.isInteger(resolution)){
     res.send("Invalid resolution, should be integer.");
     return;
-  } else if (!(resolution%3600)) {
+  } else if (resolution%3600) {
+
     res.send("Invalid resolution, should be divisible by 3600.");
     return;
   } else if (!from) {
     from = 0;
     console.log("from undefined");
-  } else if (!(from%3600)) {
+  } else if (from%3600) {
     res.send("Invalid from, should be divisible by 3600.");
     return;
   }
