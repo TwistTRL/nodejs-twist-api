@@ -1,8 +1,8 @@
 /*
  * @Author: Mingyu/Peng
  * @Date:
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-02 10:37:31
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-04-03 16:33:28
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2495,10 +2495,44 @@ router.get("/person/:person_id/nutrition/volume", async (req, res) => {
     return;
   }
   console.log("getting nutrition volume for %s ...", person_id);
-  const binds = {
-    person_id
+  const apiInput = {
+    person_id,
   };
-  res.send(await getNutriVolume(binds));
+  res.send(await getNutriVolume(apiInput));
+});
+
+router.post("/nutrition/volume", async (req, res) => {
+  const query = req.body;
+  const person_id = req.body.person_id;
+  let resolution = req.body.resolution;
+  let from = req.body.from;
+  console.log('person_id :', person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  if (!resolution) {
+    resolution = 3600;
+  } else if (!Number.isInteger(resolution)){
+    res.send("Invalid resolution, should be integer.");
+    return;
+  } else if (!(resolution%3600)) {
+    res.send("Invalid resolution, should be divisible by 3600.");
+    return;
+  } else if (!from) {
+    from = 0;
+    console.log("from undefined");
+  } else if (!(from%3600)) {
+    res.send("Invalid from, should be divisible by 3600.");
+    return;
+  }
+  console.log("getting nutrition volume for %s ...", person_id);
+  const apiInput = {
+    person_id,
+    resolution,
+    from,
+  };
+  res.send(await getNutriVolume(apiInput));
 });
 
 /**

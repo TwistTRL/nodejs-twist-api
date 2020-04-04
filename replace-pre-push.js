@@ -8,8 +8,6 @@ const options = {
 async function startReplacing() {
   try {
     const results = await replace(options)
-    // console.log('Replacement results:', results);
-    // console.log('results[0].hasChanged: ', results[0].hasChanged);
     if (results[0].hasChanged) {
       // console.log("restart ");
       startReplacing();

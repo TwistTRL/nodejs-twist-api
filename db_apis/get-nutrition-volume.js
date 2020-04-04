@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-03 12:33:27
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-04-03 16:08:19
  */
 
 const { bisect_left } = require("bisect-js");
@@ -153,7 +153,9 @@ function _calculateRawRecords(
   arrDilu,
   arrInout,
   arrMed,
-  weightArr
+  weightArr,
+  resolution,
+  from,
 ) {
   // get hour binned data
   let retDict = {};
@@ -264,9 +266,77 @@ function _calculateRawRecords(
     }
   }
 
+  // transfer hourly binned retDict to retArr with resolution
+  // {
+  //   "timestamp": 1543251600,
+  //   "TPN": 1,
+  //   "LIPIDS": 1,
+  //   "MEDICATIONS": 1,
+  //   "INFUSIONS": 1,
+  //   "FLUSHES": 1,
+  //   "FEEDS": 1,
+  //   "IVF": 1,
+  //   "BLOOD PRODUCT": 1
+  // },
+
+  let retDictWithResolution;
+  if (!resolution || from === undefined) {
+    retDictWithResolution = retDictWithResolution;
+  } else {
+    retDictWithResolution = {};
+    for (let timestamp in retDict) {
+      let binnedTs = Math.floor((Number(timestamp) - from) / resolution) * resolution; 
+      if (binnedTs in retDictWithResolution) {
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["TPN"] = retDict.TPN + (retDictWithResolution[binnedTs]["TPN"] || 0);
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["LIPIDS"] = retDict.LIPIDS + (retDictWithResolution[binnedTs]["LIPIDS"] || 0);
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["MEDICATIONS"] = retDict.MEDICATIONS + (retDictWithResolution[binnedTs]["MEDICATIONS"] || 0);
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["INFUSIONS"] = retDict.INFUSIONS + (retDictWithResolution[binnedTs]["INFUSIONS"] || 0);
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["FLUSHES"] = retDict.FLUSHES + (retDictWithResolution[binnedTs]["FLUSHES"] || 0);
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["IVF"] = retDict.IVF + (retDictWithResolution[binnedTs]["IVF"] || 0);
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["BLOOD PRODUCT"] = retDict["BLOOD PRODUCT"] + (retDictWithResolution[binnedTs]["BLOOD PRODUCT"] || 0);
+        }
+      } else {
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["TPN"] = retDict.TPN;
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["LIPIDS"] = retDict.LIPIDS;
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["MEDICATIONS"] = retDict.MEDICATIONS;
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["INFUSIONS"] = retDict.INFUSIONS;
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["FLUSHES"] = retDict.FLUSHES;
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["IVF"] = retDict.IVF;
+        }
+        if (retDict.TPN) {
+          retDictWithResolution[binnedTs]["BLOOD PRODUCT"] = retDict["BLOOD PRODUCT"];
+        }
+      }
+    }
+  }
+
   let retArr = [];
-  for (let timestamp in retDict) {
-    let curObj = { timestamp: Number(timestamp), ...retDict[timestamp] };   
+  for (let timestamp in retDictWithResolution) {
+    let curObj = { timestamp, ...retDictWithResolution[timestamp] };   
     retArr.push(curObj);
   }
   console.log('return array length :', retArr.length);
@@ -297,7 +367,9 @@ const accValueToDict = (value, catKey, childKey, dict) => {
   }
 };
 
-const getNutriVolume = database.withConnection(async function(conn, binds) {
+const getNutriVolume = database.withConnection(async function(conn, apiInput) {
+  const { person_id, resolution, from } = apiInput;
+  const binds = { person_id };
   let weightArr = await weightCalcQuerySQLExecutor(conn, binds);
   let tpnRaw = await tpnVolQuerySQLExecutor(conn, binds);
   let tpnLipidRaw = await tpnLipidVolQuerySQLExecutor(conn, binds);
@@ -312,7 +384,9 @@ const getNutriVolume = database.withConnection(async function(conn, binds) {
     diluRaw,
     inoutRaw,
     medRaw,
-    weightArr
+    weightArr,
+    resolution,
+    from,
   );
   return result;
 });

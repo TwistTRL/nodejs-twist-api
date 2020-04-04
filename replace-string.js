@@ -1,19 +1,20 @@
 /*
  * @Author: Peng
  * @Date: 2020-01-28 10:45:44
- * @Last Modified by: Peng
- * @Last Modified time: 2020-03-27 23:42:00
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-04-03 22:08:48
  */
 
 const replace = require("replace-in-file");
 const fs = require("fs");
 const path = require("path");
 const XLSX = require("xlsx");
-
-const { DEV_PORT } = require("./ecosystem.config");
-
+const HOSTNAME = require('os').hostname();
+const HOST_NAME_AND_PORT = "HOST_NAME_AND_PORT";
 const { IN_OUT_CODES_XLSX_PATH } = require("./db_relation/in-out-db-relation");
 const { MED_CAT_XLSX_PATH } = require("./db_relation/drug-category-relation");
+
+const toHostAndPort = HOSTNAME + ":" + process.env.HTTP_PORT;
 
 const options = {
   files: "./services/router.js",
@@ -23,23 +24,23 @@ const options = {
 
 const options1 = {
   files: "./config/apidoc-config/apidoc.json",
-  from: DEV_PORT.toString(),
-  to: process.env.HTTP_PORT.toString()
+  from: HOST_NAME_AND_PORT,
+  to: toHostAndPort
 };
 const options2 = {
   files: "./config/apidoc-config/apidoc.json",
-  from: DEV_PORT.toString(),
-  to: process.env.HTTP_PORT.toString()
+  from: HOST_NAME_AND_PORT,
+  to: toHostAndPort
 };
 const options3 = {
   files: "./config/apidoc2-config/apidoc.json",
-  from: DEV_PORT.toString(),
-  to: process.env.HTTP_PORT.toString()
+  from: HOST_NAME_AND_PORT,
+  to: toHostAndPort
 };
 const options4 = {
   files: "./config/apidoc2-config/apidoc.json",
-  from: DEV_PORT.toString(),
-  to: process.env.HTTP_PORT.toString()
+  from: HOST_NAME_AND_PORT,
+  to: toHostAndPort
 };
 
 async function startReplacString() {
@@ -72,8 +73,8 @@ function copyXlsxFile() {
   const docsDir = path.join(__dirname, "docs");
   const filesDir = path.join(docsDir, "files");
 
-  console.log("IN_OUT_CODES_XLSX_PATH :", IN_OUT_CODES_XLSX_PATH);
-  console.log("MED_CAT_XLSX_PATH :", MED_CAT_XLSX_PATH);
+  // console.log("IN_OUT_CODES_XLSX_PATH :", IN_OUT_CODES_XLSX_PATH);
+  // console.log("MED_CAT_XLSX_PATH :", MED_CAT_XLSX_PATH);
 
   fs.access(docsDir, err => {
     if (err) {

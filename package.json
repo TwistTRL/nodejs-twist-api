@@ -1,15 +1,15 @@
 {
   "name": "twist-backend-api",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "API with Node.js and Oracle Database",
   "main": "index.js",
   "scripts": {
-    "start": "pm2 start ecosystem.config.js --env production",
-    "stage": "pm2 start ecosystem.config.js --env stage",
+    "start": "HTTP_PORT=3333 pm2 start ecosystem.config.js --env production",
+    "stage": "HTTP_PORT=3300 pm2 start ecosystem.config.js --env stage",
     "dev": "HTTP_PORT=3100 nodemon --watch db_apis index.js",
     "docs": "HTTP_PORT=3333 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
     "stadocs": "HTTP_PORT=3300 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
-    "devdocs": "HTTP_PORT=3100 apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
+    "devdocs": "HTTP_PORT=3100 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
     "test": "node replace-pre-push.js && mocha"
   },
   "keywords": [],
@@ -31,7 +31,7 @@
     "request": "^2.88.2",
     "session-file-store": "^1.4.0",
     "twist-xlsx": "file:../nodejs-twist-utils",
-    "xlsx": "^0.15.5"
+    "xlsx": "^0.15.6"
   },
   "devDependencies": {
     "chai": "^4.2.0",
