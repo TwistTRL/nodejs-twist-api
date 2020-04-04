@@ -46,7 +46,7 @@
  * @api {post} /inout-tooltip In-Out Tooltip for Patient
  * @apiVersion 0.0.1
  * @apiName Get in-out tooltip for patient
- * @apiGroup Person
+ * @apiGroup _Deprecated
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `DRUG_DILUENTS`
  * 
