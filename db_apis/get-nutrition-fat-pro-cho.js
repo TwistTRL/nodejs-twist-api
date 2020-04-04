@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-03-31 18:13:54
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-01 15:24:01
+ * @Last Modified time: 2020-04-03 23:04:23
  */
 
 const { bisect_left } = require("bisect-js");
@@ -10,7 +10,27 @@ const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
 
-var timeLable = 0;
+const DEXTROSE_DICT = {
+  "Dextrose 5% in Water": 0.05,
+  "Dextrose 30% in Water": 0.3,
+  "Dextrose 10% in Water": 0.1,
+  "Dextrose 40% in Water": 0.4,
+  "Dextrose 25% in Water": 0.25,
+  "Dextrose 12.5% in Water": 0.125,
+  "Dextrose 10% with 0.2% NaCl": 0.1,
+  "Dextrose 5% in Lactated Ringers Injection": 0.05,
+  "Dextrose 15% in Water": 0.15,
+  "Dextrose 5% with 0.225% NaCl": 0.05,
+  "Dextrose 20% in Water": 0.2,
+  "Dextrose 5% with 0.9% NaCl": 0.05,
+  "Dextrose 5% with 0.45% NaCl": 0.05,
+  "Dextrose 10% with 0.9% NaCl": 0.1,
+  "Dextrose 7.5% in Water": 0.075,
+  "Dextrose 17.5% in Water": 0.175,
+  "Dextrose 2.5% in Water": 0.025,
+};
+
+const TPN_LIPID_RATIO = 0.2; //20% lipid, which is 0.2 grams fat/mL
 
 const SQL_GET_WEIGHT_CALC = `
 SELECT
@@ -55,26 +75,6 @@ FROM DRUG_DILUENTS
 WHERE PERSON_ID = :person_id
 ORDER BY START_UNIX`;
 
-const DEXTROSE_DICT = {
-  "Dextrose 5% in Water": 0.05,
-  "Dextrose 30% in Water": 0.3,
-  "Dextrose 10% in Water": 0.1,
-  "Dextrose 40% in Water": 0.4,
-  "Dextrose 25% in Water": 0.25,
-  "Dextrose 12.5% in Water": 0.125,
-  "Dextrose 10% with 0.2% NaCl": 0.1,
-  "Dextrose 5% in Lactated Ringers Injection": 0.05,
-  "Dextrose 15% in Water": 0.15,
-  "Dextrose 5% with 0.225% NaCl": 0.05,
-  "Dextrose 20% in Water": 0.2,
-  "Dextrose 5% with 0.9% NaCl": 0.05,
-  "Dextrose 5% with 0.45% NaCl": 0.05,
-  "Dextrose 10% with 0.9% NaCl": 0.1,
-  "Dextrose 7.5% in Water": 0.075,
-  "Dextrose 17.5% in Water": 0.175,
-  "Dextrose 2.5% in Water": 0.025
-};
-
 const SQL_GET_TPN_LIPID = `
 SELECT
   DT_UNIX,
@@ -83,7 +83,7 @@ FROM TPN_LIPID
 WHERE PERSON_ID = :person_id
 ORDER BY DT_UNIX`;
 
-const TPN_LIPID_RATIO = 0.2; //20% lipid, which is 0.2 grams fat/mL
+var timeLable = 0;
 
 async function weightCalcQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
@@ -92,7 +92,7 @@ async function weightCalcQuerySQLExecutor(conn, binds) {
   let rawRecord = await conn.execute(SQL_GET_WEIGHT_CALC, binds);
   console.timeEnd("getWeightCalc-sql" + timestampLable);
   let ret = [];
-  rawRecord.rows.forEach(element => {
+  rawRecord.rows.forEach((element) => {
     if (element["WEIGHT_CALC"]) {
       ret.push(element);
     }
@@ -207,15 +207,39 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
     console.log("DiluNutr record size :", arrDiluNutr.length);
     for (let row of arrDiluNutr) {
       if (row["DILUENT"] in DEXTROSE_DICT) {
-        let rate = row["INFUSION_RATE"];
+        // normalized rate: 'Dextrose 10% in Water' means rate * 0.1
+        let rate = row["INFUSION_RATE"] * DEXTROSE_DICT[row["DILUENT"]];
         let start = row["START_UNIX"];
         let end = row["END_UNIX"];
         if (start && end && rate && end > start) {
           let startTimestamp = Math.floor(start / 3600) * 3600;
           let binNumber = Math.ceil(end / 3600) - Math.floor(start / 3600);
-          for (let i = 0; i < binNumber; i++) {
-            let timestamp = startTimestamp + 3600 * i;
-            accValueToDict(rate, timestamp, "cho_dilu", retDict);
+
+          // calculate value for each bin
+          // 1. binNumber == 1, `start` to `end`
+          // 2. binNumber == 2, left value is `start` to left bin end, right value is right bin start to `end`
+          // 3. binNumber == 3, first bin: left value, last bin: right value, middle others: all equal rate 
+          if (binNumber === 1) {
+            let value = (rate * (end - start)) / 3600;
+            accValueToDict(value, startTimestamp, "cho_dilu", retDict);
+          } else if (binNumber === 2) {
+            let leftValue = (rate * (startTimestamp + 3600 - start)) / 3600;
+            accValueToDict(leftValue, startTimestamp, "cho_dilu", retDict);
+            let rightValue = (rate * (end - startTimestamp - 3600)) / 3600;
+            accValueToDict(rightValue, startTimestamp + 3600, "cho_dilu", retDict);
+          } else {
+            for (let i = 0; i < binNumber; i++) {
+              let timestamp = startTimestamp + 3600 * i;
+              if (i === 0) {
+                let leftValue = (rate * (startTimestamp + 3600 - start)) / 3600;
+                accValueToDict(leftValue, timestamp, "cho_dilu", retDict);
+              } else if (i === binNumber - 1) {
+                let rightValue = (rate * (end - startTimestamp - 3600 * i)) / 3600;
+                accValueToDict(rightValue, timestamp, "cho_dilu", retDict);
+              } else {
+                accValueToDict(rate, timestamp, "cho_dilu", retDict);
+              }
+            }
           }
         } else {
           console.warn("error: on start/end/rate for this row :", row);
@@ -245,7 +269,7 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
         sum:
           (retDict[timestamp].cho_tpn || 0) +
           (retDict[timestamp].cho_en || 0) +
-          (retDict[timestamp].cho_dilu || 0)
+          (retDict[timestamp].cho_dilu || 0),
       };
       if (retDict[timestamp].cho_tpn) {
         choObj.tpn = retDict[timestamp].cho_tpn;
@@ -261,7 +285,7 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
 
     if (retDict[timestamp].fat_en || retDict[timestamp].fat_tpnlipid) {
       let fatObj = {
-        sum: (retDict[timestamp].fat_en || 0) + (retDict[timestamp].fat_tpnlipid || 0)
+        sum: (retDict[timestamp].fat_en || 0) + (retDict[timestamp].fat_tpnlipid || 0),
       };
       if (retDict[timestamp].fat_en) {
         fatObj.tpn = retDict[timestamp].fat_en;
@@ -275,11 +299,11 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
     retArr.push(curObj);
   }
 
-  return retArr.sort((a,b) => a.timestamp - b.timestamp);
+  return retArr.sort((a, b) => a.timestamp - b.timestamp);
 }
 
 const getWeight = (timestamp, weightArr) => {
-  let index = bisect_left(weightArr, timestamp, x => x["DT_UNIX"]);
+  let index = bisect_left(weightArr, timestamp, (x) => x["DT_UNIX"]);
   if (index < 0) {
     console.log("at timestamp has no weight:", timestamp);
     return weightArr[0]["WEIGHT_CALC"];
@@ -301,7 +325,7 @@ const accValueToDict = (value, catKey, childKey, dict) => {
   }
 };
 
-const getNutriFatProCho = database.withConnection(async function(conn, binds) {
+const getNutriFatProCho = database.withConnection(async function (conn, binds) {
   let weightArr = await weightCalcQuerySQLExecutor(conn, binds);
   let tpnRaw = await tpnNutrQuerySQLExecutor(conn, binds);
   let tpnLipidRaw = await tpnLipidQuerySQLExecutor(conn, binds);
@@ -312,5 +336,5 @@ const getNutriFatProCho = database.withConnection(async function(conn, binds) {
 });
 
 module.exports = {
-  getNutriFatProCho
+  getNutriFatProCho,
 };

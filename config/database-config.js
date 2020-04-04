@@ -1,6 +1,6 @@
 function splitConnectionString(rawConnectionString) {
   if (rawConnectionString) {
-    let splited = rawConnectionString.split("/");
+    let splited = rawConnectionString.split("#");
     let user = splited[0];
     splited = splited[1].split("@");
     let password = splited[0];

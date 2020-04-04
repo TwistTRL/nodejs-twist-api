@@ -3,8 +3,8 @@
     "title": "Twist API with Node.js-Oracle database",
     "version": "0.1.0", 
     "description": "API with Node.js and Oracle Database to get person/vitals infomatin", 
-    "url": "http://twist:3100/api",
-    "sampleUrl": "http://twist:3100/api",
+    "url": "http://twist.tch.harvard.edu:3100/api",
+    "sampleUrl": "http://twist.tch.harvard.edu:3100/api",
     "header": {
       "title": "Introduction",
       "filename": "apidoc-header.md"

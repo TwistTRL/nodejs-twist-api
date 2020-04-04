@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-03 12:33:27
+ * @Last Modified time: 2020-04-03 23:35:41
  */
 
 const { bisect_left } = require("bisect-js");
@@ -84,7 +84,7 @@ async function weightCalcQuerySQLExecutor(conn, binds) {
   let rawRecord = await conn.execute(SQL_GET_WEIGHT_CALC, binds);
   console.timeEnd("getWeightCalc-sql" + timestampLable);
   let ret = [];
-  rawRecord.rows.forEach(element => {
+  rawRecord.rows.forEach((element) => {
     if (element["WEIGHT_CALC"]) {
       ret.push(element);
     }
@@ -153,7 +153,9 @@ function _calculateRawRecords(
   arrDilu,
   arrInout,
   arrMed,
-  weightArr
+  weightArr,
+  resolution,
+  from
 ) {
   // get hour binned data
   let retDict = {};
@@ -178,7 +180,7 @@ function _calculateRawRecords(
         }
         let tpn = row["RESULT_VAL"] / getWeight(timestamp, weightArr);
         accValueToDict(tpn, timestamp, "TPN", retDict);
-      } else if (!start || !end){
+      } else if (!start || !end) {
         console.log("TPN start or end time null :", row);
       }
     }
@@ -224,7 +226,7 @@ function _calculateRawRecords(
     console.log("arrDilu record size :", arrDilu.length);
     for (let row of arrDilu) {
       // START_UNIX,  END_UNIX,  DRUG,  DILUENT,  INFUSION_RATE,  INFUSION_RATE_UNITS
-      // the unit of rate is mL/hr, since this volume API we binned by hour, the rate stands for "mL" 
+      // the unit of rate is mL/hr, since this volume API we binned by hour, the rate stands for "mL"
       let start = row["START_UNIX"];
       let end = row["END_UNIX"];
       if (start && end && row["INFUSION_RATE"] && end > start) {
@@ -264,18 +266,100 @@ function _calculateRawRecords(
     }
   }
 
+  // transfer hourly binned retDict to retArr with resolution
+  // [{
+  //   "timestamp": 1543251600,
+  //   "TPN": 1,
+  //   "LIPIDS": 1,
+  //   "MEDICATIONS": 1,
+  //   "INFUSIONS": 1,
+  //   "FLUSHES": 1,
+  //   "FEEDS": 1,
+  //   "IVF": 1,
+  //   "BLOOD PRODUCT": 1
+  // },...]
+  
+  let retDictWithResolution;
+  if (!resolution || from === undefined) {
+    console.log("binned by hours");
+    retDictWithResolution = retDict;
+  } else {
+    retDictWithResolution = {};
+
+    for (let timestamp in retDict) {
+      if (timestamp > from) {
+        let binnedTs = Math.floor((Number(timestamp) - from) / resolution) * resolution + from;
+        if (binnedTs in retDictWithResolution) {
+          if (retDict[timestamp].TPN) {
+            retDictWithResolution[binnedTs]["TPN"] =
+              retDict[timestamp].TPN + (retDictWithResolution[binnedTs]["TPN"] || 0);
+          }
+          if (retDict[timestamp].LIPIDS) {
+            retDictWithResolution[binnedTs]["LIPIDS"] =
+              retDict[timestamp].LIPIDS + (retDictWithResolution[binnedTs]["LIPIDS"] || 0);
+          }
+          if (retDict[timestamp].MEDICATIONS) {
+            retDictWithResolution[binnedTs]["MEDICATIONS"] =
+              retDict[timestamp].MEDICATIONS +
+              (retDictWithResolution[binnedTs]["MEDICATIONS"] || 0);
+          }
+          if (retDict[timestamp].INFUSIONS) {
+            retDictWithResolution[binnedTs]["INFUSIONS"] =
+              retDict[timestamp].INFUSIONS + (retDictWithResolution[binnedTs]["INFUSIONS"] || 0);
+          }
+          if (retDict[timestamp].FLUSHES) {
+            retDictWithResolution[binnedTs]["FLUSHES"] =
+              retDict[timestamp].FLUSHES + (retDictWithResolution[binnedTs]["FLUSHES"] || 0);
+          }
+          if (retDict[timestamp].IVF) {
+            retDictWithResolution[binnedTs]["IVF"] =
+              retDict[timestamp].IVF + (retDictWithResolution[binnedTs]["IVF"] || 0);
+          }
+          if (retDict[timestamp]["BLOOD PRODUCT"]) {
+            retDictWithResolution[binnedTs]["BLOOD PRODUCT"] =
+              retDict[timestamp]["BLOOD PRODUCT"] +
+              (retDictWithResolution[binnedTs]["BLOOD PRODUCT"] || 0);
+          }
+        } else {
+          retDictWithResolution[binnedTs] = {};
+          if (retDict[timestamp].TPN) {
+            retDictWithResolution[binnedTs]["TPN"] = retDict[timestamp].TPN;
+          }
+          if (retDict[timestamp].LIPIDS) {
+            retDictWithResolution[binnedTs]["LIPIDS"] = retDict[timestamp].LIPIDS;
+          }
+          if (retDict[timestamp].MEDICATIONS) {
+            retDictWithResolution[binnedTs]["MEDICATIONS"] = retDict[timestamp].MEDICATIONS;
+          }
+          if (retDict[timestamp].INFUSIONS) {
+            retDictWithResolution[binnedTs]["INFUSIONS"] = retDict[timestamp].INFUSIONS;
+          }
+          if (retDict[timestamp].FLUSHES) {
+            retDictWithResolution[binnedTs]["FLUSHES"] = retDict[timestamp].FLUSHES;
+          }
+          if (retDict[timestamp].IVF) {
+            retDictWithResolution[binnedTs]["IVF"] = retDict[timestamp].IVF;
+          }
+          if (retDict[timestamp]["BLOOD PRODUCT"]) {
+            retDictWithResolution[binnedTs]["BLOOD PRODUCT"] = retDict[timestamp]["BLOOD PRODUCT"];
+          }
+        }
+      }
+    }
+  }
+
+  // dictionary to sorted array
   let retArr = [];
-  for (let timestamp in retDict) {
-    let curObj = { timestamp: Number(timestamp), ...retDict[timestamp] };   
+  for (let timestamp in retDictWithResolution) {
+    let curObj = { timestamp, ...retDictWithResolution[timestamp] };
     retArr.push(curObj);
   }
-  console.log('return array length :', retArr.length);
-
+  console.log("return array length :", retArr.length);
   return retArr.sort((a, b) => a.timestamp - b.timestamp);
 }
 
 const getWeight = (timestamp, weightArr) => {
-  let index = bisect_left(weightArr, timestamp, x => x["DT_UNIX"]);
+  let index = bisect_left(weightArr, timestamp, (x) => x["DT_UNIX"]);
   if (index < 0) {
     console.log("at timestamp has no weight:", timestamp);
     return weightArr[0]["WEIGHT_CALC"];
@@ -297,7 +381,9 @@ const accValueToDict = (value, catKey, childKey, dict) => {
   }
 };
 
-const getNutriVolume = database.withConnection(async function(conn, binds) {
+const getNutriVolume = database.withConnection(async function (conn, apiInput) {
+  const { person_id, resolution, from } = apiInput;
+  const binds = { person_id };
   let weightArr = await weightCalcQuerySQLExecutor(conn, binds);
   let tpnRaw = await tpnVolQuerySQLExecutor(conn, binds);
   let tpnLipidRaw = await tpnLipidVolQuerySQLExecutor(conn, binds);
@@ -312,11 +398,13 @@ const getNutriVolume = database.withConnection(async function(conn, binds) {
     diluRaw,
     inoutRaw,
     medRaw,
-    weightArr
+    weightArr,
+    resolution,
+    from
   );
   return result;
 });
 
 module.exports = {
-  getNutriVolume
+  getNutriVolume,
 };
