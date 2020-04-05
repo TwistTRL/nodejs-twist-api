@@ -1,5 +1,6 @@
 ## customized gitignore
 .vscode
+dump.rdb
 apidoc/
 temp/
 config/ipList.txt

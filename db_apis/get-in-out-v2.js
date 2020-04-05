@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-02 21:49:46
+ * @Last Modified time: 2020-04-04 22:35:36
  */
 
 
@@ -634,13 +634,13 @@ function handelSameTimeArray(array, timeOfArray, timeInterval) {
   return resultSameTime;
 }
 
-async function parallelQuery(conn, new_query) {
+async function parallelQuery(conn, query) {
   // should parallel do the sql query
-  const task1 = await inOutEventQuerySQLExecutor(conn, new_query);
-  const task2 = await inOutDiluentsQuerySQLExecutor(conn, new_query);
-  const task3 = await tpnQuerySQLExecutor(conn, new_query);
-  const task4 = await enQuerySQLExecutor(conn, new_query);
-  const task5 = await lipidsQuerySQLExecutor(conn, new_query);
+  const task1 = await inOutEventQuerySQLExecutor(conn, query);
+  const task2 = await inOutDiluentsQuerySQLExecutor(conn, query);
+  const task3 = await tpnQuerySQLExecutor(conn, query);
+  const task4 = await enQuerySQLExecutor(conn, query);
+  const task5 = await lipidsQuerySQLExecutor(conn, query);
   return {
     arr1: await task1,
     arr2: await task2,
@@ -663,39 +663,16 @@ async function parallelQuery(conn, new_query) {
  * @param {*} query 
  */
 const getInOutQueryV2 = database.withConnection(async function(conn, query) {
-  let new_query = {
-    person_id: query.person_id,
-    from: query.from || 0,
-    to: query.to || new Date().getTime() / 1000,
-    resolution: query.resolution || 3600
-  };
-  console.log("query = ", new_query);
 
-  if (!isValidJson.validate_inout(new_query)) {
-    console.warn(new_query + " : not json");
-    throw new InputInvalidError("Input not in valid json");
-  }
-  if (new_query.from > new_query.to) {
-    throw new InputInvalidError("start time must >= end time");
-  }
-  if (new_query.resolution <= 0) {
-    throw new InputInvalidError('"resolution" must be >= 3600');
-  }
-  if (new_query.resolution % 3600 != 0) {
-    throw new InputInvalidError('"resolution" should be divisible by 3600');
-  }
-  if (new_query.from % new_query.resolution != 0) {
-    throw new InputInvalidError('"from" should be divisible by "resolution"');
-  }
 
   let consoleTimeCount = timeLable++;
   console.time("getInOut" + consoleTimeCount);
-  let rawResults = await parallelQuery(conn, new_query);
+  let rawResults = await parallelQuery(conn, query);
   let result = _calculateRawRecords(
     rawResults,
-    new_query[RESOLUTION],
-    new_query[FROM],
-    new_query[TO]
+    query[RESOLUTION],
+    query[FROM],
+    query[TO]
   );
   console.timeEnd("getInOut" + consoleTimeCount);
 
