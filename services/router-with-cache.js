@@ -2,42 +2,15 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-05 22:46:05
+ * @Last Modified time: 2020-04-06 10:37:20
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
 const path = require("path");
 const router = new express.Router();
 
-const redis = require("redis");
-// create and connect redis client to local instance.
-const client = redis.createClient(6379);
-// echo redis errors to the console
-client.on("error", (err) => {
-  console.log("Error " + err);
-});
-
-const getApiFromRedis = (res, apiFn, apiInput, apiName="api", apiExpireTime=3600*24) => {
-  let redisKey = `${apiName}:${JSON.stringify(apiInput)}`;
-  console.log("redisKey :", redisKey);
-  console.time(apiName);
-  // Try fetching the result from Redis first in case we have it cached
-  client.get(redisKey, async (err, reply) => {
-    if (reply) {
-      res.send(reply);
-      console.log("-> from cache");
-      console.timeEnd(apiName);
-    } else {
-      const toSend = await apiFn(apiInput);
-      // Save the API response in Redis store,  data expire time in 3600*24 seconds, it means one day
-      client.setex(redisKey, apiExpireTime, JSON.stringify(toSend));
-      res.send(toSend);
-      console.timeEnd(apiName);
-    }
-  });
-}
-
-
+// redis
+const { getApiFromRedis } = require("../config/redis-config");
 
 const { getRelationalQuery } = require("../db_apis/get-relational-query");
 const { getVitalsQuery } = require("../db_apis/get-vitals-all");
