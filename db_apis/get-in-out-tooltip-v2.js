@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-02 18:02:15
+ * @Last Modified time: 2020-04-05 22:12:07
  */
 
 /**
@@ -945,13 +945,13 @@ function comp(a, b) {
   return SL_ORDER_ARRAY.indexOf(a) > SL_ORDER_ARRAY.indexOf(b);
 }
 
-async function parallelQuery(conn, new_query) {
+async function parallelQuery(conn, query) {
   // should parallel do the sql query
-  const task1 = await inOutEventTooltipQuerySQLExecutor(conn, new_query);
-  const task2 = await inOutDiluentsTooltipQuerySQLExecutor(conn, new_query);
-  const task3 = await tpnQuerySQLExecutor(conn, new_query);
-  const task4 = await enQuerySQLExecutor(conn, new_query);
-  const task5 = await lipidsQuerySQLExecutor(conn, new_query);
+  const task1 = await inOutEventTooltipQuerySQLExecutor(conn, query);
+  const task2 = await inOutDiluentsTooltipQuerySQLExecutor(conn, query);
+  const task3 = await tpnQuerySQLExecutor(conn, query);
+  const task4 = await enQuerySQLExecutor(conn, query);
+  const task5 = await lipidsQuerySQLExecutor(conn, query);
   return {
     arr1: await task1,
     arr2: await task2,
@@ -976,39 +976,15 @@ async function parallelQuery(conn, new_query) {
 const getInOutTooltipQueryV2 = database.withConnection(async function(
   conn,
   query
-) {
-  let new_query = {
-    person_id: query.person_id,
-    from: query.from || 0,
-    to: query.from + query.resolution - 1,
-    resolution: query.resolution || 3600
-  };
-  console.log("query = ", new_query);
-
-  if (!isValidJson.validate_inout(new_query)) {
-    console.warn(new_query + " : not json");
-    throw new InputInvalidError("Input not in valid json");
-  }
-
-  if (new_query.from > new_query.to) {
-    throw new InputInvalidError("start time must > end time");
-  }
-  if (new_query.resolution <= 0 || new_query.resolution % 3600 != 0) {
-    throw new InputInvalidError('"resolution" must be 3600 * n (n ∈ N)');
-  }
-
-  if (new_query.from % 3600 != 0) {
-    throw new InputInvalidError('"start" time must be divisible by 3600');
-  }
-
+) { 
   let consoleTimeCount = timeLable++;
   console.time("getInOutTooltip" + consoleTimeCount);
-  let rawResult = await parallelQuery(conn, new_query);
+  let rawResult = await parallelQuery(conn, query);
   let result = _calculateRawRecords(
     rawResult,
-    new_query[RESOLUTION],
-    new_query[FROM],
-    new_query[TO]
+    query[RESOLUTION],
+    query[FROM],
+    query[TO]
   );
   console.timeEnd("getInOutTooltip" + consoleTimeCount);
   return result;
