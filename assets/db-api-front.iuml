@@ -1,5 +1,12 @@
 @startuml db-api-frontend
 package "TWIST FRONT END" {
+  [MRN input] .. [RSS]
+  [MRN input] .. [Body Container]
+  [Body Container] -- [I/O Table]
+  [Body Container] -- [Nutrition Table]
+  [Body Container] -- [Medications]
+  [Body Container] -- [Vitals]
+
   [Nutrition Table] -- [Nutrition Volume]
   [Nutrition Table] -- [Nutrition fat-pro-cho]
   [Nutrition Table] -- [Nutrition Calories]

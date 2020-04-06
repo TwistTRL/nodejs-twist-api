@@ -8,12 +8,18 @@ package "TWIST FRONT END" {
     }
 
     frame "main page" as main {
+        [RSS]
+        [Body Container] -- [I/O Table]
+        [Body Container] -- [Nutrition Table]
+        [Body Container] -- [Medications]
+        [Body Container] -- [Vitals]
         [Nutrition Table] -- [Nutrition Volume]
         [Nutrition Table] -- [Nutrition fat-pro-cho]
         [I/O Table] -- [I/O stack bar]
         [I/O Table] -- [I/O modal]
         [Medications]
     }
+    login -[hidden]down- main
 }
 
 package "TWIST API" {
@@ -46,20 +52,30 @@ package "TWIST API" {
         interface med
         interface "weight-calc" as weightc
         interface others
+        interface apiRSS
     }
+
+    [Cache] -up-> volume
+    [Cache] -up-> fpc
+    [Cache] -up-> inout
+    [Cache] -up-> iot
+    [Cache] -up-> med
+    [Cache] -up-> weightc
+    [Cache] -up-> others
+    [Cache] -up-> apiRSS
+
+    [Cache] <-- [TPN_LIPID]
+    [Cache] <-- [TPN]
+    [Cache] <-- [EN]
+    [Cache] <-- [INTAKE_OUTPUT]
+    [Cache] <-- [DRUG_INTERMITTENT]
+    [Cache] <-- [DRUG_DILUENTS]
+
 }
 
 database DWTST
 
-login -[hidden]down- main
-
 [MRN input] -down-> [Initial Fetch]
-[Cache] <-- [TPN_LIPID]
-[Cache] <-- [TPN]
-[Cache] <-- [EN]
-[Cache] <-- [INTAKE_OUTPUT]
-[Cache] <-- [DRUG_INTERMITTENT]
-[Cache] <-- [DRUG_DILUENTS]
 
 [Nutrition Volume] <-- volume
 [Nutrition fat-pro-cho] <-- fpc
@@ -67,13 +83,7 @@ login -[hidden]down- main
 [I/O modal] <-- iot
 [Medications] <-- med
 
-[Cache] -up-> volume
-[Cache] -up-> fpc
-[Cache] -up-> inout
-[Cache] -up-> iot
-[Cache] -up-> med
-[Cache] -up-> weightc
-[Cache] -up-> others
+' [RSS] <-- apiRSS
 
 DWTST -up- dbConnector
 
