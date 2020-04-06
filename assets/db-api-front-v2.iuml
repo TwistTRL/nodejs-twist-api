@@ -3,14 +3,15 @@
 ' skinparam componentStyle uml2
 
 package "TWIST FRONT END" {
-    frame "log in page" {
+    frame "log in page" as login {
         [Auth] -- [MRN input]
     }
 
-    frame "main page" {
+    frame "main page" as main {
         [Nutrition Table] -- [Nutrition Volume]
         [Nutrition Table] -- [Nutrition fat-pro-cho]
-        [I/O Table]
+        [I/O Table] -- [I/O stack bar]
+        [I/O Table] -- [I/O modal]
         [Medications]
     }
 }
@@ -26,7 +27,7 @@ package "TWIST API" {
     }
 
     frame "cache" {
-        [Cache] <-left- [Initial Fetch] :has cache
+        [Initial Fetch] -left-> [Cache] :has cache
     }
 
     [Initial Fetch] -down-> dbConnector :no cache
@@ -50,6 +51,8 @@ package "TWIST API" {
 
 database DWTST
 
+login -[hidden]down- main
+
 [MRN input] -down-> [Initial Fetch]
 [Cache] <-- [TPN_LIPID]
 [Cache] <-- [TPN]
@@ -60,8 +63,8 @@ database DWTST
 
 [Nutrition Volume] <-- volume
 [Nutrition fat-pro-cho] <-- fpc
-[I/O Table] <-- inout
-[I/O Table] <-- iot
+[I/O stack bar] <-- inout
+[I/O modal] <-- iot
 [Medications] <-- med
 
 [Cache] -up-> volume

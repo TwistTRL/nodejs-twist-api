@@ -2,7 +2,11 @@
 package "TWIST FRONT END" {
   [Nutrition Table] -- [Nutrition Volume]
   [Nutrition Table] -- [Nutrition fat-pro-cho]
-  [I/O Table] 
+  [Nutrition Table] -- [Nutrition Calories]
+
+  [I/O Table] -- [I/O stack bar]
+  [I/O Table] -- [I/O modal]
+
   [Medications]
 }
 
@@ -15,9 +19,7 @@ package "TWIST API" {
   [DRUG_DILUENTS] -down- dbConnector
 }
 
-package "DATABASE DWTST" {
-  database DWTST
-}
+database DWTST
 
 [Nutrition Volume] <-- [TPN_LIPID]
 [Nutrition Volume] <-- [TPN]
@@ -31,10 +33,28 @@ package "DATABASE DWTST" {
 [Nutrition fat-pro-cho] <-- [EN]
 [Nutrition fat-pro-cho] <-- [DRUG_DILUENTS]
 
-[I/O Table] <-- [TPN]
-[I/O Table] <-- [EN]
-[I/O Table] <-- [INTAKE_OUTPUT]
-[I/O Table] <-- [DRUG_DILUENTS]
+[Nutrition Calories] <-- [TPN_LIPID]
+[Nutrition Calories] <-- [TPN]
+[Nutrition Calories] <-- [EN]
+[Nutrition Calories] <-- [DRUG_DILUENTS]
+
+[I/O stack bar] <-- [TPN]
+[I/O stack bar] <-- [TPN_LIPID]
+[I/O stack bar] <-- [EN]
+[I/O stack bar] <-- [INTAKE_OUTPUT]
+[I/O stack bar] <-- [DRUG_DILUENTS]
+
+[I/O modal] <-- [TPN]
+[I/O modal] <-- [TPN_LIPID]
+[I/O modal] <-- [EN]
+[I/O modal] <-- [INTAKE_OUTPUT]
+[I/O modal] <-- [DRUG_DILUENTS]
+
+[I/O stack bar] <-- [TPN]
+[I/O stack bar] <-- [EN]
+[I/O stack bar] <-- [INTAKE_OUTPUT]
+[I/O stack bar] <-- [DRUG_DILUENTS]
+
 [Medications] <-- [DRUG_INTERMITTENT]
 
 DWTST -up- dbConnector
