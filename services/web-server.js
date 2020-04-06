@@ -7,7 +7,7 @@
 const express = require("express");
 const timeout = require("connect-timeout");
 const webServerConfig = require("../config/web-server-config.js");
-const rootRouter = require("./router");
+const rootRouter = require("./router-with-cache");
 
 const cors = require("cors");
 const morgan = require("morgan");

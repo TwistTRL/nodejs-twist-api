@@ -12,7 +12,6 @@ async function initialize() {
 }
 
 async function close() {
-  console.log("closing database");
   await oracledb.getPool().close();
   console.log("database closed");
 }
