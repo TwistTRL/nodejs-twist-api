@@ -1,15 +1,37 @@
 /*
- * @Author: Peng
- * @Date: 2020-04-01 17:31:22
+ * @Author: Peng 
+ * @Date: 2020-04-06 11:14:32 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 13:00:52
+ * @Last Modified time: 2020-04-06 13:00:55
  */
+
 
 const { bisect_left } = require("bisect-js");
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
 const { EVENT_CD_DICT } = require("../db_relation/in-out-db-relation");
+
+const TPN_LIPID_RATIO = 0.2; //20% lipid, which is 0.2 grams fat/mL
+const DEXTROSE_DICT = {
+  "Dextrose 5% in Water": 0.05,
+  "Dextrose 30% in Water": 0.3,
+  "Dextrose 10% in Water": 0.1,
+  "Dextrose 40% in Water": 0.4,
+  "Dextrose 25% in Water": 0.25,
+  "Dextrose 12.5% in Water": 0.125,
+  "Dextrose 10% with 0.2% NaCl": 0.1,
+  "Dextrose 5% in Lactated Ringers Injection": 0.05,
+  "Dextrose 15% in Water": 0.15,
+  "Dextrose 5% with 0.225% NaCl": 0.05,
+  "Dextrose 20% in Water": 0.2,
+  "Dextrose 5% with 0.9% NaCl": 0.05,
+  "Dextrose 5% with 0.45% NaCl": 0.05,
+  "Dextrose 10% with 0.9% NaCl": 0.1,
+  "Dextrose 7.5% in Water": 0.075,
+  "Dextrose 17.5% in Water": 0.175,
+  "Dextrose 2.5% in Water": 0.025,
+};
 
 var timeLable = 0;
 const SQL_GET_WEIGHT_CALC = `
@@ -20,11 +42,13 @@ FROM WEIGHTS_CALCS
 WHERE PERSON_ID = :person_id
 ORDER BY DT_UNIX`;
 
-const SQL_GET_TPN_VOL = `
+const SQL_GET_TPN_NUTR = `
 SELECT 
   START_UNIX,
   END_UNIX,
-  RESULT_VAL
+  RESULT_VAL,
+  "Amino_Acids g/kg",
+  "Dextrose g/kg"
 FROM TPN
 WHERE PERSON_ID = :person_id
 ORDER BY START_UNIX`;
@@ -33,17 +57,19 @@ const SQL_GET_EN_VOL = `
 SELECT  
   START_TIME_DTUNIX,
   DISPLAY_LINE,
-  "VOLUME"
+  "VOLUME",
+  CAL_DEN
 FROM EN
 WHERE PERSON_ID = :person_id
 ORDER BY START_TIME_DTUNIX`;
 
-const SQL_GET_DILUENTS_VOL = `
+const SQL_GET_DILUENTS_NUTRI = `
 SELECT  
   START_UNIX,
   END_UNIX,
   DRUG,
   DILUENT,
+  DOSING_WEIGHT,
   INFUSION_RATE,
   INFUSION_RATE_UNITS
 FROM DRUG_DILUENTS
@@ -92,12 +118,12 @@ async function weightCalcQuerySQLExecutor(conn, binds) {
   return ret;
 }
 
-async function tpnVolQuerySQLExecutor(conn, binds) {
+async function tpnNutrQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
-  console.log("~~SQL for TPN Nutr all time: ", SQL_GET_TPN_VOL);
-  console.time("getTpnVol-sql" + timestampLable);
-  let rawRecord = await conn.execute(SQL_GET_TPN_VOL, binds);
-  console.timeEnd("getTpnVol-sql" + timestampLable);
+  console.log("~~SQL for TPN Nutr all time: ", SQL_GET_TPN_NUTR);
+  console.time("getTpnNutr-sql" + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_TPN_NUTR, binds);
+  console.timeEnd("getTpnNutr-sql" + timestampLable);
   return rawRecord.rows;
 }
 
@@ -128,15 +154,14 @@ async function inoutVolQuerySQLExecutor(conn, binds) {
   return rawRecord.rows;
 }
 
-async function diluVolQuerySQLExecutor(conn, binds) {
+async function diluNutrQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
-  console.log("~~SQL for Diluents volume all time: ", SQL_GET_DILUENTS_VOL);
-  console.time("getDiluVol-sql" + timestampLable);
-  let rawRecord = await conn.execute(SQL_GET_DILUENTS_VOL, binds);
-  console.timeEnd("getDiluVol-sql" + timestampLable);
+  console.log("~~SQL for Diluents Nutr all time: ", SQL_GET_DILUENTS_NUTRI);
+  console.time("getDiluNutr-sql" + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_DILUENTS_NUTRI, binds);
+  console.timeEnd("getDiluNutr-sql" + timestampLable);
   return rawRecord.rows;
 }
-
 async function medVolQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
   console.log("~~SQL for med volume all time: ", SQL_GET_MED_VOL);
@@ -147,10 +172,10 @@ async function medVolQuerySQLExecutor(conn, binds) {
 }
 
 function _calculateRawRecords(
-  arrTPN,
+  arrTpnNutr,
   arrTpnLipid,
   arrEN,
-  arrDilu,
+  arrDiluNutr,
   arrInout,
   arrMed,
   weightArr,
@@ -160,10 +185,10 @@ function _calculateRawRecords(
   // get hour binned data
   let retDict = {};
 
-  if (arrTPN && arrTPN.length) {
+  if (arrTpnNutr && arrTpnNutr.length) {
     // TPN database is already binned by hour
-    console.log("Tpn record size :", arrTPN.length);
-    for (let row of arrTPN) {
+    console.log("TpnNutr record size :", arrTpnNutr.length);
+    for (let row of arrTpnNutr) {
       //example row = {"START_UNIX": 1524700800, "Amino_Acids g/kg": 2}
       let start = row["START_UNIX"];
       let end = row["END_UNIX"];
@@ -171,29 +196,30 @@ function _calculateRawRecords(
         // console.warn("TPN row error start/end time:", row);
         continue;
       }
-      if (start && end && row["RESULT_VAL"]) {
+      if (start && end) {
         let timestamp = Math.floor(start / 3600) * 3600;
         if (timestamp - start) {
           if (timestamp - Math.floor((end - 1) / 3600) * 3600) {
             // console.log('TPN row has abnormal start/end time :', row);
           }
         }
-        let tpn = row["RESULT_VAL"] / getWeight(timestamp, weightArr);
-        accValueToDict(tpn, timestamp, "TPN", retDict);
-      } else if (!start || !end) {
+        // calories calculation for TPN
+        let caloriesTPN = (row["Amino_Acids g/kg"] || 0) * 4 + (row["Dextrose g/kg"] || 0) * 4;
+        accValueToDict(caloriesTPN, timestamp, "TPN", retDict);        
+      } else {
         console.log("TPN start or end time null :", row);
       }
     }
   }
 
   if (arrTpnLipid && arrTpnLipid.length) {
-    // TPN database is already binned by hour
     console.log("TpnLipid record size :", arrTpnLipid.length);
     for (let row of arrTpnLipid) {
       let timestamp = Math.floor(row["DT_UNIX"] / 3600) * 3600;
       if (timestamp && row["RESULT_VAL"]) {
-        let tpnlipid = row["RESULT_VAL"] / getWeight(timestamp, weightArr);
-        accValueToDict(tpnlipid, timestamp, "LIPIDS", retDict);
+        let fatValue = (row["RESULT_VAL"] * TPN_LIPID_RATIO) / getWeight(timestamp, weightArr);
+        let caloriesLipid = fatValue * 9;
+        accValueToDict(caloriesLipid, timestamp, "Lipids", retDict);
       }
     }
   }
@@ -204,85 +230,67 @@ function _calculateRawRecords(
       //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
       let timestamp = Math.floor(row["START_TIME_DTUNIX"] / 3600) * 3600;
       if (timestamp && row["VOLUME"]) {
-        let feeds = row["VOLUME"] / getWeight(timestamp, weightArr);
+        // calories calculation for EN
+        let feeds = row["VOLUME"] * row["CAL_DEN"] / (30 * getWeight(timestamp, weightArr));
         accValueToDict(feeds, timestamp, "FEEDS", retDict);
       }
     }
   }
 
   if (arrMed && arrMed.length) {
-    console.log("Med record size :", arrMed.length);
-    for (let row of arrMed) {
-      // DT_UNIX,  INFUSED_VOLUME
-      let timestamp = Math.floor(row["DT_UNIX"] / 3600) * 3600;
-      if (timestamp && row["INFUSED_VOLUME"]) {
-        let medications = row["INFUSED_VOLUME"] / getWeight(timestamp, weightArr);
-        accValueToDict(medications, timestamp, "MEDICATIONS", retDict);
-      }
-    }
+    // meds no calculate calories
   }
 
-  if (arrDilu && arrDilu.length) {
-    console.log("arrDilu record size :", arrDilu.length);
-    for (let row of arrDilu) {
-      // START_UNIX,  END_UNIX,  DRUG,  DILUENT,  INFUSION_RATE,  INFUSION_RATE_UNITS
-      // the unit of rate is mL/hr, since this volume API we binned by hour, the rate stands for "mL"
-      let start = row["START_UNIX"];
-      let end = row["END_UNIX"];
-      let rate = row["INFUSION_RATE"] / row["DOSING_WEIGHT"];
-      let drugName = row["DRUG"];
+  if (arrDiluNutr && arrDiluNutr.length) {
+    console.log("DiluNutr record size :", arrDiluNutr.length);
+    for (let row of arrDiluNutr) {
+      if (row["DILUENT"] in DEXTROSE_DICT) {
+        // normalized rate: 'Dextrose 10% in Water' means rate * 0.1
+        let rate = row["INFUSION_RATE"] * DEXTROSE_DICT[row["DILUENT"]] / row["DOSING_WEIGHT"];
+        let start = row["START_UNIX"];
+        let end = row["END_UNIX"];
+        let drugName = row["DRUG"];
+        if (start && end && rate && end > start) {
+          let startTimestamp = Math.floor(start / 3600) * 3600;
+          let binNumber = Math.ceil(end / 3600) - Math.floor(start / 3600);
 
-      if (start && end && row["INFUSION_RATE"] && end > start) {
-        let startTimestamp = Math.floor(start / 3600) * 3600;
-        let binNumber = Math.ceil(end / 3600) - Math.floor(start / 3600);
-
-        // calculate value for each bin
-        // 1. binNumber == 1, `start` to `end`
-        // 2. binNumber == 2, left value is `start` to left bin end, right value is right bin start to `end`
-        // 3. binNumber == 3, first bin: left value, last bin: right value, middle others: all equal rate
-        if (binNumber === 1) {
-          let value = (rate * (end - start)) / 3600;
-          accDiluentsVolumeToDict(drugName, value, startTimestamp, retDict);
-        } else if (binNumber === 2) {
-          let leftValue = (rate * (startTimestamp + 3600 - start)) / 3600;
-          let rightValue = (rate * (end - startTimestamp - 3600)) / 3600;
-
-          accDiluentsVolumeToDict(drugName, leftValue, startTimestamp, retDict);
-          accDiluentsVolumeToDict(drugName, rightValue, startTimestamp + 3600, retDict);
-        } else {
-          for (let i = 0; i < binNumber; i++) {
-            let timestamp = startTimestamp + 3600 * i;
-            if (i === 0) {
-              let leftValue = (rate * (startTimestamp + 3600 - start)) / 3600;
-              accDiluentsVolumeToDict(drugName, leftValue, timestamp, retDict);
-            } else if (i === binNumber - 1) {
-              let rightValue = (rate * (end - startTimestamp - 3600 * i)) / 3600;
-              accDiluentsVolumeToDict(drugName, rightValue, timestamp, retDict);
-            } else {
-              accDiluentsVolumeToDict(drugName, rate, timestamp, retDict);
+          // calculate value for each bin
+          // 1. binNumber == 1, `start` to `end`
+          // 2. binNumber == 2, left value is `start` to left bin end, right value is right bin start to `end`
+          // 3. binNumber == 3, first bin: left value, last bin: right value, middle others: all equal rate 
+          if (binNumber === 1) {
+            let value = (rate * (end - start)) / 3600;
+            accDiluentsCaloriesToDict(drugName, value, startTimestamp, retDict);
+          } else if (binNumber === 2) {
+            let leftValue = (rate * (startTimestamp + 3600 - start)) / 3600;
+            accDiluentsCaloriesToDict(drugName, leftValue, startTimestamp, retDict);
+            let rightValue = (rate * (end - startTimestamp - 3600)) / 3600;
+            accDiluentsCaloriesToDict(drugName, rightValue, startTimestamp + 3600, retDict);
+          } else {
+            for (let i = 0; i < binNumber; i++) {
+              let timestamp = startTimestamp + 3600 * i;
+              if (i === 0) {
+                let leftValue = (rate * (startTimestamp + 3600 - start)) / 3600;
+                accDiluentsCaloriesToDict(drugName, leftValue, timestamp, retDict);
+              } else if (i === binNumber - 1) {
+                let rightValue = (rate * (end - startTimestamp - 3600 * i)) / 3600;
+                accDiluentsCaloriesToDict(drugName, rightValue, timestamp, retDict);
+              } else {
+                accDiluentsCaloriesToDict(drugName, rate, timestamp, retDict);
+              }
             }
           }
+        } else {
+          console.warn("error: on start/end/rate for this row :", row);
         }
-      } else {
-        console.warn("error: on start/end/rate for this row :", row);
+      } else if (row["DILUENT"].includes("Dextrose")) {
+        console.warn("error: Dextrose key not in list: ", row);
       }
     }
   }
 
   if (arrInout && arrInout.length) {
-    console.log("InOut record size :", arrInout.length);
-    for (let row of arrInout) {
-      // DT_UNIX,  EVENT_CD,  VALUE
-      let timestamp = Math.floor(row["DT_UNIX"] / 3600) * 3600;
-      if (timestamp > 0 && row["VALUE"]) {
-        let inout = row["VALUE"] / getWeight(timestamp, weightArr);
-        if (EVENT_CD_DICT[row["EVENT_CD"]]["IO_CAT"] === "IVF") {
-          accValueToDict(inout, timestamp, "IVF", retDict);
-        } else if (EVENT_CD_DICT[row["EVENT_CD"]]["IO_CAT"] === "BLOOD PRODUCT") {
-          accValueToDict(inout, timestamp, "BLOOD PRODUCT", retDict);
-        }
-      }
-    }
+    // in-out no calc calories
   }
 
   // transfer hourly binned retDict to retArr with resolution
@@ -321,11 +329,11 @@ function _calculateRawRecords(
             retDictWithResolution[binnedTs]["LIPIDS"] =
               retDict[timestamp].LIPIDS + (retDictWithResolution[binnedTs]["LIPIDS"] || 0);
           }
-          if (retDict[timestamp].MEDICATIONS) {
-            retDictWithResolution[binnedTs]["MEDICATIONS"] =
-              retDict[timestamp].MEDICATIONS +
-              (retDictWithResolution[binnedTs]["MEDICATIONS"] || 0);
-          }
+          // if (retDict[timestamp].MEDICATIONS) {
+          //   retDictWithResolution[binnedTs]["MEDICATIONS"] =
+          //     retDict[timestamp].MEDICATIONS +
+          //     (retDictWithResolution[binnedTs]["MEDICATIONS"] || 0);
+          // }
           if (retDict[timestamp].INFUSIONS) {
             retDictWithResolution[binnedTs]["INFUSIONS"] =
               retDict[timestamp].INFUSIONS + (retDictWithResolution[binnedTs]["INFUSIONS"] || 0);
@@ -334,15 +342,15 @@ function _calculateRawRecords(
             retDictWithResolution[binnedTs]["FLUSHES"] =
               retDict[timestamp].FLUSHES + (retDictWithResolution[binnedTs]["FLUSHES"] || 0);
           }
-          if (retDict[timestamp].IVF) {
-            retDictWithResolution[binnedTs]["IVF"] =
-              retDict[timestamp].IVF + (retDictWithResolution[binnedTs]["IVF"] || 0);
-          }
-          if (retDict[timestamp]["BLOOD PRODUCT"]) {
-            retDictWithResolution[binnedTs]["BLOOD PRODUCT"] =
-              retDict[timestamp]["BLOOD PRODUCT"] +
-              (retDictWithResolution[binnedTs]["BLOOD PRODUCT"] || 0);
-          }
+          // if (retDict[timestamp].IVF) {
+          //   retDictWithResolution[binnedTs]["IVF"] =
+          //     retDict[timestamp].IVF + (retDictWithResolution[binnedTs]["IVF"] || 0);
+          // }
+          // if (retDict[timestamp]["BLOOD PRODUCT"]) {
+          //   retDictWithResolution[binnedTs]["BLOOD PRODUCT"] =
+          //     retDict[timestamp]["BLOOD PRODUCT"] +
+          //     (retDictWithResolution[binnedTs]["BLOOD PRODUCT"] || 0);
+          // }
         } else {
           retDictWithResolution[binnedTs] = {};
           if (retDict[timestamp].FEEDS) {
@@ -354,21 +362,21 @@ function _calculateRawRecords(
           if (retDict[timestamp].LIPIDS) {
             retDictWithResolution[binnedTs]["LIPIDS"] = retDict[timestamp].LIPIDS;
           }
-          if (retDict[timestamp].MEDICATIONS) {
-            retDictWithResolution[binnedTs]["MEDICATIONS"] = retDict[timestamp].MEDICATIONS;
-          }
+          // if (retDict[timestamp].MEDICATIONS) {
+          //   retDictWithResolution[binnedTs]["MEDICATIONS"] = retDict[timestamp].MEDICATIONS;
+          // }
           if (retDict[timestamp].INFUSIONS) {
             retDictWithResolution[binnedTs]["INFUSIONS"] = retDict[timestamp].INFUSIONS;
           }
           if (retDict[timestamp].FLUSHES) {
             retDictWithResolution[binnedTs]["FLUSHES"] = retDict[timestamp].FLUSHES;
           }
-          if (retDict[timestamp].IVF) {
-            retDictWithResolution[binnedTs]["IVF"] = retDict[timestamp].IVF;
-          }
-          if (retDict[timestamp]["BLOOD PRODUCT"]) {
-            retDictWithResolution[binnedTs]["BLOOD PRODUCT"] = retDict[timestamp]["BLOOD PRODUCT"];
-          }
+          // if (retDict[timestamp].IVF) {
+          //   retDictWithResolution[binnedTs]["IVF"] = retDict[timestamp].IVF;
+          // }
+          // if (retDict[timestamp]["BLOOD PRODUCT"]) {
+          //   retDictWithResolution[binnedTs]["BLOOD PRODUCT"] = retDict[timestamp]["BLOOD PRODUCT"];
+          // }
         }
       }
     }
@@ -407,31 +415,31 @@ const accValueToDict = (value, catKey, childKey, dict) => {
   }
 };
 
-const accDiluentsVolumeToDict = (drugName, value, timestamp, dict) => {
+const accDiluentsCaloriesToDict = (drugName, value, timestamp, dict) => {
   if (drugName === "papavarine" || drugName === "heparin flush") {
     accValueToDict(value, timestamp, "FLUSHES", dict);
   } else {
     accValueToDict(value, timestamp, "INFUSIONS", dict);
   }
-};
+}
 
-const getNutriVolume = database.withConnection(async function (conn, apiInput) {
+const getNutriCalories = database.withConnection(async function (conn, apiInput) {
   const { person_id, resolution, from } = apiInput;
   const binds = { person_id };
   let weightArr = await weightCalcQuerySQLExecutor(conn, binds);
-  let tpnRaw = await tpnVolQuerySQLExecutor(conn, binds);
+  let tpnRaw = await tpnNutrQuerySQLExecutor(conn, binds);
   let tpnLipidRaw = await tpnLipidVolQuerySQLExecutor(conn, binds);
   let enRaw = await enVolQuerySQLExecutor(conn, binds);
-  let diluRaw = await diluVolQuerySQLExecutor(conn, binds);
-  let inoutRaw = await inoutVolQuerySQLExecutor(conn, binds);
-  let medRaw = await medVolQuerySQLExecutor(conn, binds);
+  let diluRaw = await diluNutrQuerySQLExecutor(conn, binds);
+  // let inoutRaw = await inoutVolQuerySQLExecutor(conn, binds);
+  // let medRaw = await medVolQuerySQLExecutor(conn, binds);
   let result = _calculateRawRecords(
     tpnRaw,
     tpnLipidRaw,
     enRaw,
     diluRaw,
-    inoutRaw,
-    medRaw,
+    null,
+    null,
     weightArr,
     resolution,
     from
@@ -440,5 +448,5 @@ const getNutriVolume = database.withConnection(async function (conn, apiInput) {
 });
 
 module.exports = {
-  getNutriVolume,
+  getNutriCalories,
 };

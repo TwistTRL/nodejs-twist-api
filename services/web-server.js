@@ -2,12 +2,12 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng
- * @Last Modified time: 2020-03-18 10:40:32
+ * @Last Modified time: 2020-04-06 12:52:22
  */
 const express = require("express");
 const timeout = require("connect-timeout");
 const webServerConfig = require("../config/web-server-config.js");
-const rootRouter = require("./router-with-cache");
+const rootRouter = require("./router");
 
 const cors = require("cors");
 const morgan = require("morgan");

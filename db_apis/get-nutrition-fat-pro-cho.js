@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-03-31 18:13:54
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-03 23:04:23
+ * @Last Modified time: 2020-04-06 12:00:34
  */
 
 const { bisect_left } = require("bisect-js");
@@ -70,6 +70,7 @@ SELECT
   DRUG,
   DILUENT,
   INFUSION_RATE,
+  DOSING_WEIGHT,
   INFUSION_RATE_UNITS
 FROM DRUG_DILUENTS
 WHERE PERSON_ID = :person_id
@@ -172,7 +173,6 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
   }
 
   if (arrTpnLipid && arrTpnLipid.length) {
-    // TPN database is already binned by hour
     console.log("TpnLipid record size :", arrTpnLipid.length);
     for (let row of arrTpnLipid) {
       let timestamp = Math.floor(row["DT_UNIX"] / 3600) * 3600;
@@ -194,11 +194,13 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
       }
 
       if (row["G_PTN"]) {
-        accValueToDict(row["G_PTN"], timestamp, "pro_en", retDict);
+        let proValue = row["G_PTN"] / getWeight(timestamp, weightArr);
+        accValueToDict(proValue, timestamp, "pro_en", retDict);
       }
 
       if (row["G_CHO"]) {
-        accValueToDict(row["G_CHO"], timestamp, "cho_en", retDict);
+        let choValue = row["G_CHO"] / getWeight(timestamp, weightArr);
+        accValueToDict(choValue, timestamp, "cho_en", retDict);
       }
     }
   }
@@ -208,7 +210,7 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
     for (let row of arrDiluNutr) {
       if (row["DILUENT"] in DEXTROSE_DICT) {
         // normalized rate: 'Dextrose 10% in Water' means rate * 0.1
-        let rate = row["INFUSION_RATE"] * DEXTROSE_DICT[row["DILUENT"]];
+        let rate = row["INFUSION_RATE"] * DEXTROSE_DICT[row["DILUENT"]] / row["DOSING_WEIGHT"]; //getWeight(timestamp, weightArr);
         let start = row["START_UNIX"];
         let end = row["END_UNIX"];
         if (start && end && rate && end > start) {

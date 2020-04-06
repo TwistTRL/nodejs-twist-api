@@ -2,12 +2,16 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-04 00:30:03
+ * @Last Modified time: 2020-04-06 12:53:58
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
 const path = require("path");
 const router = new express.Router();
+
+// redis
+const { getApiFromRedis } = require("../config/redis-config");
+
 const { getRelationalQuery } = require("../db_apis/get-relational-query");
 const { getVitalsQuery } = require("../db_apis/get-vitals-all");
 const { getVitalsQueryV2 } = require("../db_apis/get-vitals-all-v2");
@@ -41,6 +45,7 @@ const { getTpnNutrients } = require("../db_apis/get-tpn-nutrition-calc");
 const { getDiluNutrients } = require("../db_apis/get-diluent-nutrition-calc");
 const { getNutriFatProCho } = require("../db_apis/get-nutrition-fat-pro-cho");
 const { getNutriVolume } = require("../db_apis/get-nutrition-volume");
+const { getNutriCalories } = require("../db_apis/get-nutrition-calories");
 
 const { getTemp } = require("../db_apis/get-temp");
 
@@ -62,7 +67,7 @@ const settingsFluid = require("../db_relation/in-out-db-relation");
 
 const settingsMed = require("../db_relation/drug-category-relation");
 
-const {getAccessToken, getPDFUrl} = require("../cerner_apis/get-FHIR-api");
+const { getAccessToken, getPDFUrl } = require("../cerner_apis/get-FHIR-api");
 
 // ------------------------------------------------------------------------
 // apidoc folder is a static files folder
@@ -76,43 +81,7 @@ router.use("/files", express.static(__dirname + "/../docs/files"));
 // ``````````````````````````````````````````````
 //         api start
 // ``````````````````````````````````````````````
-/**
- * @api {get} /person/:person_id/labs Labs for Patient
- * @apiVersion 0.0.1
- * @apiName Get Patient Labs
- * @apiGroup _Deprecated
- * @apiParam {Number} person_id patient unique ID.
- * @apiSuccess {String} labName Name of this lab, such as "SvO2".
- * @apiSuccess {Number} timestamp UNIX Timestamp seconds of the lab.
- * @apiSuccess {Number} labValue Value of this lab.
- * @apiSuccessExample Success-Response:
- *
- *     {
- *       labName: [
- *                    {
- *                       "DT_UNIX": timestamp,
- *                       "VALUE": labValue
- *                    },
- *                    ...
- *                 ],
- *        ...
- *     }
- *
- */
-router.get("/person/:person_id/labs", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
 
-  console.log("/person/ %s /labs ...", person_id);
-
-  const binds = {
-    person_id
-  };
-  res.send(await getLab(binds));
-});
 
 /**
  * @api {post} /labs Labs api/labs
@@ -155,10 +124,11 @@ router.post("/labs", async (req, res) => {
   try {
     const toSend = await getLabsQuery(query);
     res.send(toSend);
+    return;
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    // res.status(400);
+    res.status(400);
     res.send(e.toString());
   }
 });
@@ -205,7 +175,7 @@ router.get("/person/:person_id/labsv2", async (req, res) => {
   console.log("getting labsV2 for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getLabV2(binds));
 });
@@ -247,92 +217,11 @@ router.get("/person/:person_id/abg", async (req, res) => {
   console.log("getting abg for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getABG(binds));
 });
 
-/**
- * @api {get} /person/:person_id/vitals/hr/binned/:data_resolution Binned Heart Rate
- * @apiVersion 0.0.1
- * @apiName Get Person Hr Binned
- * @apiGroup _Deprecated
- * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
- * @apiSuccess {String} range Range of the binned heart rate, for example, "90-100".
- * @apiSuccess {Number} value Value of the binned heart rate.
- * @apiSuccess {Number} from_timestamp UNIX timestamp seconds for start time.
- * @apiSuccess {Number} to_timestamp UNIX timestamp seconds for end time.
- * @apiSuccess {Number} average_timestamp UNIX timestamp seconds for average of start and end time.
- * @apiSuccessExample Success-Response:
- *      
-      [
-        {
-          range: value,
-          ...
-          "from": from_timestamp,
-          "to": to_timestamp,
-          "time" : average_timestamp
-        }
-      ]
- *
- */
-
-router.get("/person/:person_id/vitals/hr/binned/12H", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-  console.log("getting hr_12H for %s ...", person_id);
-
-  const binds = {
-    person_id
-  };
-  res.send(await getHr12H(binds));
-});
-
-router.get("/person/:person_id/vitals/hr/binned/5H", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-  console.log("getting hr_5H for %s ...", person_id);
-
-  const binds = {
-    person_id
-  };
-  res.send(await getHr5H(binds));
-});
-
-router.get("/person/:person_id/vitals/hr/binned/1D", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-  console.log("getting hr_1D for %s ...", person_id);
-
-  const binds = {
-    person_id
-  };
-  res.send(await getHr1D(binds));
-});
-
-router.get("/person/:person_id/vitals/hr/binned/5M", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-  console.log("getting hr_5M for %s ...", person_id);
-
-  const binds = {
-    person_id
-  };
-  res.send(await getHr5M(binds));
-});
 
 /**
  * @api {get} /person/:person_id/vitals/hr/binnedv2/:data_resolution Binned Heart Rate V2
@@ -375,7 +264,7 @@ router.get("/person/:person_id/vitals/hr/binnedv2/12H", async (req, res) => {
   console.log("getting hr_12H for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getHr12Hv2(binds));
 });
@@ -389,7 +278,7 @@ router.get("/person/:person_id/vitals/hr/binnedv2/5H", async (req, res) => {
   console.log("getting hr_5H for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getHr5Hv2(binds));
 });
@@ -403,7 +292,7 @@ router.get("/person/:person_id/vitals/hr/binnedv2/1D", async (req, res) => {
   console.log("getting hr_1D for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getHr1Dv2(binds));
 });
@@ -417,7 +306,7 @@ router.get("/person/:person_id/vitals/hr/binnedv2/5M", async (req, res) => {
   console.log("getting hr_5M for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getHr5Mv2(binds));
 });
@@ -456,7 +345,7 @@ router.get("/person/:person_id/vitals/hr/calc/12H", async (req, res) => {
   console.log("getting hr_12H for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getHrCalc12H(binds));
 });
@@ -470,7 +359,7 @@ router.get("/person/:person_id/vitals/hr/calc/5H", async (req, res) => {
   console.log("getting hr_5H for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getHrCalc5H(binds));
 });
@@ -484,7 +373,7 @@ router.get("/person/:person_id/vitals/hr/calc/1D", async (req, res) => {
   console.log("getting hr_1D for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getHrCalc1D(binds));
 });
@@ -498,7 +387,7 @@ router.get("/person/:person_id/vitals/hr/calc/5M", async (req, res) => {
   console.log("getting hr_5M for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getHrCalc5M(binds));
 });
@@ -537,7 +426,7 @@ router.get("/person/:person_id/drug/intermittent", async (req, res) => {
   console.log("getting drug intermittent for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getDrugIntermittent(binds));
 });
@@ -581,7 +470,7 @@ router.get("/person/:person_id/drug/infusions", async (req, res) => {
   console.log("getting drug infusions for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getDrugInfusions(binds));
 });
@@ -625,7 +514,7 @@ router.get("/person/:person_id/drug/paralytics", async (req, res) => {
   console.log("getting paralytics drug infusions for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getOrangeDrug(binds));
 });
@@ -674,102 +563,9 @@ router.get("/person/:person_id/med", async (req, res) => {
   }
   console.log("getting drug infusions for %s ...", person_id);
 
-  const binds = {
-    person_id
-  };
-  res.send(await getMed(binds));
+  getApiFromRedis(res, getMed, {person_id}, "med");
 });
 
-/**
- * @api {post} /inout In-Out for Patient
- * @apiVersion 0.0.2
- * @apiName Get in-out for patient
- * @apiGroup _Deprecated
- * @apiDeprecated use now (#Person:in-out-patient-V2).
-
- * @apiDescription 
- * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `INTAKE_OUTPUT` and `DRUG_DILUENTS`
- * 
- * Method: 
- * 
- *   ├──part 1: data from `INTAKE_OUTPUT`, value accumulated by `short_label` and records with timestamp during `resolution` time.
- * 
- *   ├──part 2: data from `DRUG_DILUENTS`, if drug is 'papavarine' or 'heparin flush', then cat = "Flushes", value accumulated in each binned time box;
- * other drug , then cat = "Infusions", value accumulated in each binned time box;
- * 
- *   └──final response: mixed part1 and part2, sorted by time.
- * 
- * Input notes: 
- * 
- *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
- * 
- *   └──`from` should be divisible by `resolution`.
- * 
- * Response notes:
- * 
- *   ├──type == `1` ⟹ value is positive (in);
- * 
- *   ├──type == `2` ⟹ value is negative (out);
- * 
- *   ├──type == `0` ⟹ skipped;
- * 
- *   └──value == 0 ⟹ skipped; 
- * 
- * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {Number} [from=0] Start timestamp.
- * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
- * @apiParam {Number} [resolution=3600] Binned time resolution.
- * @apiParamExample {json} Example of request in-out data
-        {
-          "person_id": EXAMPLE_PERSON_ID,
-          "from":1541030400,
-          "to":1542018000,
-          "resolution":3600
-        }
- * @apiSuccess {Number} value IO value.
- * @apiSuccess {String} cat Name of IO category.
- * @apiSuccess {String} sub_cat Name of IO sub-category.
- * @apiSuccess {String} label Name of IO label.
- * @apiSuccess {String} short_label Name of IO short_label.
- * @apiSuccess {String} color `#` code of color.
- * @apiSuccess {Number} time Unix seconds as the record's start timestamp.
- * @apiSuccess {String} type value of IO_CALCs.
-
- * @apiSuccessExample Success-Response:
- *    [
-        {
-          "value": -8,
-          "cat": "UOP",
-          "sub_cat": "Foley",
-          "label": "FOLEY",
-          "short_label": "FOL",
-          "color": "#e5c124",
-          "time": 1541016000,
-          "type": "2"
-        },
-        ...
-      ]
- *
- */
-
-router.post("/inout", async (req, res) => {
-  const query = req.body;
-  const person_id = query.person_id;
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-
-  try {
-    const toSend = await getInOutQuery(query);
-    res.send(toSend);
-  } catch (e) {
-    console.log(new Date());
-    console.log(e);
-    // res.status(400);
-    res.send(e.toString());
-  }
-});
 
 /**
  * @api {post} /inout-v2 In-Out V2
@@ -834,177 +630,37 @@ router.post("/inout", async (req, res) => {
  */
 
 router.post("/inout-v2", async (req, res) => {
-  const query = req.body;
-  const person_id = query.person_id;
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-
-  try {
-    const toSend = await getInOutQueryV2(query);
-    res.send(toSend);
-  } catch (e) {
-    console.log(new Date());
-    console.log(e);
-    // res.status(400);
-    res.send(e.toString());
-  }
-});
-
-/**
- * @api {get} /person/:person_id/nutrition/macronutrients Nutrients - Macro
- * @apiVersion 0.0.2
- * @apiName macro-nutrients-for-patient
- * @apiGroup _Deprecated
- * @apiParam {Number} person_id Patient unique ID.
- * @apiSuccessExample Success-Response:
- *  {
-      fat: [
-        {
-          time: 150000000,
-          value: 0.1,
-          unit: "g"
-        },
-        ...
-      ],
-      protein: [
-        {
-          time: 150000000,
-          value: 0.2,
-          unit: "g"
-        },
-        ...
-      ],
-      cho: [
-        {
-          time: 150000000,
-          value: 0.15,
-          unit: "g"
-        },
-        ...
-      ]
-    }
- *
- */
-
-router.get("/person/:person_id/nutrition/macronutrients", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  console.log('person_id :', person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-  console.log("getting macronutrients for %s ...", person_id);
-  const binds = {
-    person_id
+  let query = {
+    person_id: req.body.person_id,
+    from: req.body.from || 0,
+    to: req.body.to || new Date().getTime() / 1000,
+    resolution: req.body.resolution || 3600,
   };
-  res.send(await getMacroNutrients(binds));
-});
+  console.log("query = ", query);
+  console.time("inout-time");
 
-/**
- * @api {post} /inout-tooltip In-Out Tooltip for Patient
- * @apiVersion 0.0.3
- * @apiName Get in-out tooltip for patient
- * @apiGroup _Deprecated
- * @apiDeprecated use now (#Person:in-out-tooltip-v2).
- * @apiDescription 
- * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`,
- * from table `DRUG_DILUENTS` and `INTAKE_OUTPUT`
- * 
- * Method: 
- * 
- * Input notes: 
- * 
- *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
- * 
- *   └──`from` and `to` should be divisible by `resolution`.
- * 
- * Output notes:
- *   
- *   output array [{},{}] has two item, in-data-object and out-data-object.
- * 
- *   in-data-object keys: timestamp
- *   
- *   in-data-object[timestamp] keys: cat
- * 
- *   in-data-object[timestamp][cat] keys: `acc_value` and ((cat is `Infusions` or `Flushes`)? `drugs` : short_label)
- * 
- * 
- * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {Number} [from=0] Start timestamp.
- * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
- * @apiParam {Number} [resolution=3600] Binned time resolution.
- * @apiParamExample {json} Example of request in-out data
-        {
-          "person_id": EXAMPLE_PERSON_ID,
-          "from":0,
-          "to":1541037600,
-          "resolution":3600
-        }
-
- * @apiSuccessExample Success-Response:
- *
- [
-    {
-      "1541030400": {
-          "Infusions": {
-              "acc_value": 0.02,
-              "drugs": [
-                  {
-                      "value": 0.02,
-                      "drug": "alprostadil",
-                      "diluent": "Dextrose 10% in Water",
-                      "rate": 0.27,
-                      "unit": "mL/hr",
-                      "conc": 5,
-                      "strength_unit": "mcg",
-                      "vol_unit": "mL",
-                      "location": "not ready"
-                  }
-              ]
-          }
-      },
-      ...
-    },
-    {
-      "1538686800": {
-            "UOP": {
-                "acc_value": -15,
-                "short_labels": [
-                    {
-                        "value": -15,
-                        "sub_cat": "Void",
-                        "label": "UOP",
-                        "short_label": "UOP"
-                    }
-                ]
-            }
-      },
-      ...
-    }
-  ]
- *
- */
-
-router.post("/inout-tooltip", async (req, res) => {
-  const query = req.body;
-  const person_id = query.person_id;
-  if (!Number.isInteger(person_id)) {
+  if (!Number.isInteger(query.person_id)) {
     res.send("Invalid person_id, should be integer.");
     return;
   }
-
-  try {
-    const toSend = await getInOutTooltipQueryV3(query);
-    console.log("finished timestamp :", new Date().getTime());
-    res.send(toSend);
-  } catch (e) {
-    console.log(new Date());
-    console.log(e);
-    // res.status(400);
-    res.send(e.toString());
+  if (query.from > query.to) {
+    res.send("start time must >= end time");
+    return;
   }
+  if (query.resolution <= 0) {
+    res.send('"resolution" must be >= 3600');
+    return;
+  }
+  if (query.resolution % 3600 != 0) {
+    res.send('"resolution" should be divisible by 3600');
+    return;
+  }
+  if (query.from % query.resolution != 0) {
+    res.send('"from" should be divisible by "resolution"');
+    return;
+  }
+
+  getApiFromRedis(res, getInOutQueryV2, query, "inout");
 });
 
 /**
@@ -1121,22 +777,33 @@ router.post("/inout-tooltip", async (req, res) => {
  */
 
 router.post("/inout-tooltip-v2", async (req, res) => {
-  const query = req.body;
-  const person_id = query.person_id;
-  if (!Number.isInteger(person_id)) {
+  let new_query = {
+    person_id: req.body.person_id,
+    from: req.body.from || 0,
+    to: req.body.from + req.body.resolution - 1,
+    resolution: req.body.resolution || 3600
+  };
+  console.log("query = ", new_query);
+  console.time("inout-tooltip-time");
+
+  if (!Number.isInteger(new_query.person_id)) {
     res.send("Invalid person_id, should be integer.");
     return;
   }
-
-  try {
-    const toSend = await getInOutTooltipQueryV2(query);
-    res.send(toSend);
-  } catch (e) {
-    console.log(new Date());
-    console.log(e);
-    // res.status(400);
-    res.send(e.toString());
+  if (new_query.from > new_query.to) {
+    res.send("start time must > end time");
+    return;
   }
+  if (new_query.resolution <= 0 || new_query.resolution % 3600 != 0) {
+    res.send('"resolution" must be 3600 * n (n ∈ N)');
+    return;
+  }
+  if (new_query.from % 3600 != 0) {
+    res.send('"start" time must be divisible by 3600');
+    return;
+  }
+
+  getApiFromRedis(res, getInOutTooltipQueryV2, new_query, "inout-tooltip");
 });
 
 // ~~~~~~~~-----------------------------
@@ -1262,10 +929,11 @@ router.post("/vitals", async (req, res) => {
   try {
     const toSend = await getVitalsQuery(query);
     res.send(toSend);
+    return;
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    // res.status(400);
+    res.status(400);
     res.send(e.toString());
   }
 });
@@ -1428,17 +1096,14 @@ router.post("/vitalsv2", async (req, res) => {
   try {
     const toSend = await getVitalsQueryV2(query);
     res.send(toSend);
+    return;
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    // res.status(400);
+    res.status(400);
     res.send(e.toString());
   }
 });
-
-
-
-
 
 /**
  * @api {post} /vitals/temperature Temperature
@@ -1478,27 +1143,20 @@ router.post("/vitalsv2", async (req, res) => {
  *
  */
 
-
 router.post("/vitals/temperature", async (req, res) => {
   let query = req.body;
   query.person_id = Number(query.person_id);
   try {
     const toSend = await getTemp(query);
     res.send(toSend);
+    return;
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    // res.status(400);
+    res.status(400);
     res.send(e.toString());
   }
 });
-
-
-
-
-
-
-
 
 // raw hr bewteen two timestamp
 
@@ -1537,7 +1195,7 @@ router.get("/person/:person_id/vitals/hr/raw", async (req, res) => {
   const binds = {
     person_id,
     from_: from,
-    to_: to
+    to_: to,
   };
   console.log("getting raw hr for %s from %d to %d ...", binds.person_id, binds.from_, binds.to_);
   res.send(await getRawHr(binds));
@@ -1601,10 +1259,11 @@ router.post("/test/hr", async (req, res) => {
   try {
     const toSend = await testHr(query);
     res.send(toSend);
+    return;
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    // res.status(400);
+    res.status(400);
     res.send(e.toString());
   }
 });
@@ -1656,10 +1315,11 @@ router.post("/test/labs", async (req, res) => {
   try {
     const toSend = await testLabs(query);
     res.send(toSend);
+    return;
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    // res.status(400);
+    res.status(400);
     res.send(e.toString());
   }
 });
@@ -1682,7 +1342,7 @@ router.get("/test/drug/infusions/:person_id", async (req, res) => {
   console.log("testing drug infusions for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await testDrugInfusions(binds));
 });
@@ -1703,7 +1363,7 @@ router.get("/test/drug/infusions/checktime/:person_id", async (req, res) => {
   console.log("testing drug infusions time for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await testDrugInfusionsTime(binds));
 });
@@ -1782,7 +1442,7 @@ router.get("/person/:person_id/personnel", async (req, res) => {
   console.log("getting doctors information for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getPersonnelForPatient(binds));
 });
@@ -1826,7 +1486,7 @@ router.get("/person/:person_id/nurse-unit", async (req, res) => {
   console.log("getting nurse unit information for %s ...", person_id);
 
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getNUTime(binds));
 });
@@ -1879,7 +1539,7 @@ router.get("/person/:person_id/RSS", async (req, res) => {
   const binds = {
     person_id,
     from_: from,
-    to_: to
+    to_: to,
   };
   res.send(await getRespiratorySupportVariable(binds));
 });
@@ -1895,7 +1555,7 @@ router.get("/person/:person_id/HR", async (req, res) => {
   const binds = {
     person_id,
     from_: from,
-    to_: to
+    to_: to,
   };
   res.send(await getHeartRate(binds));
 });
@@ -1911,7 +1571,7 @@ router.get("/HeartRate", async (req, res) => {
   const binds = {
     person_id,
     from_: from,
-    to_: to
+    to_: to,
   };
   res.send(await getHeartRate(binds));
 });
@@ -1979,8 +1639,6 @@ router.get("/person/:person_id", async (req, res) => {
   res.send(await getPerson(person_id));
 });
 
-
-
 /**
  * @api {get} /person/:person_id/weight Weight
  * @apiVersion 0.0.1
@@ -2016,8 +1674,6 @@ router.get("/person/:person_id/weight", async (req, res) => {
   res.send(await getWeight(person_id));
 });
 
-
-
 /**
  * @api {get} /person/:person_id/weight-calc Weight-calc
  * @apiVersion 0.0.1
@@ -2050,7 +1706,7 @@ router.get("/person/:person_id/weight-calc", async (req, res) => {
     res.send("Invalid person_id. Should be integer.");
     return;
   }
-  res.send(await getWeightCalc(person_id));
+  getApiFromRedis(res, getWeightCalc, person_id, "weight-calc");
 });
 
 /**
@@ -2077,7 +1733,7 @@ router.get("/personel/:chb_prsnl_id", async (req, res) => {
 router.get("/survey/bed_space", async (req, res) => {
   const at = parseFloat(req.query.at);
   const binds = {
-    at_unix_ts: at
+    at_unix_ts: at,
   };
   res.send(await getBedSurvey(binds));
 });
@@ -2098,7 +1754,7 @@ router.get("/survey/bed_space", async (req, res) => {
 router.get("/bed/:bed_cd", async (req, res) => {
   const bed_cd = parseFloat(req.params.bed_cd);
   const binds = {
-    bed_cd
+    bed_cd,
   };
   res.send(await getBed(binds));
 });
@@ -2119,7 +1775,7 @@ router.get("/RespiratorySupportVariable", async (req, res) => {
   const binds = {
     person_id,
     from_: from,
-    to_: to
+    to_: to,
   };
   res.send(await getRespiratorySupportVariable(binds));
 });
@@ -2213,11 +1869,12 @@ router.post("/relational-query", async (req, res) => {
   try {
     const toSend = await getRelationalQuery(query);
     res.send(toSend);
+    return;
   } catch (e) {
     console.log(new Date());
     console.log(e);
-    // res.status(500);
-    // res.send(e.toString());
+    res.status(500);
+    res.send(e.toString());
   }
 });
 
@@ -2266,10 +1923,10 @@ router.post("/relational-query", async (req, res) => {
 router.get("/settings/fluid/:item", (req, res) => {
   const item = req.params.item;
   if (!req || !(item in settingsFluid)) {
-    res.send(settingsFluid)
+    res.send(settingsFluid);
   } else {
     res.send(settingsFluid[item]);
-  } 
+  }
 });
 
 router.get("/settings/fluid", (req, res) => {
@@ -2341,86 +1998,6 @@ router.get("/settings/med", (req, res) => {
 
 
 /**
- * @api {get} /person/:person_id/nutrition/tpn Nutrients - TPN
- * @apiVersion 0.0.1
- * @apiName TPN-nutrients-for-patient
- * @apiGroup _Deprecated
- * @apiParam {Number} person_id Patient unique ID.
- * @apiSuccessExample Success-Response:
- *  {
-
-      amino_acids: [
-        {
-           "start": 1520000000,
-            "end": 1530000000,
-            "value": 0.1,
-            "unit": "g/kg"
-        },
-        ...
-      ],
-      dextrose: [
-        {
-          "start": 1520000000,
-            "end": 1530000000,
-            "value": 0.1,
-            "unit": "g/kg"
-        },
-        ...
-      ]
-    }
- *
- */
-
-router.get("/person/:person_id/nutrition/tpn", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  console.log('person_id :', person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-  console.log("getting TPNnutrients for %s ...", person_id);
-  const binds = {
-    person_id
-  };
-  res.send(await getTpnNutrients(binds));
-});
-
-
-/**
- * @api {get} /person/:person_id/nutrition/diluents Nutrients - Diluents
- * @apiVersion 0.0.1
- * @apiName diluents-nutrients-for-patient
- * @apiGroup _Deprecated
- * @apiParam {Number} person_id Patient unique ID.
- * @apiSuccessExample Success-Response:
- *    [
-        {
-           "start": 1520000000,
-            "end": 1530000000,
-            "rate": 0.1,
-            "unit": "g/hr"
-        },
-        ...
-      ]
-     
- *
- */
-
-router.get("/person/:person_id/nutrition/diluents", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  console.log('person_id :', person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-  console.log("getting Diluents nutrients for %s ...", person_id);
-  const binds = {
-    person_id
-  };
-  res.send(await getDiluNutrients(binds));
-});
-
-/**
  * @api {get} /person/:person_id/nutrition/fat-pro-cho Nutrients - Fat-Pro-Cho
  * @apiVersion 0.0.1
  * @apiName nutrients-fat-pro-cho
@@ -2451,18 +2028,15 @@ router.get("/person/:person_id/nutrition/diluents", async (req, res) => {
 
 router.get("/person/:person_id/nutrition/fat-pro-cho", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
-  console.log('person_id :', person_id);
+  console.log("person_id :", person_id);
   if (!Number.isInteger(person_id)) {
     res.send("Invalid person_id, should be integer.");
     return;
   }
   console.log("getting fat-pro-cho for %s ...", person_id);
-  const binds = {
-    person_id
-  };
-  res.send(await getNutriFatProCho(binds));
-});
 
+  getApiFromRedis(res, getNutriFatProCho, {person_id}, "fat-pro-cho");
+});
 
 /**
  * @api {get} /person/:person_id/nutrition/volume Nutrients-Volume
@@ -2489,16 +2063,14 @@ router.get("/person/:person_id/nutrition/fat-pro-cho", async (req, res) => {
 
 router.get("/person/:person_id/nutrition/volume", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
-  console.log('person_id :', person_id);
+  console.log("person_id :", person_id);
   if (!Number.isInteger(person_id)) {
     res.send("Invalid person_id, should be integer.");
     return;
   }
   console.log("getting nutrition volume for %s ...", person_id);
-  const apiInput = {
-    person_id,
-  };
-  res.send(await getNutriVolume(apiInput));
+
+  getApiFromRedis(res, getNutriVolume, {person_id}, "nutrition-volume");
 });
 
 /**
@@ -2536,35 +2108,127 @@ router.post("/nutrition/volume", async (req, res) => {
   const person_id = req.body.person_id;
   let resolution = req.body.resolution;
   let from = req.body.from;
-  console.log('person_id :', person_id);
+  console.log("person_id :", person_id);
   if (!Number.isInteger(person_id)) {
     res.send("Invalid person_id, should be integer.");
     return;
   }
   if (!resolution) {
     resolution = 3600;
-  } else if (!Number.isInteger(resolution)){
+  } else if (!Number.isInteger(resolution)) {
     res.send("Invalid resolution, should be integer.");
     return;
-  } else if (resolution%3600) {
-
+  } else if (resolution % 3600) {
     res.send("Invalid resolution, should be divisible by 3600.");
     return;
   } else if (!from) {
     from = 0;
     console.log("from undefined");
-  } else if (from%3600) {
+  } else if (from % 3600) {
     res.send("Invalid from, should be divisible by 3600.");
     return;
   }
   console.log("getting nutrition volume for %s ...", person_id);
-  const apiInput = {
-    person_id,
-    resolution,
-    from,
-  };
-  res.send(await getNutriVolume(apiInput));
+
+  getApiFromRedis(res, getNutriVolume, {person_id, resolution, from}, "nutrition-volume-resolution");
 });
+
+
+
+
+/**
+ * @api {get} /person/:person_id/nutrition/calories Nutr-Calories
+ * @apiVersion 0.0.1
+ * @apiName nutrients-calories
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *    [
+        {
+          "timestamp": 1543251600,
+          "TPN": 1,
+          "LIPIDS": 1,
+          "INFUSIONS": 1,
+          "FLUSHES": 1,
+          "FEEDS": 1
+        },
+      ]     
+ *
+ */
+
+router.get("/person/:person_id/nutrition/calories", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id :", person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting nutrition calories for %s ...", person_id);
+
+  getApiFromRedis(res, getNutriCalories, {person_id}, "nutrition-calories");
+});
+
+
+/**
+ * @api {post} /nutrition/calories Nutr-Calories POST
+ * @apiVersion 0.0.1
+ * @apiName nutrients-calories-resolution
+ * @apiGroup Person
+ * @apiParam {Number} person_id patient unique ID.
+ * @apiParam {Number} from timestamp get data from.
+ * @apiParam {Number} resolution response data timestamp resolution.
+ * @apiParamExample {json} POST json example
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from": 1543251600,
+          "resolution": 86400
+        }
+ * @apiSuccessExample Success-Response:
+ *    [
+        {
+          "timestamp": 1543251600,
+          "TPN": 1,
+          "LIPIDS": 1,
+          "INFUSIONS": 1,
+          "FLUSHES": 1,
+          "FEEDS": 1
+        },
+      ]     
+ *
+ */
+
+router.post("/nutrition/calories", async (req, res) => {
+  const person_id = req.body.person_id;
+  let resolution = req.body.resolution;
+  let from = req.body.from;
+  console.log("person_id :", person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  if (!resolution) {
+    resolution = 3600;
+  } else if (!Number.isInteger(resolution)) {
+    res.send("Invalid resolution, should be integer.");
+    return;
+  } else if (resolution % 3600) {
+    res.send("Invalid resolution, should be divisible by 3600.");
+    return;
+  } else if (!from) {
+    from = 0;
+    console.log("from undefined");
+  } else if (from % 3600) {
+    res.send("Invalid from, should be divisible by 3600.");
+    return;
+  }
+  console.log("getting nutrition calories for %s ...", person_id);
+
+  getApiFromRedis(res, getNutriCalories, {person_id, resolution, from}, "nutrition-calories-resolution");
+});
+
+
+
+
 
 /**
  * @api {get} /person/:person_id/ecmo ECMO Score
@@ -2594,31 +2258,25 @@ router.post("/nutrition/volume", async (req, res) => {
 
 router.get("/person/:person_id/ecmo", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
-  console.log('person_id :', person_id);
+  console.log("person_id :", person_id);
   if (!Number.isInteger(person_id)) {
     res.send("Invalid person_id, should be integer.");
     return;
   }
   console.log("getting ECMO Score for %s ...", person_id);
   const binds = {
-    person_id
+    person_id,
   };
   res.send(await getECMO(binds));
 });
-
-
-
 
 // ~~~~~~~~~~
 // db api end
 // ~~~~~~~~~~
 
-
-
 // ~~~~~~~~~~~
 // cerner api
 // ~~~~~~~~~~
-
 
 /**
  * @api {get} /FHIR/token get access token
@@ -2660,5 +2318,464 @@ router.get("/FHIR/notes/:mrn", async (req, res) => {
   let result = await getPDFUrl(mrn);
   res.send(result);
 });
+
+
+
+
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// ~~~~~~ Deprecated API ~~~~~
+// ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+/**
+ * @api {get} /person/:person_id/labs Labs for Patient
+ * @apiVersion 0.0.1
+ * @apiName Get Patient Labs
+ * @apiGroup _Deprecated
+ * @apiParam {Number} person_id patient unique ID.
+ * @apiSuccess {String} labName Name of this lab, such as "SvO2".
+ * @apiSuccess {Number} timestamp UNIX Timestamp seconds of the lab.
+ * @apiSuccess {Number} labValue Value of this lab.
+ * @apiSuccessExample Success-Response:
+ *
+ *     {
+ *       labName: [
+ *                    {
+ *                       "DT_UNIX": timestamp,
+ *                       "VALUE": labValue
+ *                    },
+ *                    ...
+ *                 ],
+ *        ...
+ *     }
+ *
+ */
+router.get("/person/:person_id/labs", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+
+  console.log("/person/ %s /labs ...", person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(await getLab(binds));
+});
+
+/**
+ * @api {post} /inout-tooltip In-Out Tooltip for Patient
+ * @apiVersion 0.0.3
+ * @apiName Get in-out tooltip for patient
+ * @apiGroup _Deprecated
+ * @apiDeprecated use now (#Person:in-out-tooltip-v2).
+ * @apiDescription 
+ * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`,
+ * from table `DRUG_DILUENTS` and `INTAKE_OUTPUT`
+ * 
+ * Method: 
+ * 
+ * Input notes: 
+ * 
+ *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
+ * 
+ *   └──`from` and `to` should be divisible by `resolution`.
+ * 
+ * Output notes:
+ *   
+ *   output array [{},{}] has two item, in-data-object and out-data-object.
+ * 
+ *   in-data-object keys: timestamp
+ *   
+ *   in-data-object[timestamp] keys: cat
+ * 
+ *   in-data-object[timestamp][cat] keys: `acc_value` and ((cat is `Infusions` or `Flushes`)? `drugs` : short_label)
+ * 
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {Number} [from=0] Start timestamp.
+ * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
+ * @apiParam {Number} [resolution=3600] Binned time resolution.
+ * @apiParamExample {json} Example of request in-out data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from":0,
+          "to":1541037600,
+          "resolution":3600
+        }
+
+ * @apiSuccessExample Success-Response:
+ *
+ [
+    {
+      "1541030400": {
+          "Infusions": {
+              "acc_value": 0.02,
+              "drugs": [
+                  {
+                      "value": 0.02,
+                      "drug": "alprostadil",
+                      "diluent": "Dextrose 10% in Water",
+                      "rate": 0.27,
+                      "unit": "mL/hr",
+                      "conc": 5,
+                      "strength_unit": "mcg",
+                      "vol_unit": "mL",
+                      "location": "not ready"
+                  }
+              ]
+          }
+      },
+      ...
+    },
+    {
+      "1538686800": {
+            "UOP": {
+                "acc_value": -15,
+                "short_labels": [
+                    {
+                        "value": -15,
+                        "sub_cat": "Void",
+                        "label": "UOP",
+                        "short_label": "UOP"
+                    }
+                ]
+            }
+      },
+      ...
+    }
+  ]
+ *
+ */
+
+router.post("/inout-tooltip", async (req, res) => {
+  const query = req.body;
+  const person_id = query.person_id;
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+
+  try {
+    const toSend = await getInOutTooltipQueryV3(query);
+    console.log("finished timestamp :", new Date().getTime());
+    res.send(toSend);
+    return;
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
+});
+
+
+/**
+ * @api {post} /inout In-Out for Patient
+ * @apiVersion 0.0.2
+ * @apiName Get in-out for patient
+ * @apiGroup _Deprecated
+ * @apiDeprecated use now (#Person:in-out-patient-V2).
+
+ * @apiDescription 
+ * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `INTAKE_OUTPUT` and `DRUG_DILUENTS`
+ * 
+ * Method: 
+ * 
+ *   ├──part 1: data from `INTAKE_OUTPUT`, value accumulated by `short_label` and records with timestamp during `resolution` time.
+ * 
+ *   ├──part 2: data from `DRUG_DILUENTS`, if drug is 'papavarine' or 'heparin flush', then cat = "Flushes", value accumulated in each binned time box;
+ * other drug , then cat = "Infusions", value accumulated in each binned time box;
+ * 
+ *   └──final response: mixed part1 and part2, sorted by time.
+ * 
+ * Input notes: 
+ * 
+ *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
+ * 
+ *   └──`from` should be divisible by `resolution`.
+ * 
+ * Response notes:
+ * 
+ *   ├──type == `1` ⟹ value is positive (in);
+ * 
+ *   ├──type == `2` ⟹ value is negative (out);
+ * 
+ *   ├──type == `0` ⟹ skipped;
+ * 
+ *   └──value == 0 ⟹ skipped; 
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {Number} [from=0] Start timestamp.
+ * @apiParam {Number} [to] End timestamp. Default value: current Unix Time(sec).
+ * @apiParam {Number} [resolution=3600] Binned time resolution.
+ * @apiParamExample {json} Example of request in-out data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from":1541030400,
+          "to":1542018000,
+          "resolution":3600
+        }
+ * @apiSuccess {Number} value IO value.
+ * @apiSuccess {String} cat Name of IO category.
+ * @apiSuccess {String} sub_cat Name of IO sub-category.
+ * @apiSuccess {String} label Name of IO label.
+ * @apiSuccess {String} short_label Name of IO short_label.
+ * @apiSuccess {String} color `#` code of color.
+ * @apiSuccess {Number} time Unix seconds as the record's start timestamp.
+ * @apiSuccess {String} type value of IO_CALCs.
+
+ * @apiSuccessExample Success-Response:
+ *    [
+        {
+          "value": -8,
+          "cat": "UOP",
+          "sub_cat": "Foley",
+          "label": "FOLEY",
+          "short_label": "FOL",
+          "color": "#e5c124",
+          "time": 1541016000,
+          "type": "2"
+        },
+        ...
+      ]
+ *
+ */
+
+router.post("/inout", async (req, res) => {
+  const query = req.body;
+  const person_id = query.person_id;
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+
+  try {
+    const toSend = await getInOutQuery(query);
+    res.send(toSend);
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    // res.status(400);
+    res.send(e.toString());
+  }
+});
+
+/**
+ * @api {get} /person/:person_id/nutrition/diluents Nutrients - Diluents
+ * @apiVersion 0.0.1
+ * @apiName diluents-nutrients-for-patient
+ * @apiGroup _Deprecated
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *    [
+        {
+           "start": 1520000000,
+            "end": 1530000000,
+            "rate": 0.1,
+            "unit": "g/hr"
+        },
+        ...
+      ]
+     
+ *
+ */
+
+router.get("/person/:person_id/nutrition/diluents", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id :", person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting Diluents nutrients for %s ...", person_id);
+  const binds = {
+    person_id,
+  };
+  res.send(await getDiluNutrients(binds));
+});
+
+
+/**
+ * @api {get} /person/:person_id/nutrition/tpn Nutrients - TPN
+ * @apiVersion 0.0.1
+ * @apiName TPN-nutrients-for-patient
+ * @apiGroup _Deprecated
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *  {
+
+      amino_acids: [
+        {
+           "start": 1520000000,
+            "end": 1530000000,
+            "value": 0.1,
+            "unit": "g/kg"
+        },
+        ...
+      ],
+      dextrose: [
+        {
+          "start": 1520000000,
+            "end": 1530000000,
+            "value": 0.1,
+            "unit": "g/kg"
+        },
+        ...
+      ]
+    }
+ *
+ */
+
+router.get("/person/:person_id/nutrition/tpn", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id :", person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting TPNnutrients for %s ...", person_id);
+  const binds = {
+    person_id,
+  };
+  res.send(await getTpnNutrients(binds));
+});
+
+
+/**
+ * @api {get} /person/:person_id/nutrition/macronutrients Nutrients - Macro
+ * @apiVersion 0.0.2
+ * @apiName macro-nutrients-for-patient
+ * @apiGroup _Deprecated
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *  {
+      fat: [
+        {
+          time: 150000000,
+          value: 0.1,
+          unit: "g"
+        },
+        ...
+      ],
+      protein: [
+        {
+          time: 150000000,
+          value: 0.2,
+          unit: "g"
+        },
+        ...
+      ],
+      cho: [
+        {
+          time: 150000000,
+          value: 0.15,
+          unit: "g"
+        },
+        ...
+      ]
+    }
+ *
+ */
+
+router.get("/person/:person_id/nutrition/macronutrients", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id :", person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting macronutrients for %s ...", person_id);
+  const binds = {
+    person_id,
+  };
+  res.send(await getMacroNutrients(binds));
+});
+
+
+/**
+ * @api {get} /person/:person_id/vitals/hr/binned/:data_resolution Binned Heart Rate
+ * @apiVersion 0.0.1
+ * @apiName Get Person Hr Binned
+ * @apiGroup _Deprecated
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
+ * @apiSuccess {String} range Range of the binned heart rate, for example, "90-100".
+ * @apiSuccess {Number} value Value of the binned heart rate.
+ * @apiSuccess {Number} from_timestamp UNIX timestamp seconds for start time.
+ * @apiSuccess {Number} to_timestamp UNIX timestamp seconds for end time.
+ * @apiSuccess {Number} average_timestamp UNIX timestamp seconds for average of start and end time.
+ * @apiSuccessExample Success-Response:
+ *      
+      [
+        {
+          range: value,
+          ...
+          "from": from_timestamp,
+          "to": to_timestamp,
+          "time" : average_timestamp
+        }
+      ]
+ *
+ */
+
+router.get("/person/:person_id/vitals/hr/binned/12H", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting hr_12H for %s ...", person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(await getHr12H(binds));
+});
+
+router.get("/person/:person_id/vitals/hr/binned/5H", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting hr_5H for %s ...", person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(await getHr5H(binds));
+});
+
+router.get("/person/:person_id/vitals/hr/binned/1D", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting hr_1D for %s ...", person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(await getHr1D(binds));
+});
+
+router.get("/person/:person_id/vitals/hr/binned/5M", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting hr_5M for %s ...", person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(await getHr5M(binds));
+});
+
 
 module.exports = router;
