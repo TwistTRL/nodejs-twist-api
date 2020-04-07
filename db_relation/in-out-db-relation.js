@@ -1,8 +1,8 @@
 /*
- * @Author: Peng 
- * @Date: 2020-01-21 10:33:57 
+ * @Author: Peng
+ * @Date: 2020-01-21 10:33:57
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 16:19:17
+ * @Last Modified time: 2020-04-07 10:01:08
  */
 
 const {
@@ -11,16 +11,75 @@ const {
   SL_TO_SUBCAT,
   SL_TO_CAT,
   SL_TO_CALCS,
-  SL_ORDER_ARRAY,
   CAT_ARRAY,
+  SL_ARRAY,
   CAT_TO_SL,
-  CAT_COLOR_DICT,
   CAT_CAP_TO_LOWER_MAP,
-  CAT_ORDER_ARRAY,
-  IN_OUT_CODES_XLSX_PATH
+  IN_OUT_CODES_XLSX_PATH,
 } = require("twist-xlsx");
 
-const SL_COLOR_DICT = {
+const CAT_ORDER_ARRAY = [
+  "DRAIN",
+  "UOP",
+  "STOOL",
+  "BLOOD PRODUCT",
+  "Nutrition",
+  "Infusions",
+  "Flushes",
+  "TPN",
+  "Lipids",
+  "EN",
+  "IVF",
+  "DIALYSIS",
+  "ENTERAL",
+  "PENROSE",
+  "PROCEDURAL",
+  "PIGTAIL 1",
+  "PIGTAIL 2",
+  "PIGTAIL 3",
+  "PIGTAIL 4",
+  "PIGTAIL 5",
+  "OTHER",
+  "PLTS",
+  "PRBC",
+  "OOZING",
+];
+
+let SL_ORDER_ARRAY = [];
+
+CAT_ORDER_ARRAY.forEach((cat) => {
+  if (CAT_TO_SL[cat]) {
+    SL_ORDER_ARRAY = [...SL_ORDER_ARRAY, ...CAT_TO_SL[cat]];
+  }
+});
+// console.log('SL_ORDER_ARRAY :', SL_ORDER_ARRAY);
+
+const CAT_COLOR_DICT = {
+  OOZING: "#7de1f4",
+  "BLOOD PRODUCT": "#FF6F00",
+  ENTERAL: "#a989d2",
+  IVF: "#8dd39e",
+  DRAIN: "#EB2822",
+  DIALYSIS: "#a9ab28",
+  UOP: "#E5C029",
+  STOOL: "#B9796F",
+  Infusions: "#E492E4",
+  Flushes: "#86E3F5",
+  TPN: "#a989d2",
+  Lipids: "#f48fb1",
+  EN: "purple",
+  Nutrition: "green",      
+};
+
+let SL_COLOR_DICT = {};
+SL_ARRAY.forEach((element) => {
+  if (!element) {
+    return;
+  }
+  SL_COLOR_DICT[element] = CAT_COLOR_DICT[SL_TO_CAT[element]];
+});
+
+const SECOND_SL_COLOR_DICT = {
   "25ALB": "#FF6F00",
   "5ALB": "#FF6F00",
   STL: "#B9796F",
@@ -41,7 +100,7 @@ const SL_COLOR_DICT = {
   CRYO: "#FF6F00",
   IVF: "#8dd39e",
   CRRT: "#a9ab28",
-  EBL: undefined,
+  EBL: "#a9ab28",
   EMSS: "#a989d2",
   MEDS: "#a989d2",
   "PIGTAIL 1": "#EB2822",
@@ -115,10 +174,11 @@ const SL_COLOR_DICT = {
   Flushes: "#86E3F5",
   TPN: "#a989d2",
   Lipids: "#f48fb1",
+  EN: "purple",
+  Nutrition: "green",
 };
 
-
-
+SL_COLOR_DICT = {...SECOND_SL_COLOR_DICT, ...SL_COLOR_DICT};
 
 module.exports = {
   EVENT_CD_DICT,
@@ -128,10 +188,11 @@ module.exports = {
   SL_TO_CALCS,
   SL_ORDER_ARRAY,
   SL_COLOR_DICT,
+  SL_ARRAY,
   CAT_ARRAY,
   CAT_TO_SL,
   CAT_COLOR_DICT,
   CAT_CAP_TO_LOWER_MAP,
   CAT_ORDER_ARRAY,
-  IN_OUT_CODES_XLSX_PATH
-}
+  IN_OUT_CODES_XLSX_PATH,
+};
