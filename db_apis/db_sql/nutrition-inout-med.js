@@ -1,0 +1,145 @@
+/*
+ * @Author: Peng 
+ * @Date: 2020-04-07 12:57:40 
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-04-07 15:16:19
+ */
+
+let person_id = 343434;
+let from = 3333333333;
+let to = 98888888;
+
+
+// TPN_LIPID
+const SQL_GET_TPN_LIPID = `
+SELECT
+    DT_UNIX,
+    RESULT_VAL
+FROM TPN_LIPID
+WHERE PERSON_ID = ${person_id}
+AND DT_UNIX <= ${to} AND DT_UNIX >= ${from}
+ORDER BY DT_UNIX`;
+
+// TPN
+const SQL_GET_TPN = `
+SELECT  
+    START_UNIX,
+    END_UNIX, 
+    RESULT_VAL,
+    "Dextrose PN",
+    "Amino Acid PN",
+    "Selenium PN",
+    "Potassium PN",
+    "Calcium PN",
+    "Magnesium PN",
+    "Phosphorus PN",
+    "Heparin PN",
+    "Ranitidine PN",
+    "Extra Phytonadione PN",
+    "Sodium PN",
+    "Vitamin PN",
+    "Carnitine PN"
+FROM TPN
+WHERE PERSON_ID = ${person_id}
+AND START_UNIX <= ${to} AND END_UNIX >= ${from}
+ORDER BY START_UNIX`;
+
+// EN
+const SQL_GET_EN = `
+SELECT  
+    START_TIME_DTUNIX,
+    "VOLUME",
+    DISPLAY_LINE,
+    UNITS,
+    CAL_DEN,
+    G_PTN,
+    G_FAT,
+    G_CHO
+FROM EN
+WHERE PERSON_ID = ${person_id}
+AND START_TIME_DTUNIX <= ${to} AND START_TIME_DTUNIX >= ${from}
+ORDER BY START_TIME_DTUNIX`;
+
+// INTAKE_OUTPUT
+const SQL_GET_IN_OUT_EVENT = `
+SELECT  
+    DT_UNIX,
+    EVENT_CD,
+    VALUE
+FROM INTAKE_OUTPUT
+WHERE PERSON_ID = ${person_id}
+AND DT_UNIX <= ${to} AND DT_UNIX >= ${from}
+ORDER BY DT_UNIX
+`;
+
+// DRUG_DILUENTS
+const SQL_GET_DILUENTS = `
+SELECT  
+    START_UNIX,
+    END_UNIX,
+    DRUG,
+    DILUENT,
+    CONC,
+    STRENGTH_UNIT,
+    VOL_UNIT,
+    INFUSION_RATE,
+    INFUSION_RATE_UNITS
+FROM DRUG_DILUENTS
+WHERE PERSON_ID = ${person_id}
+ORDER BY START_UNIX`;
+
+// DRUG_INFUSIONS
+const SQL_INFUSIONS_PART1 = `
+SELECT 
+    START_UNIX,
+    END_UNIX,
+    DRUG,
+    RXCUI,
+    INFUSION_RATE,
+    INFUSION_RATE_UNITS
+FROM DRUG_INFUSIONS
+WHERE (1=0`;
+const SQL_INFUSIONS_PART2 = `) AND PERSON_ID = :person_id
+ORDER BY START_UNIX, DRUG`;
+
+const SQL_INFUSIONS_UNIT = `
+SELECT
+    DISTINCT DRUG,
+    INFUSION_RATE_UNITS
+FROM DRUG_INFUSIONS
+WHERE PERSON_ID = :person_id
+ORDER BY DRUG`;
+
+
+//DRUG_INTERMITTENT
+const SQL_INTERMITTENT_PART1 = `
+SELECT 
+    DT_UNIX,
+    DRUG,
+    RXCUI,
+    ADMIN_DOSAGE,
+    ADMIN_ROUTE,
+    DOSAGE_UNITS
+FROM DRUG_INTERMITTENT
+WHERE (1=0`;
+const SQL_INTERMITTENT_PART2 = `) AND PERSON_ID = :person_id
+ORDER BY DT_UNIX, DRUG`;
+
+// SUCTION
+const SQL_SUCTION = `
+SELECT
+    DATETIMEUTC,
+    LVL,
+    COMMENT_TXT,
+    SUCTION_DEVICE,
+    SUCTION_INSTILLATION,
+    SUCTION_PRE_MEDICATION,
+    SUCTION_PRE_OXYGENATION,
+    SUCTION_TYPE,
+    TRACH_SUCTION_CATHETER_SIZE,
+    TRACH_SUCTION_DEPTH
+FROM SUCTION
+WHERE PERSON_ID = :person_id
+ORDER BY DATETIMEUTC`;
+
+
