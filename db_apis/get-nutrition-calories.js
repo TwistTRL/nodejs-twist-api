@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-04-06 11:14:32 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 23:30:54
+ * @Last Modified time: 2020-04-07 11:28:30
  */
 
 
@@ -223,7 +223,7 @@ function _calculateRawRecords(
       if (timestamp && row["RESULT_VAL"]) {
         let fatValue = (row["RESULT_VAL"] * TPN_LIPID_RATIO) / getWeight(timestamp, weightArr);
         let caloriesLipid = fatValue * FAT_CALORIES;
-        accValueToDict(caloriesLipid, timestamp, "Lipids", retDict);
+        accValueToDict(caloriesLipid, timestamp, "LIPIDS", retDict);
       }
     }
   }

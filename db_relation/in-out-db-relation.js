@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:33:57
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-07 10:01:08
+ * @Last Modified time: 2020-04-07 10:50:51
  */
 
 const {
@@ -50,8 +50,11 @@ let SL_ORDER_ARRAY = [];
 CAT_ORDER_ARRAY.forEach((cat) => {
   if (CAT_TO_SL[cat]) {
     SL_ORDER_ARRAY = [...SL_ORDER_ARRAY, ...CAT_TO_SL[cat]];
+  } else {
+    SL_ORDER_ARRAY = [...SL_ORDER_ARRAY, cat];
   }
 });
+
 // console.log('SL_ORDER_ARRAY :', SL_ORDER_ARRAY);
 
 const CAT_COLOR_DICT = {
