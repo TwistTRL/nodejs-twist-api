@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 13:00:52
+ * @Last Modified time: 2020-04-06 23:33:50
  */
 
 const { bisect_left } = require("bisect-js");
@@ -45,6 +45,7 @@ SELECT
   DRUG,
   DILUENT,
   INFUSION_RATE,
+  DOSING_WEIGHT,
   INFUSION_RATE_UNITS
 FROM DRUG_DILUENTS
 WHERE PERSON_ID = :person_id

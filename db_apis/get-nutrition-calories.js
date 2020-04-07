@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-04-06 11:14:32 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 13:00:55
+ * @Last Modified time: 2020-04-06 23:30:54
  */
 
 
@@ -171,6 +171,10 @@ async function medVolQuerySQLExecutor(conn, binds) {
   return rawRecord.rows;
 }
 
+const AA_CALORIES = 4;
+const DEX_CALORIES = 3.4
+const FAT_CALORIES = 9;
+
 function _calculateRawRecords(
   arrTpnNutr,
   arrTpnLipid,
@@ -204,7 +208,7 @@ function _calculateRawRecords(
           }
         }
         // calories calculation for TPN
-        let caloriesTPN = (row["Amino_Acids g/kg"] || 0) * 4 + (row["Dextrose g/kg"] || 0) * 4;
+        let caloriesTPN = (row["Amino_Acids g/kg"] || 0) * AA_CALORIES + (row["Dextrose g/kg"] || 0) * DEX_CALORIES;
         accValueToDict(caloriesTPN, timestamp, "TPN", retDict);        
       } else {
         console.log("TPN start or end time null :", row);
@@ -218,7 +222,7 @@ function _calculateRawRecords(
       let timestamp = Math.floor(row["DT_UNIX"] / 3600) * 3600;
       if (timestamp && row["RESULT_VAL"]) {
         let fatValue = (row["RESULT_VAL"] * TPN_LIPID_RATIO) / getWeight(timestamp, weightArr);
-        let caloriesLipid = fatValue * 9;
+        let caloriesLipid = fatValue * FAT_CALORIES;
         accValueToDict(caloriesLipid, timestamp, "Lipids", retDict);
       }
     }
@@ -246,7 +250,8 @@ function _calculateRawRecords(
     for (let row of arrDiluNutr) {
       if (row["DILUENT"] in DEXTROSE_DICT) {
         // normalized rate: 'Dextrose 10% in Water' means rate * 0.1
-        let rate = row["INFUSION_RATE"] * DEXTROSE_DICT[row["DILUENT"]] / row["DOSING_WEIGHT"];
+        // divided by most recent weight then * 3.4 for dextrose g to kCal
+        let rate = row["INFUSION_RATE"] * DEXTROSE_DICT[row["DILUENT"]] * DEX_CALORIES / row["DOSING_WEIGHT"];
         let start = row["START_UNIX"];
         let end = row["END_UNIX"];
         let drugName = row["DRUG"];

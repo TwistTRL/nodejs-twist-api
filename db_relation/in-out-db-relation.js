@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-01-21 10:33:57 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-01 18:59:31
+ * @Last Modified time: 2020-04-06 16:19:17
  */
 
 const {
@@ -113,7 +113,8 @@ const SL_COLOR_DICT = {
   Drips: "#E492E4",
   Infusions: "#E492E4",
   Flushes: "#86E3F5",
-  TPN: "#a989d2"
+  TPN: "#a989d2",
+  Lipids: "#f48fb1",
 };
 
 
