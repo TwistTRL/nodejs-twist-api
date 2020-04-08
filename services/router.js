@@ -1,8 +1,8 @@
 /*
  * @Author: Mingyu/Peng
  * @Date:
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 12:53:58
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-04-08 10:32:21
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2296,7 +2296,8 @@ router.get("/person/:person_id/ecmo", async (req, res) => {
  */
 router.get("/FHIR/token", async (req, res) => {
   // getAccessToken().then(val => res.send(val));
-  res.send(await getAccessToken());
+  // res.send(await getAccessToken());
+  res.send("not available");
 });
 
 /**
@@ -2315,8 +2316,10 @@ router.get("/FHIR/token", async (req, res) => {
 router.get("/FHIR/notes/:mrn", async (req, res) => {
   const mrn = parseInt(req.params.mrn);
   console.log("mrn is: " + mrn);
-  let result = await getPDFUrl(mrn);
-  res.send(result);
+  // let result = await getPDFUrl(mrn);
+  // res.send(result);
+  res.send("not available");
+
 });
 
 

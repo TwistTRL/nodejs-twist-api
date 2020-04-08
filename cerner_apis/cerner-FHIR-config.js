@@ -1,8 +1,8 @@
 /*
  * @Author: Peng 
  * @Date: 2020-03-09 18:13:22 
- * @Last Modified by: Peng
- * @Last Modified time: 2020-03-11 16:18:31
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-04-08 10:30:21
  */
 
 function splitConnectionString(rawConnectionString) {
@@ -13,7 +13,7 @@ function splitConnectionString(rawConnectionString) {
   return { base64data };
 }
 
-let { base64data } = splitConnectionString(process.env.FHIR_CONNECTION_STRING);
+// let { base64data } = splitConnectionString(process.env.FHIR_CONNECTION_STRING);
 
 module.exports = {
   base64data
