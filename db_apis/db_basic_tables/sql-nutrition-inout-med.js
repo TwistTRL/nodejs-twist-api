@@ -1,17 +1,12 @@
 /*
- * @Author: Peng 
- * @Date: 2020-04-07 12:57:40 
+ * @Author: Peng
+ * @Date: 2020-04-07 12:57:40
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-07 15:16:19
+ * @Last Modified time: 2020-04-08 01:17:51
  */
 
-let person_id = 343434;
-let from = 3333333333;
-let to = 98888888;
-
-
 // TPN_LIPID
-const SQL_GET_TPN_LIPID = `
+const SQL_GET_TPN_LIPID = (person_id, from, to) => `
 SELECT
     DT_UNIX,
     RESULT_VAL
@@ -21,7 +16,7 @@ AND DT_UNIX <= ${to} AND DT_UNIX >= ${from}
 ORDER BY DT_UNIX`;
 
 // TPN
-const SQL_GET_TPN = `
+const SQL_GET_TPN = (person_id, from, to) => `
 SELECT  
     START_UNIX,
     END_UNIX, 
@@ -45,7 +40,7 @@ AND START_UNIX <= ${to} AND END_UNIX >= ${from}
 ORDER BY START_UNIX`;
 
 // EN
-const SQL_GET_EN = `
+const SQL_GET_EN = (person_id, from, to) => `
 SELECT  
     START_TIME_DTUNIX,
     "VOLUME",
@@ -61,7 +56,7 @@ AND START_TIME_DTUNIX <= ${to} AND START_TIME_DTUNIX >= ${from}
 ORDER BY START_TIME_DTUNIX`;
 
 // INTAKE_OUTPUT
-const SQL_GET_IN_OUT_EVENT = `
+const SQL_GET_IN_OUT_EVENT = (person_id, from, to) => `
 SELECT  
     DT_UNIX,
     EVENT_CD,
@@ -73,7 +68,7 @@ ORDER BY DT_UNIX
 `;
 
 // DRUG_DILUENTS
-const SQL_GET_DILUENTS = `
+const SQL_GET_DILUENTS = person_id => `
 SELECT  
     START_UNIX,
     END_UNIX,
@@ -110,7 +105,6 @@ FROM DRUG_INFUSIONS
 WHERE PERSON_ID = :person_id
 ORDER BY DRUG`;
 
-
 //DRUG_INTERMITTENT
 const SQL_INTERMITTENT_PART1 = `
 SELECT 
@@ -142,4 +136,25 @@ FROM SUCTION
 WHERE PERSON_ID = :person_id
 ORDER BY DATETIMEUTC`;
 
+const SQL_GET_WEIGHT = person_id => `
+SELECT
+    DT_UNIX,
+    WEIGHT
+FROM WEIGHTS
+WHERE PERSON_ID = ${person_id}
+ORDER BY DT_UNIX`;
 
+module.exports = {
+  SQL_GET_DILUENTS,
+  SQL_GET_EN,
+  SQL_GET_IN_OUT_EVENT,
+  SQL_GET_TPN,
+  SQL_GET_TPN_LIPID,
+  SQL_INFUSIONS_PART1,
+  SQL_INFUSIONS_PART2,
+  SQL_INFUSIONS_UNIT,
+  SQL_INTERMITTENT_PART1,
+  SQL_INTERMITTENT_PART2,
+  SQL_SUCTION,
+  SQL_GET_WEIGHT,
+};

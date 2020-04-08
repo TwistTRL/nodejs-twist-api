@@ -1,10 +1,11 @@
 @startuml db-api-frontend
 
 ' skinparam componentStyle uml2
+' left to right direction
 
-package "TWIST FRONT END" {
+package "TWIST FRONT END" as frontend #f1f8e9 {
     frame "log in page" as login {
-        [Auth] -- [MRN input]
+        [Auth] -right- [MRN input]
     }
 
     frame "main page" as main {
@@ -14,16 +15,39 @@ package "TWIST FRONT END" {
         [Body Container] -- [Medications]
         [Body Container] -- [Vitals]
         [Nutrition Table] -- [Nutrition Volume]
-        [Nutrition Table] -- [Nutrition fat-pro-cho]
+        [Nutrition Table] -- [Nutrition Fat-Pro-Cho]
+        [Nutrition Table] -- [Nutrition Calories]
         [I/O Table] -- [I/O stack bar]
         [I/O Table] -- [I/O modal]
-        [Medications]
     }
-    login -[hidden]down- main
+  
+    main -[hidden]up- login
 }
 
-package "TWIST API" {
-    package "single table fetch" {
+package "TWIST API" as api #e0f7fa {
+    frame interface {
+        interface "fat-pro-cho" as fpc
+        interface volume
+        interface "inout-tooltip" as iot
+        interface inout
+        interface med
+        interface apiRSS
+        interface apiVitals
+        interface calories
+        interface others
+    }
+    
+    frame "fetch middleware" as fm {
+        interface "Initial Fetch" as firstFetch
+        interface "Interface fetch" as IfFetch
+        firstFetch -[hidden]up- IfFetch
+    }
+
+    database Redis #fbe9e7 {
+        [Cache]
+    }
+    
+    frame "single table fetch" as stf {
         [TPN_LIPID]
         [EN]
         [TPN]
@@ -32,59 +56,36 @@ package "TWIST API" {
         [DRUG_DILUENTS]
     }
 
-    frame "cache" {
-        [Initial Fetch] -left-> [Cache] :has cache
-    }
+    fm -[hidden]up- interface
+    Redis -[hidden]down- stf
+    firstFetch .right.> stf: if no cache 
+    firstFetch .down.> [Cache] :if has cache
+    stf -[hidden]up- firstFetch
+    stf =up=> [Cache]
+    IfFetch <=down=> [Cache]
+    IfFetch <=up=> interface
 
-    [Initial Fetch] -down-> dbConnector :no cache
-    [TPN_LIPID] -down- dbConnector
-    [EN] -down- dbConnector
-    [TPN] -down- dbConnector
-    [INTAKE_OUTPUT] -down- dbConnector
-    [DRUG_INTERMITTENT] -down- dbConnector
-    [DRUG_DILUENTS] -down- dbConnector
-
-    frame "interface" {
-        interface "fat-pro-cho" as fpc
-        interface volume
-        interface "inout-tooltip" as iot
-        interface inout
-        interface med
-        interface "weight-calc" as weightc
-        interface others
-        interface apiRSS
-    }
-
-    [Cache] -up-> volume
-    [Cache] -up-> fpc
-    [Cache] -up-> inout
-    [Cache] -up-> iot
-    [Cache] -up-> med
-    [Cache] -up-> weightc
-    [Cache] -up-> others
-    [Cache] -up-> apiRSS
-
-    [Cache] <-- [TPN_LIPID]
-    [Cache] <-- [TPN]
-    [Cache] <-- [EN]
-    [Cache] <-- [INTAKE_OUTPUT]
-    [Cache] <-- [DRUG_INTERMITTENT]
-    [Cache] <-- [DRUG_DILUENTS]
-
+    [TPN_LIPID] -- dbConnector
+    [EN] -- dbConnector
+    [TPN] -- dbConnector
+    [INTAKE_OUTPUT] -- dbConnector
+    [DRUG_INTERMITTENT] -- dbConnector
+    [DRUG_DILUENTS] -- dbConnector
 }
+    
+database DWTST #fbe9e7
 
-database DWTST
-
-[MRN input] -down-> [Initial Fetch]
-
-[Nutrition Volume] <-- volume
-[Nutrition fat-pro-cho] <-- fpc
-[I/O stack bar] <-- inout
-[I/O modal] <-- iot
-[Medications] <-- med
-
-' [RSS] <-- apiRSS
+[MRN input] --> firstFetch
+[Nutrition Fat-Pro-Cho] <--> fpc
+[Nutrition Calories] <--> calories
+[Nutrition Volume] <--> volume
+[I/O stack bar] <--> inout
+[I/O modal] <--> iot
+[Medications] <--> med
+[RSS] <--> apiRSS
+[Vitals] <--> apiVitals
 
 DWTST -up- dbConnector
+frontend -[hidden]down- api
 
 @enduml
