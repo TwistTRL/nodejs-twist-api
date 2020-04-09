@@ -32,7 +32,7 @@
     "replace-in-file": "^5.0.2",
     "request": "^2.88.2",
     "session-file-store": "^1.4.0",
-    "twist-xlsx": "github:TwistTRL/nodejs-twist-utils",
+    "twist-xlsx": "file:../nodejs-twist-utils",
     "xlsx": "^0.15.6"
   },
   "devDependencies": {

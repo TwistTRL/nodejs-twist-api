@@ -1,7 +1,6 @@
 @startuml db-api-frontend
 
 ' skinparam componentStyle uml2
-left to right direction
 
 package "TWIST FRONT END" as frontend #f1f8e9 {
     frame "log in page" as login {
@@ -61,6 +60,7 @@ package "TWIST API" as api #e0f7fa {
     stf -[hidden]up- firstFetch
     stf =up=> [Cache]
     IfFetch =down=> [Cache]
+
 
     [TPN_LIPID] -- dbConnector
     [EN] -- dbConnector
