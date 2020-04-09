@@ -2,11 +2,11 @@
  * @Author: Peng
  * @Date: 2020-04-07 12:57:40
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-08 01:17:51
+ * @Last Modified time: 2020-04-08 12:54:38
  */
 
 // TPN_LIPID
-const SQL_GET_TPN_LIPID = (person_id, from, to) => `
+const SQL_GET_TPN_LIPID = ({person_id, from, to}) => `
 SELECT
     DT_UNIX,
     RESULT_VAL
@@ -16,7 +16,7 @@ AND DT_UNIX <= ${to} AND DT_UNIX >= ${from}
 ORDER BY DT_UNIX`;
 
 // TPN
-const SQL_GET_TPN = (person_id, from, to) => `
+const SQL_GET_TPN = ({person_id, from, to}) => `
 SELECT  
     START_UNIX,
     END_UNIX, 
@@ -40,7 +40,7 @@ AND START_UNIX <= ${to} AND END_UNIX >= ${from}
 ORDER BY START_UNIX`;
 
 // EN
-const SQL_GET_EN = (person_id, from, to) => `
+const SQL_GET_EN = ({person_id, from, to}) => `
 SELECT  
     START_TIME_DTUNIX,
     "VOLUME",
@@ -52,11 +52,12 @@ SELECT
     G_CHO
 FROM EN
 WHERE PERSON_ID = ${person_id}
-AND START_TIME_DTUNIX <= ${to} AND START_TIME_DTUNIX >= ${from}
+AND START_TIME_DTUNIX <= ${to}
+AND START_TIME_DTUNIX >= ${from}
 ORDER BY START_TIME_DTUNIX`;
 
 // INTAKE_OUTPUT
-const SQL_GET_IN_OUT_EVENT = (person_id, from, to) => `
+const SQL_GET_IN_OUT_EVENT = ({person_id, from, to}) => `
 SELECT  
     DT_UNIX,
     EVENT_CD,
@@ -68,7 +69,7 @@ ORDER BY DT_UNIX
 `;
 
 // DRUG_DILUENTS
-const SQL_GET_DILUENTS = person_id => `
+const SQL_GET_DILUENTS = ({person_id, from, to}) => `
 SELECT  
     START_UNIX,
     END_UNIX,
@@ -81,6 +82,8 @@ SELECT
     INFUSION_RATE_UNITS
 FROM DRUG_DILUENTS
 WHERE PERSON_ID = ${person_id}
+AND START_UNIX < ${to}
+AND END_UNIX > ${from}
 ORDER BY START_UNIX`;
 
 // DRUG_INFUSIONS

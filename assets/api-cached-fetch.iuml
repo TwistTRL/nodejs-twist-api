@@ -1,0 +1,33 @@
+@startuml api-details
+
+' skinparam componentStyle uml2
+left to right direction
+skinparam defaultFontName JetBrains Mono 
+
+
+package "TWIST API" as api #e0f7fa {
+    control  "Interface Fetch" as IfFetch
+}
+
+package FrontEnd #f1f8e9
+database Redis #fbe9e7 {
+    frame "Cached Interface" as ai {
+        interface "fat-pro-cho" as fpc
+        interface volume
+        interface "inout-tooltip" as iotooltip
+        interface inout
+        interface med
+        interface calories
+    }
+}
+
+' api -[hidden]right- FrontEnd
+
+FrontEnd =right=> IfFetch
+' FrontEnd -[hidden]-> IfFetch
+
+api -[hidden]right- FrontEnd
+IfFetch ===> ai: has cache
+ai ==> FrontEnd
+
+@enduml
