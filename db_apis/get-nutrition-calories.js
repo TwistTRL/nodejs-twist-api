@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-06 11:14:32
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-09 10:40:01
+ * @Last Modified time: 2020-04-09 11:42:27
  */
 
 const moment = require("moment");
@@ -187,6 +187,7 @@ function _calculateRawRecords(
   from
 ) {
   // get hour binned data
+  console.log('from :', from);
   let retDict = {};
 
   if (arrTpnNutr && arrTpnNutr.length) {
@@ -318,15 +319,16 @@ function _calculateRawRecords(
   let isStartDST = moment(from * 1000).isDST();
   let isPreDST = isStartDST;
   let preTS = from;
+  let binnedTs = from;
 
   if (resolution === 1) {
     console.log("binned by days, considering DST");
     console.log("isStartDST :", isStartDST);
   }
 
+
   for (let timestamp in retDict) {
     if (timestamp >= from) {
-
       if (resolution !== 1) {
         binnedTs = Math.floor((Number(timestamp) - from) / resolution) * resolution + from;
       } else {
@@ -354,7 +356,6 @@ function _calculateRawRecords(
           preTS = binnedTs;
           isPreDST = isCurrentDST;
         }
-
       }
 
       if (binnedTs in retDictWithResolution) {
@@ -425,7 +426,7 @@ function _calculateRawRecords(
   // dictionary to sorted array
   let retArr = [];
   for (let timestamp in retDictWithResolution) {
-    let curObj = { timestamp, ...retDictWithResolution[timestamp] };
+    let curObj = { timestamp: Number(timestamp), ...retDictWithResolution[timestamp] };
     retArr.push(curObj);
   }
   console.log("return array length :", retArr.length);
