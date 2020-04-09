@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-08 23:14:02
+ * @Last Modified time: 2020-04-09 11:36:58
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -81,7 +81,6 @@ router.use("/files", express.static(__dirname + "/../docs/files"));
 // ``````````````````````````````````````````````
 //         api start
 // ``````````````````````````````````````````````
-
 
 /**
  * @api {post} /labs Labs api/labs
@@ -221,7 +220,6 @@ router.get("/person/:person_id/abg", async (req, res) => {
   };
   res.send(await getABG(binds));
 });
-
 
 /**
  * @api {get} /person/:person_id/vitals/hr/binnedv2/:data_resolution Binned Heart Rate V2
@@ -563,9 +561,8 @@ router.get("/person/:person_id/med", async (req, res) => {
   }
   console.log("getting drug infusions for %s ...", person_id);
 
-  getApiFromRedis(res, getMed, {person_id}, "med");
+  getApiFromRedis(res, getMed, { person_id }, "med");
 });
-
 
 /**
  * @api {post} /inout-v2 In-Out V2
@@ -781,7 +778,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
     person_id: req.body.person_id,
     from: req.body.from || 0,
     to: req.body.from + req.body.resolution - 1,
-    resolution: req.body.resolution || 3600
+    resolution: req.body.resolution || 3600,
   };
   console.log("query = ", new_query);
   console.time("inout-tooltip-time");
@@ -1996,7 +1993,6 @@ router.get("/settings/med", (req, res) => {
   res.send(settingsMed.MEDICATION_CATEGORY_STRUCTURE);
 });
 
-
 /**
  * @api {get} /person/:person_id/nutrition/fat-pro-cho Nutrients - Fat-Pro-Cho
  * @apiVersion 0.0.1
@@ -2035,7 +2031,7 @@ router.get("/person/:person_id/nutrition/fat-pro-cho", async (req, res) => {
   }
   console.log("getting fat-pro-cho for %s ...", person_id);
 
-  getApiFromRedis(res, getNutriFatProCho, {person_id}, "fat-pro-cho");
+  getApiFromRedis(res, getNutriFatProCho, { person_id }, "fat-pro-cho");
 });
 
 /**
@@ -2063,6 +2059,8 @@ router.get("/person/:person_id/nutrition/fat-pro-cho", async (req, res) => {
 
 router.get("/person/:person_id/nutrition/volume", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
+  const resolution = 3600;
+  const from = 0;
   console.log("person_id :", person_id);
   if (!Number.isInteger(person_id)) {
     res.send("Invalid person_id, should be integer.");
@@ -2070,7 +2068,7 @@ router.get("/person/:person_id/nutrition/volume", async (req, res) => {
   }
   console.log("getting nutrition volume for %s ...", person_id);
 
-  getApiFromRedis(res, getNutriVolume, {person_id}, "nutrition-volume");
+  getApiFromRedis(res, getNutriVolume, { person_id, resolution, from }, "nutrition-volume");
 });
 
 /**
@@ -2113,28 +2111,37 @@ router.post("/nutrition/volume", async (req, res) => {
     res.send("Invalid person_id, should be integer.");
     return;
   }
-  if (!resolution || resolution === 1) {
-    resolution = 1;
-  } else if (!Number.isInteger(resolution)) {
-    res.send("Invalid resolution, should be integer.");
-    return;
-  } else if (resolution % 3600) {
-    res.send("Invalid resolution, should be divisible by 3600.");
-    return;
-  } else if (!from) {
+
+  if (from) {
+    if (from % 3600) {
+      res.send("Invalid from, should be divisible by 3600.");
+      return;
+    }
+    if (!resolution || resolution === 1) {
+      resolution = 1;
+    } else if (!Number.isInteger(resolution)) {
+      res.send("Invalid resolution, should be integer.");
+      return;
+    } else if (resolution % 3600) {
+      res.send("Invalid resolution, should be divisible by 3600.");
+      return;
+    }
+  } else {
     from = 0;
-    console.log("from undefined");
-  } else if (from % 3600) {
-    res.send("Invalid from, should be divisible by 3600.");
-    return;
+    resolution = 1;
   }
+
   console.log("getting nutrition volume for %s ...", person_id);
+  console.log('resolution :', resolution);
+  console.log('input from :', from);
 
-  getApiFromRedis(res, getNutriVolume, {person_id, resolution, from}, "nutrition-volume-resolution");
+  getApiFromRedis(
+    res,
+    getNutriVolume,
+    { person_id, resolution, from },
+    "nutrition-volume-resolution"
+  );
 });
-
-
-
 
 /**
  * @api {get} /person/:person_id/nutrition/calories Nutr-Calories
@@ -2158,6 +2165,8 @@ router.post("/nutrition/volume", async (req, res) => {
 
 router.get("/person/:person_id/nutrition/calories", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
+  const resolution = 3600;
+  const from = 0;
   console.log("person_id :", person_id);
   if (!Number.isInteger(person_id)) {
     res.send("Invalid person_id, should be integer.");
@@ -2165,9 +2174,8 @@ router.get("/person/:person_id/nutrition/calories", async (req, res) => {
   }
   console.log("getting nutrition calories for %s ...", person_id);
 
-  getApiFromRedis(res, getNutriCalories, {person_id}, "nutrition-calories");
+  getApiFromRedis(res, getNutriCalories, { person_id, resolution, from }, "nutrition-calories");
 });
-
 
 /**
  * @api {post} /nutrition/calories Nutr-Calories POST
@@ -2206,29 +2214,36 @@ router.post("/nutrition/calories", async (req, res) => {
     res.send("Invalid person_id, should be integer.");
     return;
   }
-  if (!resolution || resolution === 1) {
-    resolution = 1;
-  } else if (!Number.isInteger(resolution)) {
-    res.send("Invalid resolution, should be integer.");
-    return;
-  } else if (resolution % 3600) {
-    res.send("Invalid resolution, should be divisible by 3600.");
-    return;
-  } else if (!from) {
+  if (from) {
+    if (from % 3600) {
+      res.send("Invalid from, should be divisible by 3600.");
+      return;
+    }
+    if (!resolution || resolution === 1) {
+      resolution = 1;
+    } else if (!Number.isInteger(resolution)) {
+      res.send("Invalid resolution, should be integer.");
+      return;
+    } else if (resolution % 3600) {
+      res.send("Invalid resolution, should be divisible by 3600.");
+      return;
+    }
+  } else {
     from = 0;
-    console.log("from undefined");
-  } else if (from % 3600) {
-    res.send("Invalid from, should be divisible by 3600.");
-    return;
+    resolution = 1;
   }
+
   console.log("getting nutrition calories for %s ...", person_id);
+  console.log('resolution :', resolution);
+  console.log('input from :', from);
 
-  getApiFromRedis(res, getNutriCalories, {person_id, resolution, from}, "nutrition-calories-resolution");
+  getApiFromRedis(
+    res,
+    getNutriCalories,
+    { person_id, resolution, from },
+    "nutrition-calories-resolution"
+  );
 });
-
-
-
-
 
 /**
  * @api {get} /person/:person_id/ecmo ECMO Score
@@ -2319,13 +2334,9 @@ router.get("/FHIR/notes/:mrn", async (req, res) => {
   res.send(result);
 });
 
-
-
-
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~ Deprecated API ~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 
 /**
  * @api {get} /person/:person_id/labs Labs for Patient
@@ -2471,7 +2482,6 @@ router.post("/inout-tooltip", async (req, res) => {
   }
 });
 
-
 /**
  * @api {post} /inout In-Out for Patient
  * @apiVersion 0.0.2
@@ -2597,7 +2607,6 @@ router.get("/person/:person_id/nutrition/diluents", async (req, res) => {
   res.send(await getDiluNutrients(binds));
 });
 
-
 /**
  * @api {get} /person/:person_id/nutrition/tpn Nutrients - TPN
  * @apiVersion 0.0.1
@@ -2642,7 +2651,6 @@ router.get("/person/:person_id/nutrition/tpn", async (req, res) => {
   };
   res.send(await getTpnNutrients(binds));
 });
-
 
 /**
  * @api {get} /person/:person_id/nutrition/macronutrients Nutrients - Macro
@@ -2693,7 +2701,6 @@ router.get("/person/:person_id/nutrition/macronutrients", async (req, res) => {
   };
   res.send(await getMacroNutrients(binds));
 });
-
 
 /**
  * @api {get} /person/:person_id/vitals/hr/binned/:data_resolution Binned Heart Rate
@@ -2776,6 +2783,5 @@ router.get("/person/:person_id/vitals/hr/binned/5M", async (req, res) => {
   };
   res.send(await getHr5M(binds));
 });
-
 
 module.exports = router;

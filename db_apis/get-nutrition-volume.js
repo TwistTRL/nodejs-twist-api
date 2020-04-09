@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-09 10:39:57
+ * @Last Modified time: 2020-04-09 11:43:40
  */
 
 const moment = require("moment");
@@ -305,6 +305,7 @@ function _calculateRawRecords(
   let isStartDST = moment(from * 1000).isDST();
   let isPreDST = isStartDST;
   let preTS = from;
+  let binnedTs = from;
 
   if (resolution === 1) {
     console.log("binned by days, considering DST");
@@ -410,7 +411,7 @@ function _calculateRawRecords(
   // dictionary to sorted array
   let retArr = [];
   for (let timestamp in retDictWithResolution) {
-    let curObj = { timestamp, ...retDictWithResolution[timestamp] };
+    let curObj = { timestamp: Number(timestamp), ...retDictWithResolution[timestamp] };
     retArr.push(curObj);
   }
   console.log("return array length :", retArr.length);
