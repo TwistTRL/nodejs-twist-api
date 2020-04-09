@@ -1,11 +1,10 @@
 @startuml db-api-frontend
 
 ' skinparam componentStyle uml2
-' left to right direction
 
 package "TWIST FRONT END" as frontend #f1f8e9 {
     frame "log in page" as login {
-        [Auth] -right- [MRN input]
+        [Auth] -left- [MRN input]
     }
 
     frame "main page" as main {
@@ -20,33 +19,32 @@ package "TWIST FRONT END" as frontend #f1f8e9 {
         [I/O Table] -- [I/O stack bar]
         [I/O Table] -- [I/O modal]
     }
-  
+
     main -[hidden]up- login
 }
 
 package "TWIST API" as api #e0f7fa {
-    frame interface {
-        interface "fat-pro-cho" as fpc
-        interface volume
-        interface "inout-tooltip" as iot
-        interface inout
-        interface med
-        interface apiRSS
-        interface apiVitals
-        interface calories
-        interface others
-    }
-    
     frame "fetch middleware" as fm {
-        interface "Initial Fetch" as firstFetch
+        control "Initial Fetch" as firstFetch
         interface "Interface fetch" as IfFetch
-        firstFetch -[hidden]up- IfFetch
+        firstFetch -right-> IfFetch :if has cache
     }
 
     database Redis #fbe9e7 {
-        [Cache]
+        frame "Cached Interface" as CI {
+            interface "fat-pro-cho" as fpc
+            interface volume
+            interface "inout-tooltip" as iot
+            interface inout
+            interface med
+            interface apiRSS
+            interface apiVitals
+            interface calories
+            interface others
+        }
+        [Cache] =left=> CI
     }
-    
+
     frame "single table fetch" as stf {
         [TPN_LIPID]
         [EN]
@@ -56,14 +54,13 @@ package "TWIST API" as api #e0f7fa {
         [DRUG_DILUENTS]
     }
 
-    fm -[hidden]up- interface
+    fm -[hidden]up- CI
     Redis -[hidden]down- stf
-    firstFetch .right.> stf: if no cache 
-    firstFetch .down.> [Cache] :if has cache
+    firstFetch -right-> stf: if no cache
     stf -[hidden]up- firstFetch
     stf =up=> [Cache]
-    IfFetch <=down=> [Cache]
-    IfFetch <=up=> interface
+    IfFetch =down=> [Cache]
+
 
     [TPN_LIPID] -- dbConnector
     [EN] -- dbConnector
@@ -72,8 +69,10 @@ package "TWIST API" as api #e0f7fa {
     [DRUG_INTERMITTENT] -- dbConnector
     [DRUG_DILUENTS] -- dbConnector
 }
-    
+
 database DWTST #fbe9e7
+
+frontend -[hidden]down- api
 
 [MRN input] --> firstFetch
 [Nutrition Fat-Pro-Cho] <--> fpc

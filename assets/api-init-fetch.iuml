@@ -1,0 +1,96 @@
+@startuml api-details
+
+' skinparam componentStyle uml2
+skinparam nodesep 50
+skinparam ranksep 120
+skinparam defaultFontName JetBrains Mono 
+left to right direction
+
+package "TWIST API" as api #e0f7fa {
+
+    frame "fetch middleware" as fm {
+        control "Initial Fetch" as firstFetch
+
+    }
+
+    frame "single table fetch" as stf {
+        [table_TPN_LIPID]
+        [table_EN]
+        [table_TPN]
+        [table_INTAKE_OUTPUT]
+        [table_DRUG_INTERMITTENT]
+        [table_DRUG_DILUENTS]
+    }
+}
+
+package FrontEnd #f1f8e9
+database DWTST #fbe9e7
+database Redis #fbe9e7 {
+    frame "Cached Interface" as ai {
+            interface "fat-pro-cho" as fpc
+    interface volume
+    interface "inout-tooltip" as iotooltip
+    interface inout
+    interface med
+    interface calories
+    }
+
+    [data_TPN_LIPID]
+    [data_EN]
+    [data_TPN]
+    [data_INTAKE_OUTPUT]
+    [data_DRUG_INTERMITTENT]
+    [data_DRUG_DILUENTS]
+
+    [data_TPN] --> iotooltip
+    [data_EN] --> iotooltip
+    [data_TPN_LIPID] --> iotooltip
+    [data_INTAKE_OUTPUT] --> iotooltip
+    [data_DRUG_DILUENTS] --> iotooltip
+
+    [data_TPN] --> inout
+    [data_EN] --> inout
+    [data_TPN_LIPID] --> inout
+    [data_INTAKE_OUTPUT] --> inout
+    [data_DRUG_DILUENTS] --> inout
+
+    [data_TPN] --> volume
+    [data_EN] --> volume
+    [data_TPN_LIPID] --> volume
+    [data_INTAKE_OUTPUT] --> volume
+    [data_DRUG_DILUENTS] --> volume
+
+    [data_DRUG_DILUENTS] --> med
+    [data_DRUG_INTERMITTENT] --> med
+
+    [data_TPN] --> fpc
+    [data_EN] --> fpc
+    [data_TPN_LIPID] --> fpc
+    [data_DRUG_DILUENTS] --> fpc
+
+    [data_TPN] --> calories
+    [data_EN] --> calories
+    [data_TPN_LIPID] --> calories
+    [data_DRUG_DILUENTS] --> calories
+    [data_DRUG_INTERMITTENT] --> calories
+    [data_INTAKE_OUTPUT] --> calories
+}
+
+DWTST <=right=> stf
+FrontEnd .left.> firstFetch: MRN page calls fetch
+FrontEnd <.right. ai: Cached API Data 
+
+fm -[hidden]down- Redis
+' Redis -[hidden]down- stf
+firstFetch --> stf: if no cache
+' stf -[hidden]up- firstFetch
+' IfFetch <=> Redis
+
+[table_TPN_LIPID] -- [data_TPN_LIPID]
+[table_EN] -- [data_EN]
+[table_TPN] -- [data_TPN]
+[table_INTAKE_OUTPUT] -- [data_INTAKE_OUTPUT]
+[table_DRUG_INTERMITTENT] -- [data_DRUG_INTERMITTENT]
+[table_DRUG_DILUENTS] -- [data_DRUG_DILUENTS]
+
+@enduml

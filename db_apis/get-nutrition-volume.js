@@ -2,9 +2,10 @@
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 23:33:50
+ * @Last Modified time: 2020-04-09 10:39:57
  */
 
+const moment = require("moment");
 const { bisect_left } = require("bisect-js");
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
@@ -299,77 +300,108 @@ function _calculateRawRecords(
   //   "BLOOD PRODUCT": 1
   // },...]
 
-  let retDictWithResolution;
-  if (!resolution || from === undefined) {
-    console.log("binned by hours");
-    retDictWithResolution = retDict;
-  } else {
-    retDictWithResolution = {};
 
-    for (let timestamp in retDict) {
-      if (timestamp >= from) {
-        let binnedTs = Math.floor((Number(timestamp) - from) / resolution) * resolution + from;
-        if (binnedTs in retDictWithResolution) {
-          if (retDict[timestamp].FEEDS) {
-            retDictWithResolution[binnedTs]["FEEDS"] =
-              retDict[timestamp].FEEDS + (retDictWithResolution[binnedTs]["FEEDS"] || 0);
+  let retDictWithResolution = {};
+  let isStartDST = moment(from * 1000).isDST();
+  let isPreDST = isStartDST;
+  let preTS = from;
+
+  if (resolution === 1) {
+    console.log("binned by days, considering DST");
+    console.log("isStartDST :", isStartDST);
+  }
+
+  for (let timestamp in retDict) {
+    if (timestamp >= from) {
+
+      if (resolution !== 1) {
+        binnedTs = Math.floor((Number(timestamp) - from) / resolution) * resolution + from;
+      } else {
+        // resolution is 1 day, considering DST
+        const SEC_OF_DAY = 24 * 3600;
+        let isCurrentDST = moment(timestamp * 1000).isDST();
+        if (isStartDST === isCurrentDST) {
+          // start and now are the same
+          binnedTs = Math.floor((Number(timestamp) - from) / SEC_OF_DAY) * SEC_OF_DAY + from;
+        } else if (isStartDST && !isCurrentDST) {          
+          binnedTs = Math.floor((Number(timestamp) - from - 3600) / SEC_OF_DAY) * SEC_OF_DAY + from + 3600;
+          // DST entering non-DST
+          if (isPreDST && binnedTs - 3600 === preTS) {
+            binnedTs -= 3600;
           }
-          if (retDict[timestamp].TPN) {
-            retDictWithResolution[binnedTs]["TPN"] =
-              retDict[timestamp].TPN + (retDictWithResolution[binnedTs]["TPN"] || 0);
+        } else if (!isStartDST && isCurrentDST) {
+          binnedTs = Math.floor((Number(timestamp) - from + 3600) / SEC_OF_DAY) * SEC_OF_DAY + from - 3600;
+          // non-DST entering DST
+          if (!isPreDST && binnedTs + 3600 === preTS) {
+            binnedTs += 3600;
           }
-          if (retDict[timestamp].LIPIDS) {
-            retDictWithResolution[binnedTs]["LIPIDS"] =
-              retDict[timestamp].LIPIDS + (retDictWithResolution[binnedTs]["LIPIDS"] || 0);
-          }
-          if (retDict[timestamp].MEDICATIONS) {
-            retDictWithResolution[binnedTs]["MEDICATIONS"] =
-              retDict[timestamp].MEDICATIONS +
-              (retDictWithResolution[binnedTs]["MEDICATIONS"] || 0);
-          }
-          if (retDict[timestamp].INFUSIONS) {
-            retDictWithResolution[binnedTs]["INFUSIONS"] =
-              retDict[timestamp].INFUSIONS + (retDictWithResolution[binnedTs]["INFUSIONS"] || 0);
-          }
-          if (retDict[timestamp].FLUSHES) {
-            retDictWithResolution[binnedTs]["FLUSHES"] =
-              retDict[timestamp].FLUSHES + (retDictWithResolution[binnedTs]["FLUSHES"] || 0);
-          }
-          if (retDict[timestamp].IVF) {
-            retDictWithResolution[binnedTs]["IVF"] =
-              retDict[timestamp].IVF + (retDictWithResolution[binnedTs]["IVF"] || 0);
-          }
-          if (retDict[timestamp]["BLOOD PRODUCT"]) {
-            retDictWithResolution[binnedTs]["BLOOD PRODUCT"] =
-              retDict[timestamp]["BLOOD PRODUCT"] +
-              (retDictWithResolution[binnedTs]["BLOOD PRODUCT"] || 0);
-          }
-        } else {
-          retDictWithResolution[binnedTs] = {};
-          if (retDict[timestamp].FEEDS) {
-            retDictWithResolution[binnedTs]["FEEDS"] = retDict[timestamp].FEEDS;
-          }
-          if (retDict[timestamp].TPN) {
-            retDictWithResolution[binnedTs]["TPN"] = retDict[timestamp].TPN;
-          }
-          if (retDict[timestamp].LIPIDS) {
-            retDictWithResolution[binnedTs]["LIPIDS"] = retDict[timestamp].LIPIDS;
-          }
-          if (retDict[timestamp].MEDICATIONS) {
-            retDictWithResolution[binnedTs]["MEDICATIONS"] = retDict[timestamp].MEDICATIONS;
-          }
-          if (retDict[timestamp].INFUSIONS) {
-            retDictWithResolution[binnedTs]["INFUSIONS"] = retDict[timestamp].INFUSIONS;
-          }
-          if (retDict[timestamp].FLUSHES) {
-            retDictWithResolution[binnedTs]["FLUSHES"] = retDict[timestamp].FLUSHES;
-          }
-          if (retDict[timestamp].IVF) {
-            retDictWithResolution[binnedTs]["IVF"] = retDict[timestamp].IVF;
-          }
-          if (retDict[timestamp]["BLOOD PRODUCT"]) {
-            retDictWithResolution[binnedTs]["BLOOD PRODUCT"] = retDict[timestamp]["BLOOD PRODUCT"];
-          }
+        } 
+        // new binnedTS, update preTS and isPreDST
+        if (binnedTs !== preTS) {
+          preTS = binnedTs;
+          isPreDST = isCurrentDST;
+        }
+      }
+
+      if (binnedTs in retDictWithResolution) {
+        if (retDict[timestamp].FEEDS) {
+          retDictWithResolution[binnedTs]["FEEDS"] =
+            retDict[timestamp].FEEDS + (retDictWithResolution[binnedTs]["FEEDS"] || 0);
+        }
+        if (retDict[timestamp].TPN) {
+          retDictWithResolution[binnedTs]["TPN"] =
+            retDict[timestamp].TPN + (retDictWithResolution[binnedTs]["TPN"] || 0);
+        }
+        if (retDict[timestamp].LIPIDS) {
+          retDictWithResolution[binnedTs]["LIPIDS"] =
+            retDict[timestamp].LIPIDS + (retDictWithResolution[binnedTs]["LIPIDS"] || 0);
+        }
+        if (retDict[timestamp].MEDICATIONS) {
+          retDictWithResolution[binnedTs]["MEDICATIONS"] =
+            retDict[timestamp].MEDICATIONS + (retDictWithResolution[binnedTs]["MEDICATIONS"] || 0);
+        }
+        if (retDict[timestamp].INFUSIONS) {
+          retDictWithResolution[binnedTs]["INFUSIONS"] =
+            retDict[timestamp].INFUSIONS + (retDictWithResolution[binnedTs]["INFUSIONS"] || 0);
+        }
+        if (retDict[timestamp].FLUSHES) {
+          retDictWithResolution[binnedTs]["FLUSHES"] =
+            retDict[timestamp].FLUSHES + (retDictWithResolution[binnedTs]["FLUSHES"] || 0);
+        }
+        if (retDict[timestamp].IVF) {
+          retDictWithResolution[binnedTs]["IVF"] =
+            retDict[timestamp].IVF + (retDictWithResolution[binnedTs]["IVF"] || 0);
+        }
+        if (retDict[timestamp]["BLOOD PRODUCT"]) {
+          retDictWithResolution[binnedTs]["BLOOD PRODUCT"] =
+            retDict[timestamp]["BLOOD PRODUCT"] +
+            (retDictWithResolution[binnedTs]["BLOOD PRODUCT"] || 0);
+        }
+      } else {
+        retDictWithResolution[binnedTs] = {};
+        if (retDict[timestamp].FEEDS) {
+          retDictWithResolution[binnedTs]["FEEDS"] = retDict[timestamp].FEEDS;
+        }
+        if (retDict[timestamp].TPN) {
+          retDictWithResolution[binnedTs]["TPN"] = retDict[timestamp].TPN;
+        }
+        if (retDict[timestamp].LIPIDS) {
+          retDictWithResolution[binnedTs]["LIPIDS"] = retDict[timestamp].LIPIDS;
+        }
+        if (retDict[timestamp].MEDICATIONS) {
+          retDictWithResolution[binnedTs]["MEDICATIONS"] = retDict[timestamp].MEDICATIONS;
+        }
+        if (retDict[timestamp].INFUSIONS) {
+          retDictWithResolution[binnedTs]["INFUSIONS"] = retDict[timestamp].INFUSIONS;
+        }
+        if (retDict[timestamp].FLUSHES) {
+          retDictWithResolution[binnedTs]["FLUSHES"] = retDict[timestamp].FLUSHES;
+        }
+        if (retDict[timestamp].IVF) {
+          retDictWithResolution[binnedTs]["IVF"] = retDict[timestamp].IVF;
+        }
+        if (retDict[timestamp]["BLOOD PRODUCT"]) {
+          retDictWithResolution[binnedTs]["BLOOD PRODUCT"] = retDict[timestamp]["BLOOD PRODUCT"];
         }
       }
     }

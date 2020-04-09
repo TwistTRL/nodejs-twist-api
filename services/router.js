@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 12:53:58
+ * @Last Modified time: 2020-04-08 23:14:02
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -2113,8 +2113,8 @@ router.post("/nutrition/volume", async (req, res) => {
     res.send("Invalid person_id, should be integer.");
     return;
   }
-  if (!resolution) {
-    resolution = 3600;
+  if (!resolution || resolution === 1) {
+    resolution = 1;
   } else if (!Number.isInteger(resolution)) {
     res.send("Invalid resolution, should be integer.");
     return;
@@ -2206,8 +2206,8 @@ router.post("/nutrition/calories", async (req, res) => {
     res.send("Invalid person_id, should be integer.");
     return;
   }
-  if (!resolution) {
-    resolution = 3600;
+  if (!resolution || resolution === 1) {
+    resolution = 1;
   } else if (!Number.isInteger(resolution)) {
     res.send("Invalid resolution, should be integer.");
     return;
