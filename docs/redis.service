@@ -1,0 +1,17 @@
+[Unit]
+Description=Redis
+After=syslog.target
+
+[Service]
+ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
+RestartSec=5s
+Restart=on-success
+
+[Install]
+WantedBy=multi-user.target
+
+# Put this in /etc/systemd/system/redis.service.
+# Make sure that redis.conf has daemonize no (the default; systemd will take care of 'daemonizing'). The Restart=on-success in the service file means that the daemon will be auto-restarted only when it exited cleanly (so that 'bad' problems are not masked; see doc). Then run:
+
+# sudo systemctl enable /etc/systemd/system/redis.service
+# sudo systemctl start redis.service

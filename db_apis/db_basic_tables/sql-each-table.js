@@ -2,11 +2,27 @@
  * @Author: Peng
  * @Date: 2020-04-07 12:57:40
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-08 12:54:38
+ * @Last Modified time: 2020-04-09 23:40:07
  */
 
+const {
+  RXCUI_LIST,
+  DRUG_LIST,
+  CAT_LIST,
+  RXCUI_BY_CAT_ORDER_DICT,
+  RXCUI_TO_CAT_DICT,
+  DRUG_TO_CAT_DICT,
+  MEDICATION_CATEGORY_STRUCTURE,
+} = require("../../db_relation/drug-category-relation");
+
+const SQL_GET_PERSON_ID = (mrn) => `
+SELECT
+    DISTINCT PERSON_ID
+FROM CHB_MRN
+WHERE MRN = '${mrn}'`;
+
 // TPN_LIPID
-const SQL_GET_TPN_LIPID = ({person_id, from, to}) => `
+const SQL_GET_TPN_LIPID = ({ person_id, from, to }) => `
 SELECT
     DT_UNIX,
     RESULT_VAL
@@ -16,7 +32,7 @@ AND DT_UNIX <= ${to} AND DT_UNIX >= ${from}
 ORDER BY DT_UNIX`;
 
 // TPN
-const SQL_GET_TPN = ({person_id, from, to}) => `
+const SQL_GET_TPN = ({ person_id, from, to }) => `
 SELECT  
     START_UNIX,
     END_UNIX, 
@@ -40,7 +56,7 @@ AND START_UNIX <= ${to} AND END_UNIX >= ${from}
 ORDER BY START_UNIX`;
 
 // EN
-const SQL_GET_EN = ({person_id, from, to}) => `
+const SQL_GET_EN = ({ person_id, from, to }) => `
 SELECT  
     START_TIME_DTUNIX,
     "VOLUME",
@@ -57,7 +73,7 @@ AND START_TIME_DTUNIX >= ${from}
 ORDER BY START_TIME_DTUNIX`;
 
 // INTAKE_OUTPUT
-const SQL_GET_IN_OUT_EVENT = ({person_id, from, to}) => `
+const SQL_GET_IN_OUT_EVENT = ({ person_id, from, to }) => `
 SELECT  
     DT_UNIX,
     EVENT_CD,
@@ -69,7 +85,7 @@ ORDER BY DT_UNIX
 `;
 
 // DRUG_DILUENTS
-const SQL_GET_DILUENTS = ({person_id, from, to}) => `
+const SQL_GET_DILUENTS = ({ person_id, from, to }) => `
 SELECT  
     START_UNIX,
     END_UNIX,
@@ -87,7 +103,7 @@ AND END_UNIX > ${from}
 ORDER BY START_UNIX`;
 
 // DRUG_INFUSIONS
-const SQL_INFUSIONS_PART1 = `
+const SQL_INFUSIONS = ({ person_id }) => `
 SELECT 
     START_UNIX,
     END_UNIX,
@@ -96,20 +112,20 @@ SELECT
     INFUSION_RATE,
     INFUSION_RATE_UNITS
 FROM DRUG_INFUSIONS
-WHERE (1=0`;
-const SQL_INFUSIONS_PART2 = `) AND PERSON_ID = :person_id
+WHERE ${RXCUI_LIST.slice(1).reduce((acc, item) => acc + ` OR RXCUI = '` + item + `'`, `RXCUI = '` + RXCUI_LIST[0] + `'`)}
+AND PERSON_ID = ${person_id}
 ORDER BY START_UNIX, DRUG`;
 
-const SQL_INFUSIONS_UNIT = `
+const SQL_INFUSIONS_UNIT = ({ person_id }) => `
 SELECT
     DISTINCT DRUG,
     INFUSION_RATE_UNITS
 FROM DRUG_INFUSIONS
-WHERE PERSON_ID = :person_id
+WHERE PERSON_ID = ${person_id}
 ORDER BY DRUG`;
 
 //DRUG_INTERMITTENT
-const SQL_INTERMITTENT_PART1 = `
+const SQL_INTERMITTENT = ({ person_id }) => `
 SELECT 
     DT_UNIX,
     DRUG,
@@ -118,12 +134,12 @@ SELECT
     ADMIN_ROUTE,
     DOSAGE_UNITS
 FROM DRUG_INTERMITTENT
-WHERE (1=0`;
-const SQL_INTERMITTENT_PART2 = `) AND PERSON_ID = :person_id
+WHERE ${RXCUI_LIST.slice(1).reduce((acc, item) => acc + ` OR RXCUI = '` + item + `'`, `RXCUI = '` + RXCUI_LIST[0] + `'`)}
+AND PERSON_ID = ${person_id}
 ORDER BY DT_UNIX, DRUG`;
 
 // SUCTION
-const SQL_SUCTION = `
+const SQL_SUCTION = ({ person_id }) => `
 SELECT
     DATETIMEUTC,
     LVL,
@@ -136,10 +152,18 @@ SELECT
     TRACH_SUCTION_CATHETER_SIZE,
     TRACH_SUCTION_DEPTH
 FROM SUCTION
-WHERE PERSON_ID = :person_id
+WHERE PERSON_ID = ${person_id}
 ORDER BY DATETIMEUTC`;
 
-const SQL_GET_WEIGHT = person_id => `
+const SQL_GET_WEIGHT = ({ person_id }) => `
+SELECT
+    DT_UNIX,
+    WEIGHT_CALC
+FROM WEIGHTS_CALCS
+WHERE PERSON_ID = ${person_id}
+ORDER BY DT_UNIX`;
+
+const SQL_GET_EXACT_WEIGHT = ({ person_id }) => `
 SELECT
     DT_UNIX,
     WEIGHT
@@ -148,16 +172,17 @@ WHERE PERSON_ID = ${person_id}
 ORDER BY DT_UNIX`;
 
 module.exports = {
+  SQL_GET_PERSON_ID,
   SQL_GET_DILUENTS,
   SQL_GET_EN,
   SQL_GET_IN_OUT_EVENT,
   SQL_GET_TPN,
   SQL_GET_TPN_LIPID,
-  SQL_INFUSIONS_PART1,
-  SQL_INFUSIONS_PART2,
+
+  SQL_INFUSIONS,
   SQL_INFUSIONS_UNIT,
-  SQL_INTERMITTENT_PART1,
-  SQL_INTERMITTENT_PART2,
+  SQL_INTERMITTENT,
   SQL_SUCTION,
   SQL_GET_WEIGHT,
+  SQL_GET_EXACT_WEIGHT,
 };

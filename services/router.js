@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-09 11:36:58
+ * @Last Modified time: 2020-04-09 23:22:53
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -12,6 +12,7 @@ const router = new express.Router();
 // redis
 const { getApiFromRedis } = require("../config/redis-config");
 
+const { getInitialFetch } = require("../db_apis/db_basic_tables/get-init-fetch");
 const { getRelationalQuery } = require("../db_apis/get-relational-query");
 const { getVitalsQuery } = require("../db_apis/get-vitals-all");
 const { getVitalsQueryV2 } = require("../db_apis/get-vitals-all-v2");
@@ -81,6 +82,52 @@ router.use("/files", express.static(__dirname + "/../docs/files"));
 // ``````````````````````````````````````````````
 //         api start
 // ``````````````````````````````````````````````
+
+/**
+ * @api {get} /mrn/:mrn/init Initial data for patient
+ * @apiVersion 0.0.1
+ * @apiName initial-patient
+ * @apiGroup MRN
+ * @apiParam {Number} mrn patient mrn.
+ *
+ * @apiSuccessExample Success-Response:
+ *     
+      {
+
+      }
+ *
+ */
+
+router.get("/mrn/:mrn/init", async (req, res) => {
+  const mrn = req.params.mrn;
+  console.log("mrn is: " + mrn);
+  res.send(await getInitialFetch(mrn));
+});
+
+/**
+ * @api {get} /mrn/:mrn Person ID From MRN
+ * @apiVersion 0.0.1
+ * @apiName Get Patient Person ID From MRN
+ * @apiGroup MRN
+
+ * @apiParam {Number} mrn Patient MRN.
+ * @apiSuccess {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+      {
+        "PERSON_ID": person_id        
+      }
+ *
+ */
+
+router.get("/mrn/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  console.log("mrn is: " + mrn);
+  res.send(await getPersonFromMRN(mrn));
+});
+
+
+
+
 
 /**
  * @api {post} /labs Labs api/labs
@@ -561,7 +608,7 @@ router.get("/person/:person_id/med", async (req, res) => {
   }
   console.log("getting drug infusions for %s ...", person_id);
 
-  getApiFromRedis(res, getMed, { person_id }, "med");
+  getApiFromRedis(res, getMed, { person_id }, "interface-med");
 });
 
 /**
@@ -657,7 +704,7 @@ router.post("/inout-v2", async (req, res) => {
     return;
   }
 
-  getApiFromRedis(res, getInOutQueryV2, query, "inout");
+  getApiFromRedis(res, getInOutQueryV2, query, "interface-inout");
 });
 
 /**
@@ -800,7 +847,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
     return;
   }
 
-  getApiFromRedis(res, getInOutTooltipQueryV2, new_query, "inout-tooltip");
+  getApiFromRedis(res, getInOutTooltipQueryV2, new_query, "interface-inout-tooltip");
 });
 
 // ~~~~~~~~-----------------------------
@@ -1394,27 +1441,7 @@ router.put("/test/abnormal-mrn", async (req, res) => {
   res.send(await testAbnormalMRN());
 });
 
-/**
- * @api {get} /mrn/:mrn Person ID From MRN
- * @apiVersion 0.0.1
- * @apiName Get Patient Person ID From MRN
- * @apiGroup MRN
 
- * @apiParam {Number} mrn Patient MRN.
- * @apiSuccess {Number} person_id Patient unique ID.
- * @apiSuccessExample Success-Response:
-      {
-        "PERSON_ID": person_id        
-      }
- *
- */
-
-router.get("/mrn/:mrn", async (req, res) => {
-  const mrn = parseInt(req.params.mrn);
-  console.log("mrn is: " + mrn);
-
-  res.send(await getPersonFromMRN(mrn));
-});
 
 /**
  * @api {get} /person/:person_id/personnel Personnel For Patient
@@ -1703,7 +1730,7 @@ router.get("/person/:person_id/weight-calc", async (req, res) => {
     res.send("Invalid person_id. Should be integer.");
     return;
   }
-  getApiFromRedis(res, getWeightCalc, person_id, "weight-calc");
+  getApiFromRedis(res, getWeightCalc, person_id, "interface-weight");
 });
 
 /**
@@ -2031,7 +2058,7 @@ router.get("/person/:person_id/nutrition/fat-pro-cho", async (req, res) => {
   }
   console.log("getting fat-pro-cho for %s ...", person_id);
 
-  getApiFromRedis(res, getNutriFatProCho, { person_id }, "fat-pro-cho");
+  getApiFromRedis(res, getNutriFatProCho, { person_id }, "interface-nutri-fpc");
 });
 
 /**
@@ -2068,7 +2095,7 @@ router.get("/person/:person_id/nutrition/volume", async (req, res) => {
   }
   console.log("getting nutrition volume for %s ...", person_id);
 
-  getApiFromRedis(res, getNutriVolume, { person_id, resolution, from }, "nutrition-volume");
+  getApiFromRedis(res, getNutriVolume, { person_id, resolution, from }, "interface-nutri-volume");
 });
 
 /**
@@ -2139,7 +2166,7 @@ router.post("/nutrition/volume", async (req, res) => {
     res,
     getNutriVolume,
     { person_id, resolution, from },
-    "nutrition-volume-resolution"
+    "interface-nutri-volume"
   );
 });
 
@@ -2174,7 +2201,7 @@ router.get("/person/:person_id/nutrition/calories", async (req, res) => {
   }
   console.log("getting nutrition calories for %s ...", person_id);
 
-  getApiFromRedis(res, getNutriCalories, { person_id, resolution, from }, "nutrition-calories");
+  getApiFromRedis(res, getNutriCalories, { person_id, resolution, from }, "interface-nutri-calories");
 });
 
 /**
@@ -2241,7 +2268,7 @@ router.post("/nutrition/calories", async (req, res) => {
     res,
     getNutriCalories,
     { person_id, resolution, from },
-    "nutrition-calories-resolution"
+    "interface-nutri-calories"
   );
 });
 

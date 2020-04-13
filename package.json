@@ -16,7 +16,7 @@
   "keywords": [],
   "license": "Apache-2.0",
   "dependencies": {
-    "apidoc": "^0.20.0",
+    "apidoc": "^0.20.1",
     "bisect-js": "github:TwistTRL/bisect-js",
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
@@ -27,7 +27,7 @@
     "morgan": "^1.9.1",
     "oracledb": "^4.2.0",
     "pm2": "^4.2.3",
-    "redis": "^3.0.2",
+    "ioredis": "^4.16.1",
     "relational-query-sql-builder": "github:TwistTRL/relational-query-sql-builder",
     "replace-in-file": "^5.0.2",
     "request": "^2.88.2",

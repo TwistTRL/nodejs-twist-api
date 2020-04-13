@@ -1,10 +1,19 @@
 /*
  * @Author: Peng 
  * @Date: 2020-04-08 12:57:25 
- * @Last Modified by:   Peng 
- * @Last Modified time: 2020-04-08 12:57:25 
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-04-09 23:26:00
  */
 
+const {
+  EVENT_CD_DICT,
+  SL_TO_LABEL,
+  SL_TO_SUBCAT,
+  SL_TO_CAT,
+  SL_TO_CALCS,
+  IN_OUT_COLOR_MAP,
+  CAT_CAP_TO_LOWER_MAP
+} = require("../../db_relation/in-out-db-relation");
 
 // (rawResult, query[RESOLUTION], query[FROM], query[TO])
 const calculateIOTooltips = (rawRecords, query) => {
