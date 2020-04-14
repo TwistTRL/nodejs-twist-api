@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-13 17:23:49
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-13 22:57:44
+ * @Last Modified time: 2020-04-14 15:26:43
  */
 
 const database = require("../services/database");
@@ -69,34 +69,44 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
   let sensDict = {};
   if (arrMicbioSens) {
     arrMicbioSens.forEach((element) => {
-      if (element.ORDER_ID in sensDict) {
-        sensDict[element.ORDER_ID].drugSet.add(element.PANEL_MEDICATION);
-        if (element.BACT in sensDict[element.ORDER_ID]) {
-          if (element.PANEL_MEDICATION in sensDict[element.ORDER_ID][element.BACT]) {
-            console.log("error micbio-sens array :", element);
+      // let mic_interp = element.MIC_INTERP || undefined;
+      // let mic_dil = element.MIC_DILUTON || undefined;
+      // let kb = element.KB || undefined;
+      
+      let mic_interp = element.MIC_INTERP && element.MIC_INTERP !== " " ? element.MIC_INTERP : undefined;
+      let mic_dil = element.MIC_DILUTON && element.MIC_DILUTON !== " " ? element.MIC_DILUTON : undefined;
+      let kb = element.KB && element.KB !== " " ? element.KB : undefined;
+
+      if (mic_interp || mic_dil || kb) {
+        if (element.ORDER_ID in sensDict) {
+          sensDict[element.ORDER_ID].drugSet.add(element.PANEL_MEDICATION);
+          if (element.BACT in sensDict[element.ORDER_ID]) {
+            if (element.PANEL_MEDICATION in sensDict[element.ORDER_ID][element.BACT]) {
+              console.log("error micbio-sens array :", element);
+            }
+            sensDict[element.ORDER_ID][element.BACT][element.PANEL_MEDICATION] = {
+              mic_interp,
+              mic_dil,
+              kb,
+            };
+          } else {
+            sensDict[element.ORDER_ID][element.BACT] = {};
+            sensDict[element.ORDER_ID][element.BACT][element.PANEL_MEDICATION] = {
+              mic_interp,
+              mic_dil,
+              kb,
+            };
           }
-          sensDict[element.ORDER_ID][element.BACT][element.PANEL_MEDICATION] = [
-            element.MIC_INTERP,
-            element.MIC_DILUTON,
-            element.KB,
-          ];
         } else {
+          sensDict[element.ORDER_ID] = {};
+          sensDict[element.ORDER_ID].drugSet = new Set([element.PANEL_MEDICATION]);
           sensDict[element.ORDER_ID][element.BACT] = {};
-          sensDict[element.ORDER_ID][element.BACT][element.PANEL_MEDICATION] = [
-            element.MIC_INTERP,
-            element.MIC_DILUTON,
-            element.KB,
-          ];
+          sensDict[element.ORDER_ID][element.BACT][element.PANEL_MEDICATION] = {
+            mic_interp,
+            mic_dil,
+            kb,
+          };
         }
-      } else {
-        sensDict[element.ORDER_ID] = {};
-        sensDict[element.ORDER_ID].drugSet = new Set([element.PANEL_MEDICATION]);
-        sensDict[element.ORDER_ID][element.BACT] = {};
-        sensDict[element.ORDER_ID][element.BACT][element.PANEL_MEDICATION] = [
-          element.MIC_INTERP,
-          element.MIC_DILUTON,
-          element.KB,
-        ];
       }
     });
   }
@@ -141,22 +151,21 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
 
         if (curOrderId in sensDict) {
           let y = [...sensDict[curOrderId].drugSet].sort();
-          let x = Object.keys(sensDict[curOrderId]).sort();
+          let x = Object.keys(sensDict[curOrderId])
+            .filter((item) => item !== "drugSet")
+            .sort();
           let data = [];
           for (let bact of x) {
-            if (bact !== "drugSet") {
-              let drugForBact =[];
-              for (let drug of y) {
-                // console.log('bact :', bact);
-                // console.log('drug :', drug);
-                drugForBact.push(sensDict[curOrderId][bact][drug]);
-              }
-              data.push(drugForBact);
+            let drugForBact = [];
+            for (let drug of y) {
+              // console.log('bact :', bact);
+              // console.log('drug :', drug);
+              drugForBact.push(sensDict[curOrderId][bact][drug]);
             }
+            data.push(drugForBact);
           }
-          curResult.sensitivity = {x, y, data};
+          curResult.sensitivity = { x, y, data };
         }
-
 
         if (source in retDict) {
           retDict[source].push(curResult);
