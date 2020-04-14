@@ -2,9 +2,10 @@
  * @Author: Peng
  * @Date: 2020-04-13 17:23:49
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-14 15:26:43
+ * @Last Modified time: 2020-04-14 16:56:05
  */
 
+const isEmpty = require("lodash.isempty");
 const database = require("../services/database");
 const {
   ODSTD_TO_SOURCE_DICT,
@@ -72,9 +73,11 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
       // let mic_interp = element.MIC_INTERP || undefined;
       // let mic_dil = element.MIC_DILUTON || undefined;
       // let kb = element.KB || undefined;
-      
-      let mic_interp = element.MIC_INTERP && element.MIC_INTERP !== " " ? element.MIC_INTERP : undefined;
-      let mic_dil = element.MIC_DILUTON && element.MIC_DILUTON !== " " ? element.MIC_DILUTON : undefined;
+
+      let mic_interp =
+        element.MIC_INTERP && element.MIC_INTERP !== " " ? element.MIC_INTERP : undefined;
+      let mic_dil =
+        element.MIC_DILUTON && element.MIC_DILUTON !== " " ? element.MIC_DILUTON : undefined;
       let kb = element.KB && element.KB !== " " ? element.KB : undefined;
 
       if (mic_interp || mic_dil || kb) {
@@ -125,7 +128,10 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
   let retDict = {};
   let displayOrderDict;
 
+  let lastRecord;
+
   for (let record of arrMicbio) {
+    lastRecord = record;
     let od_st_d = record.OD_ST_D;
     let source = ODSTD_TO_SOURCE_DICT[od_st_d];
     let collect_time = new Date(record.COLLECT_DT_TM_UTC).getTime() / 1000;
@@ -175,12 +181,13 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
       }
 
       curOrderId = record.ORDER_ID;
+      curTaskId = task_log_id;
       curResult = {};
       curResult.od_st_d = od_st_d;
       curResult.order_id = curOrderId;
       curResult.collect_time = collect_time;
       curResult.culture_start_time = culture_start_time;
-      curResult.end_time = culture_start_time; // could be changed by each task
+      curResult.end_time = task_time; // could be changed by each task
       curResult.positive_ind = positive_ind; // 0 could be changed by each task
       curResult.tasks = [
         {
@@ -204,7 +211,7 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
       curResult.tasks[curResult.tasks.length - 1].display_log = display_log;
 
       curTaskId = task_log_id;
-      curResult.end_time = culture_start_time;
+      curResult.end_time = task_time;
       if (positive_ind) {
         curResult.positive_ind = positive_ind; // 0 could be changed by each task
       }
@@ -222,6 +229,7 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
       displayOrderDict[record.DISPLAY_ORDER] = [record.DISPLAY_LOG];
     } else {
       // curTaskId === task_log_id
+      curResult.end_time = task_time;
       if (positive_ind) {
         curResult.positive_ind = positive_ind; // 0 could be changed by each task
       }
@@ -231,6 +239,41 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
       } else {
         displayOrderDict[record.DISPLAY_ORDER] = [record.DISPLAY_LOG];
       }
+    }
+  }
+  if (!isEmpty(curResult)) {
+    // changing ORDER_ID, push current result to retDict
+    if (displayOrderDict) {
+      let display_log = Object.keys(displayOrderDict)
+        .sort()
+        .map((key) => displayOrderDict[key])
+        .reduce((acc, cur) => [...acc, ...cur], []);
+      curResult.tasks[curResult.tasks.length - 1].display_log = display_log;
+    }
+
+    if (curOrderId in sensDict) {
+      let y = [...sensDict[curOrderId].drugSet].sort();
+      let x = Object.keys(sensDict[curOrderId])
+        .filter((item) => item !== "drugSet")
+        .sort();
+      let data = [];
+      for (let bact of x) {
+        let drugForBact = [];
+        for (let drug of y) {
+          // console.log('bact :', bact);
+          // console.log('drug :', drug);
+          drugForBact.push(sensDict[curOrderId][bact][drug]);
+        }
+        data.push(drugForBact);
+      }
+      curResult.sensitivity = { x, y, data };
+    }
+
+    let source = ODSTD_TO_SOURCE_DICT[lastRecord.OD_ST_D];
+    if (source in retDict) {
+      retDict[source].push(curResult);
+    } else {
+      retDict[source] = [curResult];
     }
   }
   return retDict;
