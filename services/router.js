@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-09 11:36:58
+ * @Last Modified time: 2020-04-13 22:54:02
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -46,6 +46,7 @@ const { getDiluNutrients } = require("../db_apis/get-diluent-nutrition-calc");
 const { getNutriFatProCho } = require("../db_apis/get-nutrition-fat-pro-cho");
 const { getNutriVolume } = require("../db_apis/get-nutrition-volume");
 const { getNutriCalories } = require("../db_apis/get-nutrition-calories");
+const { getMicbio } = require("../db_apis/get-microbiology");
 
 const { getTemp } = require("../db_apis/get-temp");
 
@@ -2244,6 +2245,62 @@ router.post("/nutrition/calories", async (req, res) => {
     "nutrition-calories-resolution"
   );
 });
+
+/**
+ * @api {get} /person/:person_id/microbiology Microbiology
+ * @apiVersion 0.0.1
+ * @apiName Microbiology
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *   
+  {
+    "Nares": // source name based on OD_ST_D
+      [
+        {
+            "od_st_d": "Nares", // mouse over
+            "order_id": 1111,
+            "collect_time": 150000,
+            "culture_start_time": 151000,
+            "end_time": 152000, // the latest task_time
+            "tasks": [
+                {
+                    "task_log_id": 33333,
+                    "task_time": 152000,
+                    "order_mnemonic": "PreOp Cul", // mouse over
+                    "mnemonic_type": "Bacterium", //"Bacterium": oval, "viral": square, others: hexagon 
+                    "positive_ind": 0, //0: green, 1: red 
+                    "status": "Prelim", // "Prelim" or "Gram": light. "Final" or "Amend" : dark
+                    "species_desc": "E.cloa", // write with icon if (species_desc) 
+                    "display_log": ["log1", "log2"], //sorted display_log
+
+                },
+                // ... other tasks in this order
+            ],
+            "sensitivity": {
+              "x": ["bact1", "bact2"],
+              "y": ["drug1", "drug2"],
+              "data": [[[1,2,3], null], [[1,3,null],[null, null, 3]]],
+            },
+        },
+        // ... other orders in this source
+      ]
+  }
+     
+ *
+ */
+
+router.get("/person/:person_id/microbiology", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id :", person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting microbiology for %s ...", person_id);
+  getApiFromRedis(res, getMicbio, { person_id }, "microbiology");
+});
+
 
 /**
  * @api {get} /person/:person_id/ecmo ECMO Score
