@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-13 17:23:49
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-14 16:56:05
+ * @Last Modified time: 2020-04-15 10:10:25
  */
 
 const isEmpty = require("lodash.isempty");
@@ -125,6 +125,7 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
   let curOrderId;
   let curTaskId;
   let curResult;
+  let curSource;
   let retDict = {};
   let displayOrderDict;
 
@@ -173,15 +174,16 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
           curResult.sensitivity = { x, y, data };
         }
 
-        if (source in retDict) {
-          retDict[source].push(curResult);
+        if (curSource in retDict) {
+          retDict[curSource].push(curResult);
         } else {
-          retDict[source] = [curResult];
+          retDict[curSource] = [curResult];
         }
       }
 
       curOrderId = record.ORDER_ID;
       curTaskId = task_log_id;
+      curSource = source;
       curResult = {};
       curResult.od_st_d = od_st_d;
       curResult.order_id = curOrderId;
@@ -269,11 +271,10 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
       curResult.sensitivity = { x, y, data };
     }
 
-    let source = ODSTD_TO_SOURCE_DICT[lastRecord.OD_ST_D];
-    if (source in retDict) {
-      retDict[source].push(curResult);
+    if (curSource in retDict) {
+      retDict[curSource].push(curResult);
     } else {
-      retDict[source] = [curResult];
+      retDict[curSource] = [curResult];
     }
   }
   return retDict;

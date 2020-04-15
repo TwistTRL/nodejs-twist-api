@@ -2,7 +2,7 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 12:52:22
+ * @Last Modified time: 2020-04-15 10:11:14
  */
 const express = require("express");
 const timeout = require("connect-timeout");
@@ -45,7 +45,7 @@ function initialize() {
       path.join(__dirname, "access.log"),
       { flags: "a" }
     );
-    app.use(morgan("common", { stream: accessLogStream }));
+    app.use(morgan("combined", { stream: accessLogStream }));
 
     // Middleware
     app.use(cors());
