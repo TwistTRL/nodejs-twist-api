@@ -2,21 +2,22 @@
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-09 15:49:53
+ * @Last Modified time: 2020-04-17 15:14:08
  */
 
 const moment = require("moment");
 const { bisect_left } = require("bisect-js");
 const { EVENT_CD_DICT } = require("../../db_relation/in-out-db-relation");
 
-const calculateNutriVolume = (rawRecords, query) => {
+const calculateNutriVolume = (rawRecords) => {
   // get hour binned data
-  let { arrTPN, arrTpnLipid, arrEN, arrDiluents, arrInout, arrMed, arrWeight } = rawRecords;
-  let resolution = query.resolution;
-  let from = query.from;
-
+  let { arrTPN, arrTpnLipid, arrEN, arrDiluents, arrInout, arrMed, arrWeight, resolution, from } = rawRecords;
   let retDict = {};
 
+  console.log('resolution :', resolution);
+console.log('from :', from);
+console.log('arrTPN.length :', arrTPN.length);
+console.log('arrEN.length :', arrEN.length);
   if (arrTPN && arrTPN.length) {
     // TPN database is already binned by hour
     console.log("Tpn record size :", arrTPN.length);
@@ -142,6 +143,8 @@ const calculateNutriVolume = (rawRecords, query) => {
     }
   }
 
+  console.log('Object.keys(retDict).length :', Object.keys(retDict).length);
+
   // transfer hourly binned retDict to retArr with resolution
   // [{
   //   "timestamp": 1543251600,
@@ -262,6 +265,8 @@ const calculateNutriVolume = (rawRecords, query) => {
       }
     }
   }
+
+  console.log('Object.keys(retDictWithResolution).length :', Object.keys(retDictWithResolution).length);
 
   // dictionary to sorted array
   let retArr = [];

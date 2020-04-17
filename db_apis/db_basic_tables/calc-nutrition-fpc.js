@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-04-09 12:35:29 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-09 23:28:09
+ * @Last Modified time: 2020-04-17 11:58:43
  */
 
 const { bisect_left } = require("bisect-js");
@@ -35,7 +35,7 @@ const calculateFPC = (rawRecords) => {
 
   if (arrTPN && arrTPN.length) {
     // TPN database is already binned by hour
-    console.log("TpnNutr record size :", arrTPN.length);
+    // console.log("TpnNutr record size :", arrTPN.length);
     for (let row of arrTPN) {
       //example row = {"START_UNIX": 1524700800, "Amino_Acids g/kg": 2}
       let start = row["START_UNIX"];
@@ -59,13 +59,13 @@ const calculateFPC = (rawRecords) => {
           accValueToDict(row["Dextrose g/kg"], timestamp, "cho_tpn", retDict);
         }
       } else {
-        console.log("TPN start or end time null :", row);
+        console.warn("TPN start or end time null :", row);
       }
     }
   }
 
   if (arrLipids && arrLipids.length) {
-    console.log("TpnLipid record size :", arrLipids.length);
+    // console.log("TpnLipid record size :", arrLipids.length);
     for (let row of arrLipids) {
       let timestamp = Math.floor(row["DT_UNIX"] / 3600) * 3600;
       if (timestamp && row["RESULT_VAL"]) {
@@ -76,7 +76,7 @@ const calculateFPC = (rawRecords) => {
   }
 
   if (arrEN && arrEN.length) {
-    console.log("EN record size :", arrEN.length);
+    // console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
       //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
       let timestamp = Math.floor(row["START_TIME_DTUNIX"] / 3600) * 3600;
@@ -98,7 +98,7 @@ const calculateFPC = (rawRecords) => {
   }
 
   if (arrDiluents && arrDiluents.length) {
-    console.log("DiluNutr record size :", arrDiluents.length);
+    // console.log("DiluNutr record size :", arrDiluents.length);
     for (let row of arrDiluents) {
       if (row["DILUENT"] in DEXTROSE_DICT) {
         // normalized rate: 'Dextrose 10% in Water' means rate * 0.1
@@ -199,7 +199,7 @@ const calculateFPC = (rawRecords) => {
 const getWeight = (timestamp, arrWeight) => {
   let index = bisect_left(arrWeight, timestamp, (x) => x["DT_UNIX"]);
   if (index < 0) {
-    console.log("at timestamp has no weight:", timestamp);
+    console.warn("at timestamp has no weight:", timestamp);
     return arrWeight[0]["WEIGHT_CALC"];
   } else {
     return arrWeight[index]["WEIGHT_CALC"];

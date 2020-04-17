@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-11 11:50:13
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-07 15:09:53
+ * @Last Modified time: 2020-04-17 11:02:39
  */
 
 const database = require("../services/database");
@@ -105,7 +105,7 @@ async function getIntermittentSqlExecutor(conn, binds) {
   );
   let SQL_ALL =
     SQL_INTERMITTENT_PART1 + SQL_Intermittent + SQL_INTERMITTENT_PART2;
-  console.log("~~SQL Get Drug Intermittent (part) = " + SQL_INTERMITTENT_PART1);
+  console.log("~~SQL Get Drug Intermittent (part) = " + SQL_ALL);
 
   let drugRecords = await conn.execute(SQL_ALL, binds);
   return drugRecords.rows;

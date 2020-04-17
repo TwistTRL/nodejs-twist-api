@@ -2,18 +2,8 @@
  * @Author: Peng
  * @Date: 2020-04-07 12:57:40
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-09 23:40:07
+ * @Last Modified time: 2020-04-17 15:30:37
  */
-
-const {
-  RXCUI_LIST,
-  DRUG_LIST,
-  CAT_LIST,
-  RXCUI_BY_CAT_ORDER_DICT,
-  RXCUI_TO_CAT_DICT,
-  DRUG_TO_CAT_DICT,
-  MEDICATION_CATEGORY_STRUCTURE,
-} = require("../../db_relation/drug-category-relation");
 
 const SQL_GET_PERSON_ID = (mrn) => `
 SELECT
@@ -95,7 +85,8 @@ SELECT
     STRENGTH_UNIT,
     VOL_UNIT,
     INFUSION_RATE,
-    INFUSION_RATE_UNITS
+    INFUSION_RATE_UNITS,
+    DOSING_WEIGHT
 FROM DRUG_DILUENTS
 WHERE PERSON_ID = ${person_id}
 AND START_UNIX < ${to}
@@ -112,8 +103,7 @@ SELECT
     INFUSION_RATE,
     INFUSION_RATE_UNITS
 FROM DRUG_INFUSIONS
-WHERE ${RXCUI_LIST.slice(1).reduce((acc, item) => acc + ` OR RXCUI = '` + item + `'`, `RXCUI = '` + RXCUI_LIST[0] + `'`)}
-AND PERSON_ID = ${person_id}
+WHERE PERSON_ID = ${person_id}
 ORDER BY START_UNIX, DRUG`;
 
 const SQL_INFUSIONS_UNIT = ({ person_id }) => `
@@ -132,10 +122,12 @@ SELECT
     RXCUI,
     ADMIN_DOSAGE,
     ADMIN_ROUTE,
-    DOSAGE_UNITS
+    DOSAGE_UNITS,
+    INFUSED_VOLUME,
+    VOLUME_UNITS
 FROM DRUG_INTERMITTENT
-WHERE ${RXCUI_LIST.slice(1).reduce((acc, item) => acc + ` OR RXCUI = '` + item + `'`, `RXCUI = '` + RXCUI_LIST[0] + `'`)}
-AND PERSON_ID = ${person_id}
+WHERE PERSON_ID = ${person_id}
+AND RXCUI IS NOT NULL
 ORDER BY DT_UNIX, DRUG`;
 
 // SUCTION

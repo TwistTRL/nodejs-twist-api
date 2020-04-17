@@ -1,8 +1,8 @@
 /*
- * @Author: Peng 
- * @Date: 2020-04-09 21:13:55 
- * @Last Modified by:   Peng 
- * @Last Modified time: 2020-04-09 21:13:55 
+ * @Author: Peng
+ * @Date: 2020-04-09 21:13:55
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-04-17 15:07:23
  */
 
 const {
@@ -12,26 +12,19 @@ const {
   RXCUI_BY_CAT_ORDER_DICT,
   RXCUI_TO_CAT_DICT,
   DRUG_TO_CAT_DICT,
-  MEDICATION_CATEGORY_STRUCTURE
+  MEDICATION_CATEGORY_STRUCTURE,
 } = require("../../db_relation/drug-category-relation");
 
 const calculateMed = (rawRecords) => {
   let { arrInfusions, arrIntermittent, arrSuction, arrInfusionsUnits } = rawRecords;
 
-  console.log("infusions length :", arrInfusions.length);
-  console.log("intermittent length :", arrIntermittent.length);
-  console.log("suction length :", arrSuction.length);
-  console.log("infusions units length :", arrInfusionsUnits.length);
-
   let suctionArray = [];
   if (arrSuction.length > 0) {
-    arrSuction.forEach(element => {
+    arrSuction.forEach((element) => {
       let singleResult = {};
       singleResult.name = "suction";
-      singleResult.time =
-        new Date(element["DATETIMEUTC"]).getTime() / 1000;
-      singleResult.start =
-        new Date(element["DATETIMEUTC"]).getTime() / 1000;
+      singleResult.time = new Date(element["DATETIMEUTC"]).getTime() / 1000;
+      singleResult.start = new Date(element["DATETIMEUTC"]).getTime() / 1000;
       singleResult.lvl = element.LVL;
       singleResult.comment = element["COMMENT_TXT"];
       singleResult.device = element["SUCTION_DEVICE"];
@@ -45,7 +38,7 @@ const calculateMed = (rawRecords) => {
 
   let suctionCatStructure = {
     name: "SUCTION",
-    children: [{ name: "suction" }, { name: "child2" }, { name: "child3" }]
+    children: [{ name: "suction" }, { name: "child2" }, { name: "child3" }],
   };
 
   // console.log("arrInfusionsUnits :", arrInfusionsUnits);
@@ -53,7 +46,7 @@ const calculateMed = (rawRecords) => {
   // { DRUG: 'EPINEPHrine', INFUSION_RATE_UNITS: 'mcg/kg/min' },...]
 
   let unitDict = {};
-  arrInfusionsUnits.forEach(element => {
+  arrInfusionsUnits.forEach((element) => {
     let cat = DRUG_TO_CAT_DICT[element.DRUG];
     if (!(cat in unitDict)) {
       unitDict[cat] = {};
@@ -74,9 +67,9 @@ const calculateMed = (rawRecords) => {
   //  RESP: { EPINEPHrine: 'mcg/kg/min' },...}
 
   let newCatStructure = [...MEDICATION_CATEGORY_STRUCTURE];
-  newCatStructure.forEach(element => {
+  newCatStructure.forEach((element) => {
     if (element.name in unitDict) {
-      element.children.forEach(item => {
+      element.children.forEach((item) => {
         if (item.name in unitDict[element.name]) {
           item.unit = unitDict[element.name][item.name];
         }
@@ -87,14 +80,14 @@ const calculateMed = (rawRecords) => {
   let catStructureArray = [suctionCatStructure, ...newCatStructure];
   let result_dict = {
     cat_structure: catStructureArray,
-    SUCTION: suctionArray
+    SUCTION: suctionArray,
   };
-  CAT_LIST.forEach(cat => {
+  CAT_LIST.forEach((cat) => {
     result_dict[cat] = [];
   });
 
   if (arrInfusions.length > 0) {
-    arrInfusions.forEach(element => {
+    arrInfusions.forEach((element) => {
       let singleResult = {};
       singleResult.name = element.DRUG;
       singleResult.dose = element.INFUSION_RATE;
@@ -103,14 +96,14 @@ const calculateMed = (rawRecords) => {
       singleResult.unit = element.INFUSION_RATE_UNITS;
       singleResult.RXCUI = element.RXCUI;
       let cats = RXCUI_TO_CAT_DICT[element.RXCUI];
-      cats.forEach(cat => {
+      cats.forEach((cat) => {
         result_dict[cat].push(singleResult);
       });
     });
   }
 
   if (arrIntermittent.length > 0) {
-    arrIntermittent.forEach(element => {
+    arrIntermittent.forEach((element) => {
       let singleResult = {};
       singleResult.name = element.DRUG;
       singleResult.dose = element.ADMIN_DOSAGE;
@@ -119,27 +112,30 @@ const calculateMed = (rawRecords) => {
       singleResult.route = element.ADMIN_ROUTE;
       singleResult.RXCUI = element.RXCUI;
       let cats = RXCUI_TO_CAT_DICT[element.RXCUI];
-      cats.forEach(cat => {
-        result_dict[cat].push(singleResult);
-      });
+      if (!cats) {
+        console.log("no cat for this RXCUI: ", element);
+      } else {
+        cats.forEach((cat) => {
+          result_dict[cat].push(singleResult);
+        });
+      }
     });
   }
 
-  CAT_LIST.forEach(cat => {
+  CAT_LIST.forEach((cat) => {
     // remove empty cat
     if (result_dict[cat].length == 0) {
       delete result_dict[cat];
     } else {
       // order cat by RXCUI order in this cat
-      result_dict[cat].sort(function(a, b) {
+      result_dict[cat].sort(function (a, b) {
         return a.start - b.start;
         // return RXCUI_BY_CAT_ORDER_DICT[cat].indexOf(a.RXCUI) - RXCUI_BY_CAT_ORDER_DICT[cat].indexOf(b.RXCUI);
       });
     }
   });
   return result_dict;
-}
-
+};
 
 /**
  * 
@@ -149,5 +145,5 @@ const calculateMed = (rawRecords) => {
  */
 
 module.exports = {
-  calculateMed
+  calculateMed,
 };

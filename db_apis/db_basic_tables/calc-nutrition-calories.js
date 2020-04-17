@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-06 11:14:32
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-09 16:19:27
+ * @Last Modified time: 2020-04-17 13:12:48
  */
 
 const moment = require("moment");
@@ -34,12 +34,9 @@ const AA_CALORIES = 4;
 const DEX_CALORIES = 3.4;
 const FAT_CALORIES = 9;
 
-const calculateNutriCalories = (rawRecords, query) => {
+const calculateNutriCalories = (rawRecords) => {
   // get hour binned data
-  let { arrEN, arrTPN, arrLipids, arrDiluents, arrWeight } = rawRecords;
-  let resolution = query.resolution;
-  let from = query.from;
-
+  let { arrEN, arrTPN, arrLipids, arrDiluents, arrWeight, resolution, from } = rawRecords;
   let retDict = {};
 
   if (arrTPN && arrTPN.length) {

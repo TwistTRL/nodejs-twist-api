@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-06 10:31:08
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-10 19:04:31
+ * @Last Modified time: 2020-04-17 14:28:37
  */
 
 //~~~~~~~~~~ REDIS SETTINGS ~~~~~~~~
@@ -75,7 +75,7 @@ const initFetchToRedis = async (fetchFn, fetchInput, fetchName = "initFetch") =>
     if (reply) {
       console.log("~> from cache");
       console.timeEnd(fetchName);
-      return reply;
+      return JSON.parse(reply);
     } else {
       console.log("~~SQL~~: " + fetchName + "\n" + fetchFn(fetchInput));
       let rawRecord = await database.withConnection(async (conn, fetchInput) => await conn.execute(fetchFn(fetchInput)))(fetchInput);
@@ -88,14 +88,14 @@ const initFetchToRedis = async (fetchFn, fetchInput, fetchName = "initFetch") =>
   return result;
 };
 
-const calcEndpointToRedis = async (endpointFn, endpointInput, endpointName = "interface") => {
-  let redisKey = `${endpointName}:${JSON.stringify(endpointInput)}`;
+const calcEndpointToRedis = async (endpointFn, endpointKey, endpointInput, endpointName = "interface") => {
+  let redisKey = `${endpointName}:${JSON.stringify(endpointKey)}`;
   console.log("endpoint redisKey :", redisKey);
   console.time(endpointName);
   const reply = await redis.get(redisKey);
-  const result = (reply => {
+  const result = (async reply => {
     if (reply) {
-      console.log("~> from cache");
+      console.log("==> from cache");
       console.timeEnd(endpointName);
       return reply;
     } else {

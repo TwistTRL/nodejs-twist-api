@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-04-09 12:08:48 
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-09 23:26:45
+ * @Last Modified time: 2020-04-17 15:20:50
  */
 
 
@@ -26,11 +26,12 @@ const {
 } = require("../../db_relation/in-out-db-relation");
 
 
-const calculateIO = (rawRecords, query) => {
-  let { arrEN, arrTPN, arrLipids, arrInOut, arrDiluents } = rawRecords;
-  let timeInterval = query.resolution;
-  let startTime = query.from;
-  let endTime = query.to;
+const calculateIO = (rawRecords) => {
+  let { arrEN, arrTPN, arrLipids, arrInOut, arrDiluents, resolution, from, to } = rawRecords;
+  let timeInterval = resolution;
+  console.log('--------------------------timeInterval :', timeInterval);
+  let startTime = from;
+  let endTime = to;
 
   let resultEvent = [];
   if (arrInOut && arrInOut.length) {
