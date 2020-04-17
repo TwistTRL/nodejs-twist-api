@@ -1,21 +1,30 @@
 /*
  * @Author: Peng 
  * @Date: 2020-04-08 12:57:25 
- * @Last Modified by:   Peng 
- * @Last Modified time: 2020-04-08 12:57:25 
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-04-17 13:14:21
  */
 
+const {
+  EVENT_CD_DICT,
+  SL_TO_LABEL,
+  SL_TO_SUBCAT,
+  SL_TO_CAT,
+  SL_TO_CALCS,
+  IN_OUT_COLOR_MAP,
+  CAT_CAP_TO_LOWER_MAP
+} = require("../../db_relation/in-out-db-relation");
 
 // (rawResult, query[RESOLUTION], query[FROM], query[TO])
-const calculateIOTooltips = (rawRecords, query) => {
+const calculateIOTooltips = (rawRecords) => {
     // result will be [type1Dict, type2Dict], first item is "in" and second is "out".
     let type1Dict = {};
     let type2Dict = {};
   
-    let { arrEN, arrTPN, arrLipids, arrInOut, arrDiluents } = rawRecords;
-    let timeInterval = query.resolution;
-    let startTime = query.from;
-    let endTime = query.to;
+    let { arrEN, arrTPN, arrLipids, arrInOut, arrDiluents, resolution, from, to } = rawRecords;
+    let timeInterval = resolution;
+    let startTime = from;
+    let endTime = to;
   
     if (arrInOut && arrInOut.length) {
       console.log("In-Out Event record size :", arrInOut.length);

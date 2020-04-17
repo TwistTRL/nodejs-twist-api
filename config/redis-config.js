@@ -1,23 +1,20 @@
 /*
- * @Author: Peng 
- * @Date: 2020-04-06 10:31:08 
+ * @Author: Peng
+ * @Date: 2020-04-06 10:31:08
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 10:37:16
+ * @Last Modified time: 2020-04-17 14:28:37
  */
 
 //~~~~~~~~~~ REDIS SETTINGS ~~~~~~~~
 const REDIS_PORT = 6379; // redis default port is 6379
-const USE_CACHE = false; // if true, will use redis cache
+const USE_CACHE = true; // if true, will use redis cache
+const REDIS_EXPIRE_TIME = 60; // redis cache expire after this time in seconds
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+const database = require("../services/database");
 
-const redis = require("redis");
-// create and connect redis client to local instance.
-const client = redis.createClient(REDIS_PORT);
-
-client.on("error", (err) => {
-  console.log("Error " + err);
-});
+const Redis = require("ioredis");
+const redis = new Redis(REDIS_PORT);
 
 /**
  * 
@@ -35,13 +32,13 @@ client.on("error", (err) => {
       getApiFromRedis(res, apiForGetIdInfo, req.params.id, "id");
     });
  */
-const getApiFromRedis = async (res, apiFn, apiInput, apiName = "api", apiExpireTime = 3600 * 24) => {
+const getApiFromRedis = async (res, apiFn, apiInput, apiName = "api") => {
   if (USE_CACHE) {
     let redisKey = `${apiName}:${JSON.stringify(apiInput)}`;
     console.log("redisKey :", redisKey);
     console.time(apiName);
     // Try fetching the result from Redis first in case we have it cached
-    client.get(redisKey, async (err, reply) => {
+    redis.get(redisKey, async (err, reply) => {
       if (USE_CACHE && reply) {
         res.send(reply);
         console.log("-> from cache");
@@ -49,7 +46,7 @@ const getApiFromRedis = async (res, apiFn, apiInput, apiName = "api", apiExpireT
       } else {
         let toSend = await apiFn(apiInput);
         // Save the API response in Redis store,  data expire time in 3600*24 seconds, it means one day
-        client.setex(redisKey, apiExpireTime, JSON.stringify(toSend));
+        redis.set(redisKey, JSON.stringify(toSend), "ex", REDIS_EXPIRE_TIME);
         res.send(toSend);
         console.timeEnd(apiName);
       }
@@ -63,11 +60,56 @@ const getApiFromRedis = async (res, apiFn, apiInput, apiName = "api", apiExpireT
       console.log(new Date());
       console.log(error);
       res.status(400);
-      res.send(error.toString());    
+      res.send(error.toString());
     }
   }
 };
 
+const initFetchToRedis = async (fetchFn, fetchInput, fetchName = "initFetch") => {
+  let redisKey = `${fetchName}:${JSON.stringify(fetchInput)}`;
+  console.log("initFetch redisKey :", redisKey);
+  console.time(fetchName);
+  const reply = await redis.get(redisKey);
+
+  const result = await (async (reply) => {
+    if (reply) {
+      console.log("~> from cache");
+      console.timeEnd(fetchName);
+      return JSON.parse(reply);
+    } else {
+      console.log("~~SQL~~: " + fetchName + "\n" + fetchFn(fetchInput));
+      let rawRecord = await database.withConnection(async (conn, fetchInput) => await conn.execute(fetchFn(fetchInput)))(fetchInput);
+      redis.set(redisKey, JSON.stringify(rawRecord.rows), "ex", REDIS_EXPIRE_TIME);
+      console.timeEnd(fetchName);
+      return rawRecord.rows;
+    }
+  })(reply);
+
+  return result;
+};
+
+const calcEndpointToRedis = async (endpointFn, endpointKey, endpointInput, endpointName = "interface") => {
+  let redisKey = `${endpointName}:${JSON.stringify(endpointKey)}`;
+  console.log("endpoint redisKey :", redisKey);
+  console.time(endpointName);
+  const reply = await redis.get(redisKey);
+  const result = (async reply => {
+    if (reply) {
+      console.log("==> from cache");
+      console.timeEnd(endpointName);
+      return reply;
+    } else {
+      let res = endpointFn(endpointInput);
+      redis.set(redisKey, JSON.stringify(res), "ex", REDIS_EXPIRE_TIME);
+      console.timeEnd(endpointName);
+      return res;
+    }
+  })(reply);
+  return result;
+};
+
 module.exports = {
   getApiFromRedis,
+  initFetchToRedis,
+  calcEndpointToRedis,
 };
