@@ -2,11 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
-<<<<<<< HEAD
- * @Last Modified time: 2020-04-13 22:54:02
-=======
- * @Last Modified time: 2020-04-09 23:22:53
->>>>>>> dev
+ * @Last Modified time: 2020-04-17 16:47:59
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");

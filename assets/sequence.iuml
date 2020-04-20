@@ -1,0 +1,27 @@
+@startuml sequence
+
+actor User
+
+== Initial ==
+
+User -> "Server 4000": Sign In
+activate "Server 4000"
+"Server 4000" -> "API 3333": initial API fetch
+activate "API 3333"
+"Server 4000" <-- "API 3333": initial finished
+User <-- "Server 4000": Response
+deactivate "API 3333"
+deactivate "Server 4000"
+
+== Resource ==
+
+User -> "Server 4000": Request
+activate "Server 4000"
+"Server 4000" -> "API 3333":
+activate "API 3333"
+"Server 4000" <-- "API 3333":
+deactivate "API 3333"
+User <-- "Server 4000": Response
+deactivate "Server 4000"
+
+@enduml

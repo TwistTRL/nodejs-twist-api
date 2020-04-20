@@ -2,7 +2,7 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-15 10:11:14
+ * @Last Modified time: 2020-04-17 16:25:10
  */
 const express = require("express");
 const timeout = require("connect-timeout");
@@ -113,7 +113,7 @@ function initialize() {
       if (!req.timedout) {
         next();
       } else {
-        res.send("Timeout. > 30s");
+        res.send("Timeout. > 45s");
       }
     }
 
