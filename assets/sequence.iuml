@@ -2,13 +2,24 @@
 
 actor User
 
+== Authentication ==
+User -> "Server 4000": Sign in
+activate "Server 4000"
+"Server 4000" -> "API 3333": Sign in API
+activate "API 3333"
+"Server 4000" <-- "API 3333": Access token
+User <-- "Server 4000": Signed in
+deactivate "API 3333"
+deactivate "Server 4000"
+
+
 == Initial ==
 
-User -> "Server 4000": Sign In
+User -> "Server 4000": Input MRN
 activate "Server 4000"
-"Server 4000" -> "API 3333": initial API fetch
+"Server 4000" -> "API 3333": Initial API fetch
 activate "API 3333"
-"Server 4000" <-- "API 3333": initial finished
+"Server 4000" <-- "API 3333": Initial fetch finished
 User <-- "Server 4000": Response
 deactivate "API 3333"
 deactivate "Server 4000"

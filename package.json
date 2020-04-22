@@ -24,6 +24,7 @@
     "express-session": "^1.17.0",
     "ioredis": "^4.16.1",
     "is-my-json-valid": "^2.20.0",
+    "jsonwebtoken": "^8.5.1",
     "kill-port": "^1.6.0",
     "lodash.isempty": "^4.4.0",
     "morgan": "^1.9.1",

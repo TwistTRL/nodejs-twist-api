@@ -2,15 +2,12 @@
  * @Author: Peng
  * @Date: 2020-04-13 17:23:49
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-15 10:10:25
+ * @Last Modified time: 2020-04-21 23:24:50
  */
 
 const isEmpty = require("lodash.isempty");
 const database = require("../services/database");
-const {
-  ODSTD_TO_SOURCE_DICT,
-  MNEMONIC_TO_TYPE_DICT,
-} = require("../db_relation/microbiology-db-relation");
+const { ODSTD_TO_SOURCE_DICT, MNEMONIC_TO_TYPE_DICT } = require("../db_relation/microbiology-db-relation");
 
 var timeLable = 0;
 const SQL_GET_MICROBIOLOGY = `
@@ -74,10 +71,8 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
       // let mic_dil = element.MIC_DILUTON || undefined;
       // let kb = element.KB || undefined;
 
-      let mic_interp =
-        element.MIC_INTERP && element.MIC_INTERP !== " " ? element.MIC_INTERP : undefined;
-      let mic_dil =
-        element.MIC_DILUTON && element.MIC_DILUTON !== " " ? element.MIC_DILUTON : undefined;
+      let mic_interp = element.MIC_INTERP && element.MIC_INTERP !== " " ? element.MIC_INTERP : undefined;
+      let mic_dil = element.MIC_DILUTON && element.MIC_DILUTON !== " " ? element.MIC_DILUTON : undefined;
       let kb = element.KB && element.KB !== " " ? element.KB : undefined;
 
       if (mic_interp || mic_dil || kb) {
@@ -203,8 +198,10 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
         },
       ];
 
-      displayOrderDict = {};
-      displayOrderDict[record.DISPLAY_ORDER] = [record.DISPLAY_LOG];
+      if (record.DISPLAY_LOG !== "None") {
+        displayOrderDict = {};
+        displayOrderDict[record.DISPLAY_ORDER] = [record.DISPLAY_LOG];
+      }
     } else if (curTaskId !== task_log_id) {
       let display_log = Object.keys(displayOrderDict)
         .sort()
@@ -227,8 +224,10 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
         species_desc,
       });
 
-      displayOrderDict = {};
-      displayOrderDict[record.DISPLAY_ORDER] = [record.DISPLAY_LOG];
+      if (record.DISPLAY_LOG !== "None") {
+        displayOrderDict = {};
+        displayOrderDict[record.DISPLAY_ORDER] = [record.DISPLAY_LOG];
+      }
     } else {
       // curTaskId === task_log_id
       curResult.end_time = task_time;
@@ -236,13 +235,17 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
         curResult.positive_ind = positive_ind; // 0 could be changed by each task
       }
 
-      if (record.DISPLAY_ORDER in displayOrderDict) {
-        displayOrderDict[record.DISPLAY_ORDER].push(record.DISPLAY_LOG);
-      } else {
-        displayOrderDict[record.DISPLAY_ORDER] = [record.DISPLAY_LOG];
+      if (record.DISPLAY_LOG !== "None") {
+        if (record.DISPLAY_ORDER in displayOrderDict) {
+          displayOrderDict[record.DISPLAY_ORDER].push(record.DISPLAY_LOG);
+        } else {
+          displayOrderDict[record.DISPLAY_ORDER] = [record.DISPLAY_LOG];
+        }
       }
     }
   }
+
+  // last one
   if (!isEmpty(curResult)) {
     // changing ORDER_ID, push current result to retDict
     if (displayOrderDict) {

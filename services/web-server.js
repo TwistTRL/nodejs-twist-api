@@ -2,7 +2,7 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-17 16:25:10
+ * @Last Modified time: 2020-04-21 22:52:30
  */
 const express = require("express");
 const timeout = require("connect-timeout");
@@ -13,16 +13,18 @@ const cors = require("cors");
 const morgan = require("morgan");
 const fs = require("fs");
 const path = require("path");
-var httpServer;
-
+const jwt = require("jsonwebtoken");
 const bodyParser = require("body-parser");
+
+var httpServer;
 
 const app = express();
 const users = require("../config/users").items;
 const ipListPath = path.join(__dirname, "../config/ipList.txt");
+const accessTokenSecret = process.env.TWIST_API_TOKEN_SECRET || "youraccesstokensecret";
 
 const findUser = (name, password) => {
-  return users.find(item => {
+  return users.find((item) => {
     return item.name === name && item.password === password;
   });
 };
@@ -35,16 +37,13 @@ function initialize() {
     // log only 4xx and 5xx responses to console
     app.use(
       morgan("dev", {
-        skip: function(req, res) {
+        skip: function (req, res) {
           return res.statusCode < 400;
-        }
+        },
       })
     );
     // log all requests to access.log
-    var accessLogStream = fs.createWriteStream(
-      path.join(__dirname, "access.log"),
-      { flags: "a" }
-    );
+    var accessLogStream = fs.createWriteStream(path.join(__dirname, "access.log"), { flags: "a" });
     app.use(morgan("combined", { stream: accessLogStream }));
 
     // Middleware
@@ -57,37 +56,54 @@ function initialize() {
 
     app.use(bodyParser.urlencoded({ extended: false }));
 
-    app.get("/login", function(req, res) {
+    app.get("/login", function (req, res) {
       console.log("reaching /login");
       res.sendFile(path.join(__dirname, "/login.html"));
+      return;
     });
 
-    app.post("/login", function(req, res, next) {
+    app.post("/login", function (req, res, next) {
       console.log("req.body :", req.body);
-      var user = findUser(req.body.name, req.body.password);
+      let user = findUser(req.body.name, req.body.password);
       console.log("user found: ", user);
       currentAddress = req.connection.remoteAddress;
-      console.log('post login currentAddress :', currentAddress);
+      console.log("post login currentAddress :", currentAddress);
 
       if (user) {
-        console.log('ipWhiteList.includes(currentAddress) :', ipWhiteList.includes(currentAddress));
-        if (currentAddress && !ipWhiteList.includes(currentAddress)) {
-          ipWhiteList.push(currentAddress);
-          console.log("ipWhiteList updated:", ipWhiteList);
-          fs.appendFile(ipListPath, "\n" + currentAddress, function(err) {
-            if (err) throw err;
-            console.log("Saved currentAddress: ", currentAddress);
+        if (req.body.source) {
+          console.log("ipWhiteList.includes(currentAddress) :", ipWhiteList.includes(currentAddress));
+          if (currentAddress && !ipWhiteList.includes(currentAddress)) {
+            ipWhiteList.push(currentAddress);
+            console.log("ipWhiteList updated:", ipWhiteList);
+            fs.appendFile(ipListPath, "\n" + currentAddress, function (err) {
+              if (err) throw err;
+              console.log("Saved currentAddress: ", currentAddress);
+              res.redirect("/api");
+            });
+          } else {
             res.redirect("/api");
-          });
+          }
         } else {
-          res.redirect("/api");
+
+          // TODO add front-end jwt part
+
+          console.log("signed in from front-end");
+          // Generate an access token, expires in 24 hours
+          const accessToken = jwt.sign({ username: user.name, role: user.role }, accessTokenSecret, { expiresIn: '24h' });
+          res.json({
+            accessToken,
+          });
         }
       } else {
-        res.redirect("/login");
+        if (req.body.source) {
+          res.redirect("/login");
+        } else {
+          res.send("Log in failed");
+        }
       }
     });
 
-    app.use(function(req, res, next) {
+    app.use(function (req, res, next) {
       //verify Ip Logic
       currentAddress = req.connection.remoteAddress;
       console.log("currentAddress :", currentAddress);
@@ -123,7 +139,7 @@ function initialize() {
       console.log(`Web server listening on localhost:${webServerConfig.port}`);
       resolve();
     });
-    httpServer.on("error", err => {
+    httpServer.on("error", (err) => {
       reject(err);
     });
   });
@@ -131,7 +147,7 @@ function initialize() {
 
 function close() {
   return new Promise((resolve, reject) => {
-    httpServer.close(err => {
+    httpServer.close((err) => {
       if (err) {
         reject(err);
         return;

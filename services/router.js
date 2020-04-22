@@ -2,12 +2,13 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-17 16:47:59
+ * @Last Modified time: 2020-04-21 23:40:11
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
 const path = require("path");
 const router = new express.Router();
+const jwt = require("jsonwebtoken");
 
 // redis
 const { getApiFromRedis } = require("../config/redis-config");
@@ -68,17 +69,54 @@ const { testAbnormalMRN } = require("../test/test_abnormal_mrn");
 const settingsFluid = require("../db_relation/in-out-db-relation");
 
 const settingsMed = require("../db_relation/drug-category-relation");
+const settingsMicBio = require("../db_relation/microbiology-db-relation");
 
 const { getAccessToken, getPDFUrl } = require("../cerner_apis/get-FHIR-api");
 
-// ------------------------------------------------------------------------
+// >>------------------------------------------------------------------------>>
 // apidoc folder is a static files folder
 // user express.static to display this index.html
 router.use("/", express.static(__dirname + "/../docs/apidoc"));
 router.use("/apidoc2", express.static(__dirname + "/../docs/apidoc2"));
 router.use("/files", express.static(__dirname + "/../docs/files"));
+// <<------------------------------------------------------------------------<<
 
-// ------------------------------------------------------------------------
+
+// >>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>>
+// middleware for authentication
+const accessTokenSecret = process.env.TWIST_API_TOKEN_SECRET || "youraccesstokensecret";
+const authenticateJWT = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  if (authHeader) {
+    // since the authorization header has a value in the format of Bearer [JWT_TOKEN]
+      const token = authHeader.split(' ')[1];
+
+      // verify the token with JWT
+      jwt.verify(token, accessTokenSecret, (err, user) => {
+          if (err) {
+              return res.sendStatus(403);
+          }
+
+          req.user = user;
+          next();
+      });
+  } else {
+      res.sendStatus(401);
+  }
+};
+
+// ~~~~ use as:
+// app.get('/something', authenticateJWT, (req, res) => {
+  /** for checking role
+   *     const { role } = req.user;
+      if (role !== 'admin') {
+          return res.sendStatus(403);
+      }
+  */
+//   res.json(something);
+// });
+// <<~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<<
 
 // ``````````````````````````````````````````````
 //         api start
@@ -1904,7 +1942,7 @@ router.post("/relational-query", async (req, res) => {
 });
 
 /**
- * @api {get} /settings/fluid/:item Fluid Setting Information
+ * @api {get} /settings/fluid/:item Fluid Settings
  * @apiVersion 0.0.1
  * @apiName get-fluid-setting
  * @apiGroup Settings
@@ -1959,7 +1997,7 @@ router.get("/settings/fluid", (req, res) => {
 });
 
 /**
- * @api {get} /settings/med/:item Med Setting Information
+ * @api {get} /settings/med/:item Med Settings
  * @apiVersion 0.0.1
  * @apiName get-med-setting
  * @apiGroup Settings
@@ -2019,6 +2057,46 @@ router.get("/settings/med/:item", (req, res) => {
 
 router.get("/settings/med", (req, res) => {
   res.send(settingsMed.MEDICATION_CATEGORY_STRUCTURE);
+});
+
+/**
+ * @api {get} /settings/microbiology/:item Microbiology Settings
+ * @apiVersion 0.0.1
+ * @apiName get-micbio-setting
+ * @apiGroup Settings
+ * @apiDescription some setting of displaying Microbiology charts
+ * 
+ * if `item` is empty or not valid, return all settings json
+
+ * @apiParam {String=`SOURCE_TO_ODSTD_DICT`,
+        `ODSTD_TO_SOURCE_DICT`,
+        `SOURCE_ORDER_ARRAY`,        
+        `ODSTD_ORDER_ARRAY`,
+        `TYPE_TO_MNEMONIC_DICT`,
+        `MNEMONIC_TO_TYPE_DICT`,
+        `MICROBIOLOGY_CODES_XLSX_PATH`} item for microbiology section
+ * @apiSuccessExample Success-Response:
+ *    {
+          SOURCE_TO_ODSTD_DICT,
+          ODSTD_TO_SOURCE_DICT,
+          SOURCE_ORDER_ARRAY,  
+          ODSTD_ORDER_ARRAY,
+          TYPE_TO_MNEMONIC_DICT,
+          MNEMONIC_TO_TYPE_DICT,
+          MICROBIOLOGY_CODES_XLSX_PATH,
+      }
+ */
+router.get("/settings/microbiology/:item", (req, res) => {
+  const item = req.params.item;
+  if (!req || !settingsMicBio[item]) {
+    res.send(settingsMicBio);
+  } else {
+    res.send(settingsMicBio[item]);
+  }
+});
+
+router.get("/settings/microbiology", (req, res) => {
+  res.send(settingsMicBio);
 });
 
 /**
@@ -2305,9 +2383,19 @@ router.post("/nutrition/calories", async (req, res) => {
                 // ... other tasks in this order
             ],
             "sensitivity": {
-              "x": ["bact1", "bact2"],
-              "y": ["drug1", "drug2"],
-              "data": [[[1,2,3], null], [[1,3,null],[null, null, 3]]],
+              "x": ["bact1"],   // x is row direction
+              "y": ["drug1", "drug2"],  // y is column direction
+              "data": [     // [row[col]], item could be `mic_interp`, `mic_dil` and `kb`
+                [
+                  {
+                      "mic_interp": "S",
+                      "mic_dil": "Deduced"
+                  },
+                  {
+                      "mic_interp": "S",
+                      "mic_dil": "Deduced"
+                  },
+                ],],
             },
         },
         // ... other orders in this source
