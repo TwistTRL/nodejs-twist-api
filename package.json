@@ -1,15 +1,15 @@
 {
   "name": "twist-backend-api",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "API with Node.js and Oracle Database",
   "main": "index.js",
   "scripts": {
     "start": "HTTP_PORT=3333 pm2 start ecosystem.config.js --env production",
     "stage": "HTTP_PORT=3300 pm2 start ecosystem.config.js --env stage",
     "dev": "HTTP_PORT=3100 nodemon --watch db_apis index.js",
-    "docs": "HTTP_PORT=3333 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
-    "stadocs": "HTTP_PORT=3300 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
-    "devdocs": "HTTP_PORT=3100 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
+    "docs": "HTTP_PORT=3333 node generate-APIDOC.js  ",
+    "stadocs": "HTTP_PORT=3300 node generate-APIDOC.js  ",
+    "devdocs": "HTTP_PORT=3100 node generate-APIDOC.js  ",
     "pre-push": "HTTP_PORT=3100 node replace-pre-push.js",
     "test": "mocha"
   },
@@ -18,10 +18,11 @@
   "dependencies": {
     "apidoc": "^0.20.1",
     "bisect-js": "github:TwistTRL/bisect-js",
+    "connect-redis": "^4.0.4",
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "express-session": "^1.17.0",
+    "express-session": "^1.17.1",
     "ioredis": "^4.16.1",
     "is-my-json-valid": "^2.20.0",
     "jsonwebtoken": "^8.5.1",
@@ -35,6 +36,7 @@
     "request": "^2.88.2",
     "session-file-store": "^1.4.0",
     "twist-xlsx": "file:../nodejs-twist-utils",
+    "uuid": "^7.0.3",
     "xlsx": "^0.15.6"
   },
   "devDependencies": {

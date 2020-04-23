@@ -2,13 +2,11 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-21 23:40:11
+ * @Last Modified time: 2020-04-23 00:02:11
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
-const path = require("path");
 const router = new express.Router();
-const jwt = require("jsonwebtoken");
 
 // redis
 const { getApiFromRedis } = require("../config/redis-config");
@@ -66,10 +64,6 @@ const { getNUTime } = require("../db_apis/cross_tables/get_room_time");
 const test_crash = require("../test/test-crash");
 const { testAbnormalMRN } = require("../test/test_abnormal_mrn");
 
-const settingsFluid = require("../db_relation/in-out-db-relation");
-
-const settingsMed = require("../db_relation/drug-category-relation");
-const settingsMicBio = require("../db_relation/microbiology-db-relation");
 
 const { getAccessToken, getPDFUrl } = require("../cerner_apis/get-FHIR-api");
 
@@ -81,43 +75,6 @@ router.use("/apidoc2", express.static(__dirname + "/../docs/apidoc2"));
 router.use("/files", express.static(__dirname + "/../docs/files"));
 // <<------------------------------------------------------------------------<<
 
-
-// >>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>>
-// middleware for authentication
-const accessTokenSecret = process.env.TWIST_API_TOKEN_SECRET || "youraccesstokensecret";
-const authenticateJWT = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (authHeader) {
-    // since the authorization header has a value in the format of Bearer [JWT_TOKEN]
-      const token = authHeader.split(' ')[1];
-
-      // verify the token with JWT
-      jwt.verify(token, accessTokenSecret, (err, user) => {
-          if (err) {
-              return res.sendStatus(403);
-          }
-
-          req.user = user;
-          next();
-      });
-  } else {
-      res.sendStatus(401);
-  }
-};
-
-// ~~~~ use as:
-// app.get('/something', authenticateJWT, (req, res) => {
-  /** for checking role
-   *     const { role } = req.user;
-      if (role !== 'admin') {
-          return res.sendStatus(403);
-      }
-  */
-//   res.json(something);
-// });
-// <<~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~<<
-
 // ``````````````````````````````````````````````
 //         api start
 // ``````````````````````````````````````````````
@@ -126,6 +83,7 @@ const authenticateJWT = (req, res, next) => {
  * @api {get} /mrn/:mrn/init Initial data for patient
  * @apiVersion 0.0.1
  * @apiName initial-patient
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup MRN
  * @apiParam {Number} mrn patient mrn.
  *
@@ -147,8 +105,8 @@ router.get("/mrn/:mrn/init", async (req, res) => {
  * @api {get} /mrn/:mrn Person ID From MRN
  * @apiVersion 0.0.1
  * @apiName Get Patient Person ID From MRN
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup MRN
-
  * @apiParam {Number} mrn Patient MRN.
  * @apiSuccess {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
@@ -172,6 +130,7 @@ router.get("/mrn/:mrn", async (req, res) => {
  * @api {post} /labs Labs api/labs
  * @apiVersion 0.0.1
  * @apiName Get Labs for patient
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription Current available lab category names:
  *
@@ -222,6 +181,7 @@ router.post("/labs", async (req, res) => {
  * @api {get} /person/:person_id/labsv2 Labs for Patient V2
  * @apiVersion 0.0.2
  * @apiName Get Patient Labs V2
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id patient unique ID.
  *
@@ -269,6 +229,7 @@ router.get("/person/:person_id/labsv2", async (req, res) => {
  * @api {get} /person/:person_id/abg Labs ABG for Patient
  * @apiVersion 0.0.1
  * @apiName Get Patient ABG Labs V2
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id patient unique ID.
  *
@@ -311,6 +272,7 @@ router.get("/person/:person_id/abg", async (req, res) => {
  * @api {get} /person/:person_id/vitals/hr/binnedv2/:data_resolution Binned Heart Rate V2
  * @apiVersion 0.0.2
  * @apiName Get Person Hr Binned PersonnelV2
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
@@ -399,6 +361,7 @@ router.get("/person/:person_id/vitals/hr/binnedv2/5M", async (req, res) => {
  * @api {get} /person/:person_id/vitals/hr/calc/:data_resolution Calc Heart Rate
  * @apiVersion 0.0.1
  * @apiName Get Person Hr Calc
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
@@ -480,6 +443,7 @@ router.get("/person/:person_id/vitals/hr/calc/5M", async (req, res) => {
  * @api {get} /person/:person_id/drug/intermittent Drug Intermittent
  * @apiVersion 0.0.1
  * @apiName Get Person Drug Intermittent
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription Current Drug Intermittent names:
  *
@@ -519,6 +483,7 @@ router.get("/person/:person_id/drug/intermittent", async (req, res) => {
  * @api {get} /person/:person_id/drug/infusions Drug Infusions
  * @apiVersion 0.0.1
  * @apiName Get Person Drug Infusions
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription Current Drug Infusions names:
  *
@@ -563,6 +528,7 @@ router.get("/person/:person_id/drug/infusions", async (req, res) => {
  * @api {get} /person/:person_id/drug/paralytics Drug Paralytics
  * @apiVersion 0.0.1
  * @apiName Get Person Paralytics Drug Information
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription Current Paralytics Drug names:
  *
@@ -607,6 +573,7 @@ router.get("/person/:person_id/drug/paralytics", async (req, res) => {
  * @api {get} /person/:person_id/med Medication
  * @apiVersion 0.0.1
  * @apiName get-person-medication
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription
  * 
@@ -654,6 +621,7 @@ router.get("/person/:person_id/med", async (req, res) => {
  * @api {post} /inout-v2 In-Out V2
  * @apiVersion 0.0.2
  * @apiName in-out-patient-V2
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `INTAKE_OUTPUT` and `DRUG_DILUENTS`
@@ -750,6 +718,7 @@ router.post("/inout-v2", async (req, res) => {
  * @api {post} /inout-tooltip-v2 In-Out Tooltip V2
  * @apiVersion 0.0.1
  * @apiName in-out-tooltip-v2
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `from + resolution - 1`, from table `DRUG_DILUENTS`
@@ -894,6 +863,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * @api {post} /vitals Binned api/vitals
  * @apiVersion 0.0.2
  * @apiName Get Vitals Binned
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Vitals
  * @apiDeprecated use now (#Vitals:get-binned-vitals).
  * @apiParam {Number} person_id Patient unique ID.
@@ -938,6 +908,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * @api {post} /vitals Calc api/vitals
  * @apiVersion 0.0.2
  * @apiName Get Vitals Calc
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Vitals
  * @apiDeprecated use now (#Vitals:get-calc-vitals).
  * @apiParam {Number} person_id Patient unique ID.
@@ -974,6 +945,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * @api {post} /vitals Raw api/vitals
  * @apiVersion 0.0.2
  * @apiName Get Vitals Raw
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Vitals
  * @apiDeprecated use now (#Vitals:get-raw-vitals).
  * @apiDescription Request vitals raw data from POST json
@@ -1025,6 +997,7 @@ router.post("/vitals", async (req, res) => {
  * @api {post} /vitalsv2 V2 Binned vitals
  * @apiVersion 0.0.2
  * @apiName get-binned-vitals
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Vitals
  * @apiDescription 
  * 
@@ -1080,6 +1053,7 @@ router.post("/vitals", async (req, res) => {
  * @api {post} /vitalsv2 V2 Calc vitals
  * @apiVersion 0.0.2
  * @apiName get-calc-vitals
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Vitals
  * @apiDescription 
  * 
@@ -1133,6 +1107,7 @@ router.post("/vitals", async (req, res) => {
  * @api {post} /vitalsv2 V2 Raw Vitals
  * @apiVersion 0.0.2
  * @apiName get-raw-vitals
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Vitals
  * @apiDescription 
  * 
@@ -1192,6 +1167,7 @@ router.post("/vitalsv2", async (req, res) => {
  * @api {post} /vitals/temperature Temperature
  * @apiVersion 0.0.1
  * @apiName get-temperature
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Vitals
  * @apiDescription 
  * 
@@ -1248,6 +1224,7 @@ router.post("/vitals/temperature", async (req, res) => {
  * @apiVersion 0.0.1
  * @apiName Get Person Hr Raw
  * @apiDescription getting Hear rate at timestamp. null value records are skipped.
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {Number} from from timestamp in UNIX seconds.
@@ -1291,6 +1268,7 @@ router.get("/person/:person_id/vitals/hr/raw", async (req, res) => {
  * @api {post} /test/hr Test heart rate
  * @apiVersion 0.0.2
  * @apiName Test heart rate got from 2 APIs
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Test
  * @apiDescription Compare current 2 groups apis for getting hear rate data:
  * 
@@ -1355,6 +1333,7 @@ router.post("/test/hr", async (req, res) => {
  * @api {post} /test/labs Test labs
  * @apiVersion 0.0.2
  * @apiName Test labs got from 2 APIs
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Test
  * @apiDescription Compare current 2 groups apis for getting labs data:
  * 
@@ -1411,6 +1390,7 @@ router.post("/test/labs", async (req, res) => {
  * @api {get} /test/drug/infusions/:person_id Test drug infusions overlap
  * @apiVersion 0.0.1
  * @apiName Test drug infusions overlap
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Test
  
  * @apiParam {Number} person_id Patient unique ID.
@@ -1434,6 +1414,7 @@ router.get("/test/drug/infusions/:person_id", async (req, res) => {
  * @api {get} /test/drug/infusions/checktime/:person_id Test drug infusions time
  * @apiVersion 0.0.1
  * @apiName Test drug infusions start end time
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Test
  * @apiParam {Number} person_id Patient unique ID.
  */
@@ -1462,6 +1443,7 @@ router.get("/test/drug/infusions/checktime/:person_id", async (req, res) => {
  * 
  * For nodemon (if started from `npm run dev`) it will shutdown.
 
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Test
  */
 router.put("/test/crash", async (req, res) => {
@@ -1474,6 +1456,7 @@ router.put("/test/crash", async (req, res) => {
  * @apiVersion 0.0.1
  * @apiName Test mrn
 
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Test
  */
 router.put("/test/abnormal-mrn", async (req, res) => {
@@ -1486,6 +1469,7 @@ router.put("/test/abnormal-mrn", async (req, res) => {
  * @api {get} /person/:person_id/personnel Personnel For Patient
  * @apiVersion 0.0.1
  * @apiName Get Personnel For Patient
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccess {Number} personnel_id Personnel unique ID.
@@ -1514,6 +1498,7 @@ router.get("/person/:person_id/personnel", async (req, res) => {
  * @api {get} /person/:person_id/nurse-unit Nurse Unit For Patient
  * @apiVersion 0.0.3
  * @apiName Get Nurse Unit Time For Patient
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription 
  * 
@@ -1563,6 +1548,7 @@ router.get("/person/:person_id/nurse-unit", async (req, res) => {
  * @api {get} /person/:person_id/RSS RSS For Person
  * @apiVersion 0.0.1
  * @apiName Get Person RSS Information
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Legacy
  * @apiDescription Legacy API
  * 
@@ -1643,6 +1629,7 @@ router.get("/HeartRate", async (req, res) => {
  * @api {get} /person/:person_id Basic Person Information
  * @apiVersion 0.0.1
  * @apiName Get Person Basic Information
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription Legacy API
  * 
@@ -1706,6 +1693,7 @@ router.get("/person/:person_id", async (req, res) => {
  * @api {get} /person/:person_id/weight Weight
  * @apiVersion 0.0.1
  * @apiName get-weight
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription
  * 
@@ -1741,6 +1729,7 @@ router.get("/person/:person_id/weight", async (req, res) => {
  * @api {get} /person/:person_id/weight-calc Weight-calc
  * @apiVersion 0.0.1
  * @apiName get-weight-calc
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiDescription
  * 
@@ -1776,6 +1765,7 @@ router.get("/person/:person_id/weight-calc", async (req, res) => {
  * @api {get} /personel/:chb_prsnl_id Personnel Information
  * @apiVersion 0.0.1
  * @apiName Get Personnel Information
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Legacy
  * @apiDescription Legacy API
 
@@ -1805,6 +1795,7 @@ router.get("/survey/bed_space", async (req, res) => {
  * @api {get} /bed/:bed_cd Bed Information
  * @apiVersion 0.0.1
  * @apiName Get Bed Information
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Legacy
  * @apiDescription Legacy API
 
@@ -1847,6 +1838,7 @@ router.get("/RespiratorySupportVariable", async (req, res) => {
  * @api {post} /relational-query Relational Query
  * @apiVersion 0.0.1
  * @apiName Relational Query API
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Legacy
  * @apiDescription API from Lingyu Zhou.
  * 
@@ -1942,167 +1934,10 @@ router.post("/relational-query", async (req, res) => {
 });
 
 /**
- * @api {get} /settings/fluid/:item Fluid Settings
- * @apiVersion 0.0.1
- * @apiName get-fluid-setting
- * @apiGroup Settings
- * @apiDescription some setting of displaying fluid charts
- * 
- * from [inoutcode.xlsx](./files/inoutcode.xlsx)
- * if `item` is empty or not valid, return all settings json
- * @apiParam {String=``,
-        `EVENT_CD_DICT`,
-        `SL_TO_LABEL`,
-        `SL_TO_SUBCAT`,
-        `SL_TO_CAT`,
-        `SL_TO_CALCS`,
-        `SL_ORDER_ARRAY`,
-        `SL_COLOR_DICT`,
-        `CAT_ARRAY`,
-        `CAT_TO_SL`,
-        `CAT_COLOR_DICT`,
-        `CAT_CAP_TO_LOWER_MAP`,
-        `CAT_ORDER_ARRAY`,
-        `IN_OUT_CODES_XLSX_PATH`} item for in-out-code
-
- * @apiSuccessExample Success-Response:
-      {
-        EVENT_CD_DICT,
-        SL_TO_LABEL,
-        SL_TO_SUBCAT,
-        SL_TO_CAT,
-        SL_TO_CALCS,
-        SL_ORDER_ARRAY,
-        SL_COLOR_DICT,
-        CAT_ARRAY,
-        CAT_TO_SL,
-        CAT_COLOR_DICT,
-        CAT_CAP_TO_LOWER_MAP,
-        CAT_ORDER_ARRAY,
-        IN_OUT_CODES_XLSX_PATH
-      }
- 
- */
-router.get("/settings/fluid/:item", (req, res) => {
-  const item = req.params.item;
-  if (!req || !(item in settingsFluid)) {
-    res.send(settingsFluid);
-  } else {
-    res.send(settingsFluid[item]);
-  }
-});
-
-router.get("/settings/fluid", (req, res) => {
-  res.send(settingsFluid);
-});
-
-/**
- * @api {get} /settings/med/:item Med Settings
- * @apiVersion 0.0.1
- * @apiName get-med-setting
- * @apiGroup Settings
- * @apiDescription some setting of displaying med charts
- * 
- *  from [medcat.xlsx](./files/medcat.xlsx)
- * if `item` is empty or not valid, return all settings json
-
- * @apiParam {String=`DRUG_INFUSIONS_LIST`,
-        `DRUG_INTERMITTENT_LIST`,
-        `ORANGE_DRUG_LIST`,        
-        `RXCUI_LIST`,
-        `DRUG_LIST`,
-        `CAT_LIST`,
-        `RXCUI_BY_CAT_ORDER_DICT`,
-        `RXCUI_TO_CAT_DICT`,
-        `DRUG_BY_CAT_ORDER_DICT`,
-        `RXCUI_TO_CAT_TITLE_DICT`,
-        `DRUG_TO_CAT_TITLE_DICT`,
-        `CAT_TITLE_TO_CAT_DICT`,
-        `CAT_TITLE_COLOR_DICT`,
-        `MORPHINE_EQUIVALENTS_DICT`,
-        `MORPHINE_EQUIVALENTS_ORDER_ARRAY`,
-        `MORPHINE_EQUIVALENTS_COLOR_DICT`,
-        `MEDICATION_CATEGORY_STRUCTURE`,        
-        `MED_CAT_XLSX_PATH`} item default `MEDICATION_CATEGORY_STRUCTURE`.
- * @apiSuccessExample Success-Response:
- *    {
-        DRUG_INFUSIONS_LIST,
-        DRUG_INTERMITTENT_LIST,
-        ORANGE_DRUG_LIST,        
-        RXCUI_LIST,
-        DRUG_LIST,
-        CAT_LIST,
-        RXCUI_BY_CAT_ORDER_DICT,
-        RXCUI_TO_CAT_DICT,
-        DRUG_BY_CAT_ORDER_DICT,
-        RXCUI_TO_CAT_TITLE_DICT,
-        DRUG_TO_CAT_TITLE_DICT,
-        CAT_TITLE_TO_CAT_DICT,
-        CAT_TITLE_COLOR_DICT,
-        MORPHINE_EQUIVALENTS_DICT,
-        MORPHINE_EQUIVALENTS_ORDER_ARRAY,
-        MORPHINE_EQUIVALENTS_COLOR_DICT,
-        MEDICATION_CATEGORY_STRUCTURE,
-        MED_CAT_XLSX_PATH,
-      }
- */
-router.get("/settings/med/:item", (req, res) => {
-  const item = req.params.item;
-  if (!req || !settingsMed[item]) {
-    res.send(settingsMed);
-  } else {
-    res.send(settingsMed[item]);
-  }
-});
-
-router.get("/settings/med", (req, res) => {
-  res.send(settingsMed.MEDICATION_CATEGORY_STRUCTURE);
-});
-
-/**
- * @api {get} /settings/microbiology/:item Microbiology Settings
- * @apiVersion 0.0.1
- * @apiName get-micbio-setting
- * @apiGroup Settings
- * @apiDescription some setting of displaying Microbiology charts
- * 
- * if `item` is empty or not valid, return all settings json
-
- * @apiParam {String=`SOURCE_TO_ODSTD_DICT`,
-        `ODSTD_TO_SOURCE_DICT`,
-        `SOURCE_ORDER_ARRAY`,        
-        `ODSTD_ORDER_ARRAY`,
-        `TYPE_TO_MNEMONIC_DICT`,
-        `MNEMONIC_TO_TYPE_DICT`,
-        `MICROBIOLOGY_CODES_XLSX_PATH`} item for microbiology section
- * @apiSuccessExample Success-Response:
- *    {
-          SOURCE_TO_ODSTD_DICT,
-          ODSTD_TO_SOURCE_DICT,
-          SOURCE_ORDER_ARRAY,  
-          ODSTD_ORDER_ARRAY,
-          TYPE_TO_MNEMONIC_DICT,
-          MNEMONIC_TO_TYPE_DICT,
-          MICROBIOLOGY_CODES_XLSX_PATH,
-      }
- */
-router.get("/settings/microbiology/:item", (req, res) => {
-  const item = req.params.item;
-  if (!req || !settingsMicBio[item]) {
-    res.send(settingsMicBio);
-  } else {
-    res.send(settingsMicBio[item]);
-  }
-});
-
-router.get("/settings/microbiology", (req, res) => {
-  res.send(settingsMicBio);
-});
-
-/**
  * @api {get} /person/:person_id/nutrition/fat-pro-cho Nutrients - Fat-Pro-Cho
  * @apiVersion 0.0.1
  * @apiName nutrients-fat-pro-cho
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
@@ -2144,6 +1979,7 @@ router.get("/person/:person_id/nutrition/fat-pro-cho", async (req, res) => {
  * @api {get} /person/:person_id/nutrition/volume Nutrients-Volume
  * @apiVersion 0.0.1
  * @apiName nutrients-volume
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
@@ -2181,6 +2017,7 @@ router.get("/person/:person_id/nutrition/volume", async (req, res) => {
  * @api {post} /nutrition/volume Nutrients-Volume POST
  * @apiVersion 0.0.1
  * @apiName nutrients-volume-resolution
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id patient unique ID.
  * @apiParam {Number} from timestamp get data from.
@@ -2253,6 +2090,7 @@ router.post("/nutrition/volume", async (req, res) => {
  * @api {get} /person/:person_id/nutrition/calories Nutr-Calories
  * @apiVersion 0.0.1
  * @apiName nutrients-calories
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
@@ -2287,6 +2125,7 @@ router.get("/person/:person_id/nutrition/calories", async (req, res) => {
  * @api {post} /nutrition/calories Nutr-Calories POST
  * @apiVersion 0.0.1
  * @apiName nutrients-calories-resolution
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id patient unique ID.
  * @apiParam {Number} from timestamp get data from.
@@ -2355,6 +2194,7 @@ router.post("/nutrition/calories", async (req, res) => {
  * @api {get} /person/:person_id/microbiology Microbiology
  * @apiVersion 0.0.1
  * @apiName Microbiology
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
@@ -2421,6 +2261,7 @@ router.get("/person/:person_id/microbiology", async (req, res) => {
  * @api {get} /person/:person_id/ecmo ECMO Score
  * @apiVersion 0.0.1
  * @apiName ECMO-score-for-patient
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup Person
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
@@ -2469,6 +2310,7 @@ router.get("/person/:person_id/ecmo", async (req, res) => {
  * @api {get} /FHIR/token get access token
  * @apiVersion 0.0.1
  * @apiName get-access-token
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup FHIR
  * @apiDescription get access token OAUTH2
  * 
@@ -2490,6 +2332,7 @@ router.get("/FHIR/token", async (req, res) => {
  * @api {get} /FHIR/notes/:mrn check mrn FHIR
  * @apiVersion 0.0.1
  * @apiName get-mrn-fhir
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup FHIR
  * @apiDescription get mrn FHIR
  * @apiParam {Number} mrn Patient MRN.
@@ -2514,6 +2357,7 @@ router.get("/FHIR/notes/:mrn", async (req, res) => {
  * @api {get} /person/:person_id/labs Labs for Patient
  * @apiVersion 0.0.1
  * @apiName Get Patient Labs
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Deprecated
  * @apiParam {Number} person_id patient unique ID.
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
@@ -2552,6 +2396,7 @@ router.get("/person/:person_id/labs", async (req, res) => {
  * @api {post} /inout-tooltip In-Out Tooltip for Patient
  * @apiVersion 0.0.3
  * @apiName Get in-out tooltip for patient
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Deprecated
  * @apiDeprecated use now (#Person:in-out-tooltip-v2).
  * @apiDescription 
@@ -2658,6 +2503,7 @@ router.post("/inout-tooltip", async (req, res) => {
  * @api {post} /inout In-Out for Patient
  * @apiVersion 0.0.2
  * @apiName Get in-out for patient
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Deprecated
  * @apiDeprecated use now (#Person:in-out-patient-V2).
 
@@ -2749,6 +2595,7 @@ router.post("/inout", async (req, res) => {
  * @api {get} /person/:person_id/nutrition/diluents Nutrients - Diluents
  * @apiVersion 0.0.1
  * @apiName diluents-nutrients-for-patient
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Deprecated
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
@@ -2783,6 +2630,7 @@ router.get("/person/:person_id/nutrition/diluents", async (req, res) => {
  * @api {get} /person/:person_id/nutrition/tpn Nutrients - TPN
  * @apiVersion 0.0.1
  * @apiName TPN-nutrients-for-patient
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Deprecated
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
@@ -2828,6 +2676,7 @@ router.get("/person/:person_id/nutrition/tpn", async (req, res) => {
  * @api {get} /person/:person_id/nutrition/macronutrients Nutrients - Macro
  * @apiVersion 0.0.2
  * @apiName macro-nutrients-for-patient
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Deprecated
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
@@ -2878,6 +2727,7 @@ router.get("/person/:person_id/nutrition/macronutrients", async (req, res) => {
  * @api {get} /person/:person_id/vitals/hr/binned/:data_resolution Binned Heart Rate
  * @apiVersion 0.0.1
  * @apiName Get Person Hr Binned
+ * @apiHeader {String} Authorization='bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InR3aXN0Iiwicm9sZSI6Im1lbWJlciIsImlhdCI6MTU4NzY1ODYyNywiZXhwIjoxNTg3NzQ1MDI3fQ.9m9fzNAbMOtOFLsaps3oT0qRgWUsc_CGGR4UUNQBxFM' API Token
  * @apiGroup _Deprecated
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
