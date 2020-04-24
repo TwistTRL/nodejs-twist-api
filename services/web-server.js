@@ -2,7 +2,7 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-23 12:19:34
+ * @Last Modified time: 2020-04-23 23:24:47
  */
 const express = require("express");
 const timeout = require("connect-timeout");
@@ -76,7 +76,7 @@ function initialize() {
         name: "_redis_session",
         secret: "keyboard cat", //process.env.SESSION_SECRET,
         resave: false,
-        cookie: { secure: false, maxAge: 60000 }, // Set to secure:false and expire in 1 minute for demo purposes
+        cookie: { secure: false, maxAge: 60 * 60 * 1000 }, // Set to secure:false and expire in 1 hour for demo purposes
         saveUninitialized: true,
       })
     );
@@ -91,15 +91,15 @@ function initialize() {
     app.post("/login", async (req, res, next) => {
       console.log("req.body :", req.body);
       let user = findUser(req.body.name, req.body.password);
-      console.log("user found: ", user);
       let currentAddress = req.connection.remoteAddress;
       console.log("post login currentAddress :", currentAddress);
 
       if (user) {
+        console.log("user found: ", user);
         // Generate an access token, expires in 24 hours
-        accessToken = jwt.sign({ username: user.name, role: user.role }, accessTokenSecret, { expiresIn: "24h" });
+        accessToken = jwt.sign({ username: user.name, role: user.role }, accessTokenSecret, { expiresIn: "1d" });
         console.log("accessToken :>> ", accessToken);
-        if (req.body.source) {
+        if (req.body.source === "webpage") {
           await replaceString(accessToken);
 
           const stringAPIdoc =
@@ -123,15 +123,19 @@ function initialize() {
         } else {
           // TODO add front-end jwt part
           console.log("signed in from front-end");
+          let status = true;
           res.json({
+            status,
             accessToken,
           });
         }
       } else {
-        if (req.body.source) {
+        if (req.body.source === "webpage") {
+          console.log("redirect to login");
           res.redirect("/login");
         } else {
-          res.send("Log in failed");
+          let status = false;
+          res.send({ status });
         }
       }
     });
@@ -193,6 +197,7 @@ const authenticateJWT = (req, res, next) => {
     // verify the token with JWT
     jwt.verify(req.session.token, accessTokenSecret, (err, user) => {
       if (err) {
+        console.log('jwt err :>> ', err);
         return res.sendStatus(403);
       }
       console.log("session token verified");
@@ -215,6 +220,8 @@ const authenticateJWT = (req, res, next) => {
     });
   } else {
     console.log("no authentication");
+    console.log('req.headers :>> ', req.headers);
+    console.log('req.body :>> ', req.body);
     res.redirect("/login");
   }
 };
