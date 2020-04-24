@@ -27,6 +27,7 @@
     "jsonwebtoken": "^8.5.1",
     "kill-port": "^1.6.0",
     "lodash.isempty": "^4.4.0",
+    "moment": "2.24.0",
     "morgan": "^1.9.1",
     "oracledb": "^4.2.0",
     "pm2": "^4.2.3",
