@@ -6,10 +6,11 @@
   "scripts": {
     "start": "HTTP_PORT=3333 pm2 start ecosystem.config.js --env production",
     "stage": "HTTP_PORT=3300 pm2 start ecosystem.config.js --env stage",
+    "development": "HTTP_PORT=3100 pm2 start ecosystem.config.js --env development",
     "dev": "HTTP_PORT=3100 nodemon --watch db_apis index.js",
-    "docs": "HTTP_PORT=3333 node generate-APIDOC.js  ",
-    "stadocs": "HTTP_PORT=3300 node generate-APIDOC.js  ",
-    "devdocs": "HTTP_PORT=3100 node generate-APIDOC.js  ",
+    "docs": "HTTP_PORT=3333 node generate-APIDOC.js",
+    "stadocs": "HTTP_PORT=3300 node generate-APIDOC.js",
+    "devdocs": "HTTP_PORT=3100 node generate-APIDOC.js",
     "pre-push": "HTTP_PORT=3100 node replace-pre-push.js",
     "test": "mocha"
   },
@@ -30,7 +31,6 @@
     "lodash.isempty": "^4.4.0",
     "morgan": "^1.9.1",
     "oracledb": "^4.2.0",
-    "pm2": "^4.2.3",
     "relational-query-sql-builder": "github:TwistTRL/relational-query-sql-builder",
     "replace-in-file": "^5.0.2",
     "request": "^2.88.2",

@@ -6,7 +6,7 @@ const toHostAndPort = HOSTNAME + ":" + process.env.HTTP_PORT;
 const options = {
   files: './services/router.js',
   from: process.env.TEST_PERSON_ID,
-  to: 'EXAMPLE_PERSON_ID',
+  to: /EXAMPLE_PERSON_ID/g,
 };
 
 async function replaceID() {
