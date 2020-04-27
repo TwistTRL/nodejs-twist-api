@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-13 17:23:49
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-21 23:24:50
+ * @Last Modified time: 2020-04-26 21:27:20
  */
 
 const isEmpty = require("lodash.isempty");
@@ -237,7 +237,10 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
 
       if (record.DISPLAY_LOG !== "None") {
         if (record.DISPLAY_ORDER in displayOrderDict) {
-          displayOrderDict[record.DISPLAY_ORDER].push(record.DISPLAY_LOG);
+          // since `if records are different only at `EVENT_LOG_SEQ`, keep the last one.`
+          // see Microbiology API documentation
+          console.log('this task_log_id has multiple display_log with the same display_order :>> ', task_log_id);
+          // displayOrderDict[record.DISPLAY_ORDER].push(record.DISPLAY_LOG);
         } else {
           displayOrderDict[record.DISPLAY_ORDER] = [record.DISPLAY_LOG];
         }

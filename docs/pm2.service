@@ -8,10 +8,10 @@ Documentation=https://github.com/TwistTRL/nodejs-twist-api
 After=network.target
 
 [Service]
-Environment=HTTP_PORT=3333
+Environment="HTTP_PORT=3333"
 Type=simple
 User=nodejs
-ExecStart=HTTP_PORT=3333 /usr/bin/pm2 start /home/nodejs/api/nodejs-twist-api/ecosystem.config.js --env production
+ExecStart=/usr/bin/pm2 start /home/nodejs/api/nodejs-twist-api/ecosystem.config.js --env production
 ExecReload=/usr/bin/pm2 reload all
 ExecStop=/usr/bin/pm2 kill
 

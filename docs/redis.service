@@ -1,11 +1,13 @@
 [Unit]
 Description=Redis
-After=syslog.target
+After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/redis-server /etc/redis/redis.conf
+User=redis
+Group=redis
+ExecStart=/usr/bin/redis-server --supervised systemd
 RestartSec=5s
-Restart=on-success
+Restart=always
 
 [Install]
 WantedBy=multi-user.target

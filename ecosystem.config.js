@@ -2,6 +2,7 @@ module.exports = {
   apps : [
       {
         name: "nodejs-twist-api",
+        cwd: "/home/nodejs/api/nodejs-twist-api",
         script: "./index.js",
         watch: false,
         env: {
