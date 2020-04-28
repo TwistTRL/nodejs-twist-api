@@ -1,10 +1,9 @@
 /*
- * @Author: Peng 
- * @Date: 2020-01-21 11:53:31 
+ * @Author: Peng
+ * @Date: 2020-01-21 11:53:31
  * @Last Modified by: Peng
- * @Last Modified time: 2020-02-25 14:53:21
+ * @Last Modified time: 2020-04-28 15:27:13
  */
-
 
 const database = require("../services/database");
 const {
@@ -12,13 +11,11 @@ const {
   getSingleRawResult,
   CAT_VITAL_TYPE_ARRAY,
   SQLVitalTypeDict,
-  SQLVitalTypeDict2ndChoice
+  SQLVitalTypeDict2ndChoice,
 } = require("../db_relation/vitals-db-relation");
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
-const {
-  getSingleVitalCALCResult
-} = require("../db_relation/vitals-calc-relation")
+const { getSingleVitalCALCResult } = require("../db_relation/vitals-calc-relation");
 
 const cat2 = "data_type";
 const cat3 = "data_resolution";
@@ -32,35 +29,35 @@ const cat3Array = ["1D", "12H", "5H", "5M"];
 const DATATYPE = Object.freeze({
   BINNED: "binned",
   CALC: "calc",
-  RAW: "raw"
+  RAW: "raw",
+  TEMP_RAW: "temp_raw",
 });
-
 
 var timeLable = 0;
 
 function _getQueryType(query) {
   if (Object.entries(query).length === 0 && query.constructor === Object) {
     console.error("query empty");
-    throw new InputInvalidError('Input not valid, so query is empty.');
+    throw new InputInvalidError("Input not valid, so query is empty.");
   }
 
   if (!isValidJson.validate_vitals_sampled(query) && !isValidJson.validate_vitals_raw(query)) {
     console.warn(query + " : not json");
-    throw new InputInvalidError('Input not in valid json');
+    throw new InputInvalidError("Input not in valid json");
   }
 
   if (!CAT_VITAL_TYPE_ARRAY.includes(query[catVitalType])) {
     console.warn("catVitalType no included: " + query[catVitalType]);
-    throw new InputInvalidError('vital_type not valid: ' + query[catVitalType] + '. \nAll vital_type: "mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp".');
+    throw new InputInvalidError(
+      "vital_type not valid: " + query[catVitalType] + '. \nAll vital_type: "mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp".'
+    );
   }
   if (query[catPersonId] == null) {
     console.warn("catPersonId is null");
-    throw new InputInvalidError('person_id is null');
+    throw new InputInvalidError("person_id is null");
   }
 
-
   if (query[cat2] != null) {
-
     if (!cat2Array.includes(query[cat2])) {
       throw new InputInvalidError('"data_type" is not valid. All "data_type": "binned", "calc".');
     }
@@ -86,6 +83,10 @@ function _getQueryType(query) {
   } else if (query[catTo] > currentTime + 10) {
     query[catTo] = currentTime;
   }
+  if (query[catVitalType] === "temp") {
+    console.log("type: get temperature raw");
+    return DATATYPE.TEMP_RAW;
+  }
   console.log("v2 type: get raw");
   return DATATYPE.RAW;
 }
@@ -97,16 +98,16 @@ function _getSqlTable(query) {
   if (query[cat2] == "binned") {
     switch (query[cat3]) {
       case "1D":
-        sqlTable = "STAGING_VITALS_BIN_1D"
+        sqlTable = "STAGING_VITALS_BIN_1D";
         break;
       case "12H":
-        sqlTable = "STAGING_VITALS_BIN_12H"
+        sqlTable = "STAGING_VITALS_BIN_12H";
         break;
       case "5H":
-        sqlTable = "STAGING_VITALS_BIN_5H"
+        sqlTable = "STAGING_VITALS_BIN_5H";
         break;
       case "5M":
-        sqlTable = "STAGING_VITALS_BIN_5M"
+        sqlTable = "STAGING_VITALS_BIN_5M";
         break;
       default:
         console.log("error for query.cat3");
@@ -115,16 +116,16 @@ function _getSqlTable(query) {
   } else if (query[cat2] == "calc") {
     switch (query[cat3]) {
       case "1D":
-        sqlTable = "STAGING_VITALS_CALC_1D"
+        sqlTable = "STAGING_VITALS_CALC_1D";
         break;
       case "12H":
-        sqlTable = "STAGING_VITALS_CALC_12H"
+        sqlTable = "STAGING_VITALS_CALC_12H";
         break;
       case "5H":
-        sqlTable = "STAGING_VITALS_CALC_5H"
+        sqlTable = "STAGING_VITALS_CALC_5H";
         break;
       case "5M":
-        sqlTable = "STAGING_VITALS_CALC_5M"
+        sqlTable = "STAGING_VITALS_CALC_5M";
         break;
       default:
         console.log("error for query.cat3");
@@ -136,24 +137,92 @@ function _getSqlTable(query) {
   return sqlTable;
 }
 
+//~~~~~~~~~~~~~~~~~~~~~ temperature raw ~~~~~~~~~~~~
+// get raw temperature between two timestamp
+// temperature raw is different from other vitals data: from VITAL_V500 and VITALS
+
+const SQL_GET_TEMP_V500_RAW = (person_id, from, to) => `
+SELECT
+  DTUNIX,
+  TEMPERATURE,
+  TEMPERATURE_ESOPH,
+  TEMPERATURE_SKIN
+FROM VITAL_V500
+WHERE PERSON_ID = ${person_id}
+AND DTUNIX >= ${from} AND DTUNIX <= ${to}
+AND (TEMPERATURE IS NOT NULL
+   OR TEMPERATURE_ESOPH IS NOT NULL
+   OR TEMPERATURE_SKIN IS NOT NULL)
+ORDER BY DTUNIX`;
+
+const SQL_GET_TEMP_VITALS_RAW = (person_id, from, to) => `
+SELECT
+  TEMP1,
+  DTUNIX
+FROM VITALS
+WHERE PERSON_ID = ${person_id}
+AND DTUNIX >= ${from} AND DTUNIX <= ${to}
+AND TEMP1 IS NOT NULL
+ORDER BY DTUNIX`;
+
+async function tempVitalSQLExecutor(conn, query) {
+  console.log("~~SQL for get raw temp from V500: ", SQL_GET_TEMP_V500_RAW(query.person_id, query.from, query.to));
+  // console.time("temp-vitals");
+  let raw1 = await conn.execute(SQL_GET_TEMP_V500_RAW(query.person_id, query.from, query.to));
+  // console.timeEnd("temp-vitals");
+  console.log("~~SQL for get raw temp from VITALS: ", SQL_GET_TEMP_VITALS_RAW(query.person_id, query.from, query.to));
+  let raw2 = await conn.execute(SQL_GET_TEMP_VITALS_RAW(query.person_id, query.from, query.to));
+
+  let result = [];
+  if (raw1.rows && raw1.rows.length) {
+    raw1.rows.forEach((element) => {
+      let time = element.DTUNIX;
+      let value;
+      let type;
+      if (element.TEMPERATURE) {
+        value = element.TEMPERATURE;
+        type = "TEMPERATURE";
+      } else if (element.TEMPERATURE_ESOPH) {
+        value = element.TEMPERATURE_ESOPH;
+        type = "TEMPERATURE_ESOPH";
+      } else {
+        value = element.TEMPERATURE_SKIN;
+        type = "TEMPERATURE_SKIN";
+      }
+      result.push({ time, value, type });
+    });
+  }
+  if (raw2.rows && raw2.rows.length) {
+    raw2.rows.forEach((element) => {
+      let time = element.DTUNIX;
+      let value = element.TEMP1;
+      let type = "VITALS";
+      result.push({ time, value, type });
+    });
+  }
+
+  console.log('temperature result.length :>> ', result.length);
+  return result.sort((a, b) => a.time - b.time);
+}
+
 
 //~~~~~~~~~~~~~~~~~~~~~ raw ~~~~~~~~~~~~
 // get raw vitals between two timestamp
 const SQL_GET_RAW_PART1 = `
 SELECT
-`
+`;
 const SQL_GET_RAW_PART2 = `, 
   DTUNIX
 FROM VITALS
-WHERE PERSON_ID = `
+WHERE PERSON_ID = `;
 
 const SQL_GET_RAW_PART3 = `
-AND DTUNIX > `
+AND DTUNIX > `;
 
-const SQL_GET_RAW_PART4 = ` AND DTUNIX < `
+const SQL_GET_RAW_PART4 = ` AND DTUNIX < `;
 const SQL_GET_RAW_PART5 = ` 
 ORDER BY DTUNIX
-`
+`;
 
 /**
  * query:
@@ -170,35 +239,49 @@ ORDER BY DTUNIX
 async function vitalsRawQuerySQLExecutor(conn, query) {
   let timestamp = timeLable++;
 
-  console.time('getVitalRaw' + timestamp);
+  console.time("getVitalRaw" + timestamp);
   let vitalType = SQLVitalTypeDict[query[catVitalType]];
   console.log("vitalType: ", vitalType);
   let vitalType2nd = SQLVitalTypeDict2ndChoice[query[catVitalType]];
   console.log("vitalType2nd: ", vitalType2nd);
 
-  let SQL_GET_RAW = SQL_GET_RAW_PART1 + vitalType +
-    SQL_GET_RAW_PART2 + query[catPersonId] + SQL_GET_RAW_PART3 + query[catFrom] * 1 +
-    SQL_GET_RAW_PART4 + query[catTo] * 1 + SQL_GET_RAW_PART5;
+  let SQL_GET_RAW =
+    SQL_GET_RAW_PART1 +
+    vitalType +
+    SQL_GET_RAW_PART2 +
+    query[catPersonId] +
+    SQL_GET_RAW_PART3 +
+    query[catFrom] * 1 +
+    SQL_GET_RAW_PART4 +
+    query[catTo] * 1 +
+    SQL_GET_RAW_PART5;
 
   console.log("get raw sql: ", SQL_GET_RAW);
-  console.time('getVitalRaw-1st ' + timestamp);
+  console.time("getVitalRaw-1st " + timestamp);
   let rawRecord = await conn.execute(SQL_GET_RAW);
-  console.timeEnd('getVitalRaw-1st ' + timestamp);
+  console.timeEnd("getVitalRaw-1st " + timestamp);
 
   let rawRecord2nd;
   if (vitalType2nd) {
-    let SQL_GET_RAW_2nd = SQL_GET_RAW_PART1 + vitalType2nd +
-      SQL_GET_RAW_PART2 + query[catPersonId] + SQL_GET_RAW_PART3 + query[catFrom] * 1 +
-      SQL_GET_RAW_PART4 + query[catTo] * 1 + SQL_GET_RAW_PART5;
+    let SQL_GET_RAW_2nd =
+      SQL_GET_RAW_PART1 +
+      vitalType2nd +
+      SQL_GET_RAW_PART2 +
+      query[catPersonId] +
+      SQL_GET_RAW_PART3 +
+      query[catFrom] * 1 +
+      SQL_GET_RAW_PART4 +
+      query[catTo] * 1 +
+      SQL_GET_RAW_PART5;
 
     console.log("get raw sql_2nd: ", SQL_GET_RAW_2nd);
-    console.time('getVitalRaw-2nd ' + timestamp);
+    console.time("getVitalRaw-2nd " + timestamp);
     rawRecord2nd = await conn.execute(SQL_GET_RAW_2nd);
-    console.timeEnd('getVitalRaw-2nd ' + timestamp);
+    console.timeEnd("getVitalRaw-2nd " + timestamp);
   }
 
   let jsonString = _calculateRawRecords(rawRecord, vitalType, rawRecord2nd, vitalType2nd);
-  console.timeEnd('getVitalRaw' + timestamp);
+  console.timeEnd("getVitalRaw" + timestamp);
   return jsonString;
 }
 
@@ -214,7 +297,7 @@ function _calculateRawRecords(rawRecord, vitalType, rawRecord2nd, vitalType2nd) 
     }
 
     for (let row of arr) {
-      //example row = {"HR_EKG": 100, "DTUNIX": "1524700800"}  
+      //example row = {"HR_EKG": 100, "DTUNIX": "1524700800"}
       if (row[vitalType] == null) {
         // skip null value vital records;
         continue;
@@ -309,22 +392,21 @@ SELECT
   LMT_END 
 FROM DEF_VITALS_LMT
 WHERE VITAL_TYPE = 
-`
+`;
 const SQL_PART1 = `
 SELECT
   START_TM,
   END_TM,
   BIN_ID,
   VAL
-FROM `
+FROM `;
 
 const SQL_PART2 = `
-WHERE PERSON_ID = `
+WHERE PERSON_ID = `;
 
 const SQL_PART3 = `
 ORDER BY START_TM
-`
-
+`;
 
 /**
  * 
@@ -344,7 +426,7 @@ ORDER BY START_TM
  */
 async function vitalsBinnedQuerySQLExecutor(conn, query) {
   let timestamp = timeLable++;
-  console.time('getVitalBinned' + timestamp);
+  console.time("getVitalBinned" + timestamp);
 
   let vitalType = SQLVitalTypeDict[query[catVitalType]];
   let sqlDict = SQL_GET_DICT + "'" + vitalType + "'";
@@ -358,10 +440,9 @@ async function vitalsBinnedQuerySQLExecutor(conn, query) {
 
   let sqlQuery = SQL_PART1 + sqlTable + SQL_PART2 + person_id + ` AND BIN_ID >= ` + minBinId + ` AND BIN_ID <= ` + maxBinId + SQL_PART3;
   console.log("sqlQuery = ", sqlQuery);
-  console.time('getVitalBinned-1st ' + timestamp);
+  console.time("getVitalBinned-1st " + timestamp);
   let vitalsRecords = await conn.execute(sqlQuery);
-  console.timeEnd('getVitalBinned-1st ' + timestamp);
-
+  console.timeEnd("getVitalBinned-1st " + timestamp);
 
   let timeInterval = convertTimeInterval(query[cat3]);
   let vitalType2nd = SQLVitalTypeDict2ndChoice[query[catVitalType]];
@@ -378,18 +459,17 @@ async function vitalsBinnedQuerySQLExecutor(conn, query) {
 
     let sqlQuery2nd = SQL_PART1 + sqlTable + SQL_PART2 + person_id + ` AND BIN_ID >= ` + minBinId2nd + ` AND BIN_ID <= ` + maxBinId2nd + SQL_PART3;
     console.log("sqlQuery2nd = ", sqlQuery2nd);
-    console.time('getVitalBinned-2nd ' + timestamp);
+    console.time("getVitalBinned-2nd " + timestamp);
     let vitalsRecords2nd = await conn.execute(sqlQuery2nd);
-    console.timeEnd('getVitalBinned-2nd ' + timestamp);
+    console.timeEnd("getVitalBinned-2nd " + timestamp);
     let binnedResult = _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsRecords, vitalType2nd, mapDictResult, vitalsRecords2nd);
-    console.timeEnd('getVitalBinned' + timestamp);
+    console.timeEnd("getVitalBinned" + timestamp);
     return binnedResult;
   }
 
   let binnedResult = _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsRecords);
-  console.timeEnd('getVitalBinned' + timestamp);
+  console.timeEnd("getVitalBinned" + timestamp);
   return binnedResult;
-
 }
 
 function getMinMaxBinId(dictRecord) {
@@ -408,7 +488,15 @@ function getMinMaxBinId(dictRecord) {
   return [minBinId, maxBinId, dictResult];
 }
 
-function _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsRecords, vitalType2nd = null, mapDictResult = null, vitalsRecords2nd = null) {
+function _calculateBinnedRecords(
+  vitalType,
+  dictResult,
+  timeInterval,
+  vitalsRecords,
+  vitalType2nd = null,
+  mapDictResult = null,
+  vitalsRecords2nd = null
+) {
   var result = [dictResult];
   // vitalsRecords = {"metadata":[], "rows":[]}
   var arr1 = vitalsRecords.rows;
@@ -427,16 +515,14 @@ function _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsReco
     let h1 = 0; // index of arr1
     let h2 = 0; // index of arr2
     while (h1 < arr1.length && h2 < arr2.length) {
-
-
       // todo remove this later
-      if ( !(arr2[h2].START_TM - records_start_time) % timeInterval && (arr2[h2].START_TM - records_start_time)) {
+      if (!(arr2[h2].START_TM - records_start_time) % timeInterval && arr2[h2].START_TM - records_start_time) {
         console.warn("1 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
-        console.log('records_start_time :', records_start_time);
-        console.log('arr1[0].START_TM :', arr1[0].START_TM);
-        console.log('arr2[0].START_TM :', arr2[0].START_TM);
+        console.log("records_start_time :", records_start_time);
+        console.log("arr1[0].START_TM :", arr1[0].START_TM);
+        console.log("arr2[0].START_TM :", arr2[0].START_TM);
 
-        console.log('timeInterval :', timeInterval);
+        console.log("timeInterval :", timeInterval);
       }
 
       if (arr1[h1].START_TM == arr2[h2].START_TM) {
@@ -444,13 +530,13 @@ function _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsReco
 
         if (arr1[h1].END_TM * 1 - arr1[h1].START_TM * 1 != timeInterval) {
           console.warn("2 Error for " + vitalType + " with " + arr1[h1].START_TM + ", " + arr1[h1].END_TM);
-          console.log('records_start_time :', records_start_time);
-          console.log('timeInterval :', timeInterval);
+          console.log("records_start_time :", records_start_time);
+          console.log("timeInterval :", timeInterval);
         }
         if (arr2[h2].END_TM * 1 - arr2[h2].START_TM * 1 != timeInterval) {
           console.warn("3 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
-          console.log('records_start_time :', records_start_time);
-          console.log('timeInterval :', timeInterval);
+          console.log("records_start_time :", records_start_time);
+          console.log("timeInterval :", timeInterval);
         }
 
         if (currentStartTM != arr1[h1].START_TM) {
@@ -469,8 +555,8 @@ function _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsReco
 
         if (arr2[h2].END_TM * 1 - arr2[h2].START_TM * 1 != timeInterval) {
           console.warn("4 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
-          console.log('records_start_time :', records_start_time);
-          console.log('timeInterval :', timeInterval);
+          console.log("records_start_time :", records_start_time);
+          console.log("timeInterval :", timeInterval);
         }
 
         if (currentStartTM != arr2[h2].START_TM) {
@@ -507,8 +593,8 @@ function _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsReco
     while (h2 < arr2.length) {
       if (arr2[h2].END_TM * 1 - arr2[h2].START_TM * 1 != timeInterval) {
         console.warn("5 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
-        console.log('records_start_time :', records_start_time);
-        console.log('timeInterval :', timeInterval);
+        console.log("records_start_time :", records_start_time);
+        console.log("timeInterval :", timeInterval);
       }
 
       if (currentStartTM != arr2[h2].START_TM) {
@@ -555,8 +641,8 @@ function _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsReco
       // if timeInterval is "12H", every end_tm is larger than start_tm 12 hours or 43200 seconds
       if (vitalsRecord.END_TM * 1 - vitalsRecord.START_TM * 1 != timeInterval) {
         console.warn("6 Error for " + timeInterval + " with " + vitalsRecord.START_TM + ", " + vitalsRecord.END_TM);
-        console.log('vitalsRecord.START_TM :', vitalsRecord.START_TM);
-        console.log('timeInterval :', timeInterval);
+        console.log("vitalsRecord.START_TM :", vitalsRecord.START_TM);
+        console.log("timeInterval :", timeInterval);
       }
 
       // start_time was sorted when sql query done.
@@ -564,7 +650,6 @@ function _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsReco
       // for a new currentStartTM, create a new binDict with timestamp and binString with default value "0"
       var singleResult;
       if (currentStartTM != vitalsRecord.START_TM) {
-
         if (currentStartTM != 0) {
           result.push(singleResult);
         } else {
@@ -587,10 +672,7 @@ function _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsReco
     }
     return result;
   }
-
-
 }
-
 
 function getBinIdMapDictResult(dictResult, dictResult2nd) {
   let keyMap = {};
@@ -621,19 +703,19 @@ SELECT
   VAL_PERC95,
   VAL_PERC99,
   VAL_MAX
-FROM `
+FROM `;
 
 const SQL_CALC_PART2 = `
-WHERE PERSON_ID = `
+WHERE PERSON_ID = `;
 
-const SQL_CALC_PART3 = ` AND VITAL_TYPE = '`
+const SQL_CALC_PART3 = ` AND VITAL_TYPE = '`;
 const SQL_CALC_PART4 = `'
-ORDER BY START_TM`
+ORDER BY START_TM`;
 
 async function vitalsCalcQuerySQLExecutor(conn, query) {
   let timestamp = timeLable++;
 
-  console.time('getVitalCalc-total' + timestamp);
+  console.time("getVitalCalc-total" + timestamp);
   let sqlTable = _getSqlTable(query);
   console.log("calc sqlTable = ", sqlTable);
   let person_id = query[catPersonId];
@@ -645,21 +727,20 @@ async function vitalsCalcQuerySQLExecutor(conn, query) {
   let sqlQuery = SQL_CALC_PART1 + sqlTable + SQL_CALC_PART2 + person_id + SQL_CALC_PART3 + vitalType + SQL_CALC_PART4;
   console.log("sqlQuery = ", sqlQuery);
 
-  console.time('getVitalCalc-1st' + timestamp);
+  console.time("getVitalCalc-1st" + timestamp);
   let vitalsRecords = await conn.execute(sqlQuery);
-  console.timeEnd('getVitalCalc-1st' + timestamp);
+  console.timeEnd("getVitalCalc-1st" + timestamp);
 
   let vitalsRecords2nd;
   if (vitalType2nd) {
     let sqlQuery2nd = SQL_CALC_PART1 + sqlTable + SQL_CALC_PART2 + person_id + SQL_CALC_PART3 + vitalType2nd + SQL_CALC_PART4;
     console.log("sqlQuery2nd = ", sqlQuery2nd);
-    console.time('getVitalCalc-2nd ' + timestamp);
+    console.time("getVitalCalc-2nd " + timestamp);
     vitalsRecords2nd = await conn.execute(sqlQuery2nd);
-    console.timeEnd('getVitalCalc-2nd ' + timestamp);
+    console.timeEnd("getVitalCalc-2nd " + timestamp);
   }
 
   let timeInterval = convertTimeInterval(query[cat3]);
-
 
   if (!vitalType2nd && !vitalsRecords2nd) {
     // only 1 source
@@ -676,7 +757,6 @@ async function vitalsCalcQuerySQLExecutor(conn, query) {
       // if timeString is "12H", every end_tm is larger than start_tm 12 hours or 43200 seconds
       if (vitalRecord.END_TM * 1 - vitalRecord.START_TM * 1 != timeInterval) {
         console.log("7 Error for " + timeInterval + " with " + vitalRecord.START_TM + ", " + vitalRecord.END_TM);
-        
       }
 
       // start_time was sorted when sql query done.
@@ -684,15 +764,13 @@ async function vitalsCalcQuerySQLExecutor(conn, query) {
       let singleResult = getSingleVitalCALCResult(vitalRecord);
       result.push(singleResult);
     }
-    console.timeEnd('getVitalCalc-total' + timestamp);
+    console.timeEnd("getVitalCalc-total" + timestamp);
     return result;
-
   } else if (!vitalType2nd || !vitalsRecords2nd) {
     console.log("Error  vitalType2nd = ", vitalType2nd);
   } else {
     return combine2CalcResults(vitalsRecords, vitalType, vitalsRecords2nd, vitalType2nd, timeInterval);
   }
-
 }
 
 function combine2CalcResults(vitalsRecords, vitalType, vitalsRecords2nd, vitalType2nd, timeInterval) {
@@ -709,25 +787,22 @@ function combine2CalcResults(vitalsRecords, vitalType, vitalsRecords2nd, vitalTy
   let h2 = 0; // index of arr2
   let count2nd = 0;
   while (h1 < arr1.length && h2 < arr2.length) {
-
-    if ((arr2[h2].START_TM - records_start_time) && !(arr2[h2].START_TM - records_start_time) % timeInterval) {
+    if (arr2[h2].START_TM - records_start_time && !(arr2[h2].START_TM - records_start_time) % timeInterval) {
       console.warn("8 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
-      console.log('records_start_time :', records_start_time);
-      console.log('timeInterval :', timeInterval);
-
+      console.log("records_start_time :", records_start_time);
+      console.log("timeInterval :", timeInterval);
     }
-
 
     if (arr1[h1].END_TM * 1 - arr1[h1].START_TM * 1 != timeInterval) {
       console.log("9 Error for " + vitalType + " with " + arr1[h1].START_TM + ", " + arr1[h1].END_TM);
-      console.log('records_start_time :', records_start_time);
-      console.log('timeInterval :', timeInterval);
+      console.log("records_start_time :", records_start_time);
+      console.log("timeInterval :", timeInterval);
     }
 
     if (arr2[h2].END_TM * 1 - arr2[h2].START_TM * 1 != timeInterval) {
       console.log("10 Error for " + vitalType2nd + " with " + arr2[h2].START_TM + ", " + arr2[h2].END_TM);
-      console.log('records_start_time :', records_start_time);
-      console.log('timeInterval :', timeInterval);
+      console.log("records_start_time :", records_start_time);
+      console.log("timeInterval :", timeInterval);
     }
 
     if (arr1[h1].START_TM == arr2[h2].START_TM) {
@@ -788,22 +863,21 @@ function convertTimeInterval(timeString) {
   }
 }
 
-
-
-
 const getVitalsQueryV2 = database.withConnection(async function (conn, query) {
   console.log("getVitalsQueryV2: query = ", query);
   if (_getQueryType(query) == DATATYPE.BINNED) {
     return await vitalsBinnedQuerySQLExecutor(conn, query);
   } else if (_getQueryType(query) == DATATYPE.CALC) {
     return await vitalsCalcQuerySQLExecutor(conn, query);
+  } else if (_getQueryType(query) == DATATYPE.TEMP_RAW) {
+    return await tempVitalSQLExecutor(conn, query);
   } else if (_getQueryType(query) == DATATYPE.RAW) {
     return await vitalsRawQuerySQLExecutor(conn, query);
   } else {
-    throw new InputInvalidError('_getQueryType ERROR');
+    throw new InputInvalidError("_getQueryType ERROR");
   }
 });
 
 module.exports = {
-  getVitalsQueryV2
+  getVitalsQueryV2,
 };

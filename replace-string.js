@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-01-28 10:45:44
- * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-04-03 22:08:48
+ * @Last Modified by: Peng
+ * @Last Modified time: 2020-04-28 11:19:53
  */
 
 const replace = require("replace-in-file");
@@ -11,8 +11,7 @@ const path = require("path");
 const XLSX = require("xlsx");
 const HOSTNAME = require('os').hostname();
 const HOST_NAME_AND_PORT = "HOST_NAME_AND_PORT";
-const { IN_OUT_CODES_XLSX_PATH } = require("./db_relation/in-out-db-relation");
-const { MED_CAT_XLSX_PATH } = require("./db_relation/drug-category-relation");
+const { MED_CAT_XLSX_PATH, IN_OUT_CODES_XLSX_PATH, MICROBIOLOGY_CODES_XLSX_PATH } = require("twist-xlsx");
 
 const toHostAndPort = HOSTNAME + ":" + process.env.HTTP_PORT;
 
@@ -69,6 +68,7 @@ function copyXlsxFile() {
   // inoutcode.xlsx will be created or overwritten by default.
   const NEW_PATH_IN_OUT = path.join(__dirname, "./docs/files/inoutcode.xlsx");
   const NEW_PATH_MED_CAT = path.join(__dirname, "./docs/files/medcat.xlsx");
+  const NEW_PATH_MICROBIOLOGY = path.join(__dirname, "./docs/files/microbiologyorders.xlsx");
 
   const docsDir = path.join(__dirname, "docs");
   const filesDir = path.join(docsDir, "files");
@@ -147,6 +147,41 @@ function copyXlsxFile() {
           // console.log("Saved json file for medcat!");
         });
       });
+
+      fs.copyFile(MICROBIOLOGY_CODES_XLSX_PATH, NEW_PATH_MICROBIOLOGY, err => {
+        if (err) throw err;
+
+        let workbook = XLSX.readFile(NEW_PATH_MICROBIOLOGY);
+        // let sheet_name_list = workbook.SheetNames;
+        // let MED_CAT_JSON = XLSX.utils.sheet_to_json(workbook.Sheets[sheet_name_list[0]]);
+        // let datatable_array = MED_CAT_JSON.map(item => [
+        //   item.RXCUI,
+        //   item.MEDICATION,
+        //   item["TWIST CLASS"],
+        //   item["CLASS TITLE"],
+        //   item.WITHIN_CLASS_DISPLAY_HIERARCHY,
+        //   item.Route,
+        //   item["Equivalents (mg)"],
+        //   item.Comments,
+        //   item.DRUG_CLASS,
+        //   item.DRUG_CLASS_MoA,
+        //   item.DRUG_CLASS_THERAPEUTIC
+        // ]);
+        // let datatable_json = { data: datatable_array };
+
+        fs.writeFile("./docs/files/xlsx_microbiology.log", new Date().toString(), function(err) {
+          if (err) throw err;
+          // console.log("Saved current time for medcat!");
+        });
+
+        // fs.writeFile("./docs/files/xlsx_microbiology.json", JSON.stringify(datatable_json), function(
+        //   err
+        // ) {
+        //   if (err) throw err;
+        //   // console.log("Saved json file for medcat!");
+        // });
+      });
+
     });
   });
 }

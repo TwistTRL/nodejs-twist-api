@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-21 23:40:11
+ * @Last Modified time: 2020-04-28 11:06:22
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -221,7 +221,7 @@ router.post("/labs", async (req, res) => {
 /**
  * @api {get} /person/:person_id/labsv2 Labs for Patient V2
  * @apiVersion 0.0.2
- * @apiName Get Patient Labs V2
+ * @apiName get-patient-labs-v2
  * @apiGroup Person
  * @apiParam {Number} person_id patient unique ID.
  *
@@ -889,137 +889,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
   getApiFromRedis(res, getInOutTooltipQueryV2, new_query, "interface-inout-tooltip");
 });
 
-// ~~~~~~~~-----------------------------
-/**
- * @api {post} /vitals Binned api/vitals
- * @apiVersion 0.0.2
- * @apiName Get Vitals Binned
- * @apiGroup Vitals
- * @apiDeprecated use now (#Vitals:get-binned-vitals).
- * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
- * @apiParam {String="binned"} data_type Type of data.
- * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
- * @apiParamExample {json} POST json example
-        {
-          "person_id": EXAMPLE_PERSON_ID,
-          "vital_type": "mbp",
-          "data_type": "binned",
-          "data_resolution": "1D"
-        }
 
-  * @apiSuccess {String} bin_id BIN_ID in Table 'DEF_VITALS_LMT' in DWTST-Schema.
-  * @apiSuccess {Number} lmt_st LMT_ST in Table 'DEF_VITALS_LMT' in DWTST-Schema.
-  * @apiSuccess {Number} lmt_end LMT_END in Table 'DEF_VITALS_LMT' in DWTST-Schema.
-  * @apiSuccess {Number} value Value number of this BIN_ID lab during from and to timestamps.
-  * @apiSuccess {Number} from_timestamp UNIX timestamp seconds for start time.
-  * @apiSuccess {Number} to_timestamp UNIX timestamp seconds for end time.
-  * @apiSuccess {Number} average_timestamp UNIX timestamp seconds for average of start and end time.
-  * @apiSuccessExample Success-Response:
-  *      
-  *     [
-            {
-              bin_id : [lmt_st, lmt_end],
-              ...
-            },
-            {
-              bin_id: value,
-              ...
-              "from" : from_timestamp,
-              "to" : to_timestamp,
-              "time" : average_timestamp
-            }
-        ]
-
-  *
-  */
-
-/**
- * @api {post} /vitals Calc api/vitals
- * @apiVersion 0.0.2
- * @apiName Get Vitals Calc
- * @apiGroup Vitals
- * @apiDeprecated use now (#Vitals:get-calc-vitals).
- * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
- * @apiParam {String="calc"} data_type Type of data.
- * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
- * @apiParamExample {json} POST json example
-        {
-          "person_id": EXAMPLE_PERSON_ID,
-          "vital_type": "mbp",
-          "data_type": "calc",
-          "data_resolution": "1D"
-        }
-
- * @apiSuccess {String} perc Percentile String such as "perc25".
- * @apiSuccess {Number} perc_value Value of this percentile.
- * @apiSuccess {Number} mean_value Value of VAL_MEAN.
- * @apiSuccess {Number} timestamp UNIX timestamp seconds of average start and end time.
- * @apiSuccessExample Success-Response:
- *      
- *     [
-          {
-            perc: perc_value,
-            ...
-            "mean": mean_value,
-            "time": timestamp
-          },
-          ...
-       ]
- *
- */
-
-/**
- * @api {post} /vitals Raw api/vitals
- * @apiVersion 0.0.2
- * @apiName Get Vitals Raw
- * @apiGroup Vitals
- * @apiDeprecated use now (#Vitals:get-raw-vitals).
- * @apiDescription Request vitals raw data from POST json
- * 
- * from table `VITALS`
- * 
- * null value vital records are skiped.
- *
- * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
- * @apiParam {Number} from Start timestamp.
- * @apiParam {Number} to End timestamp.
- * @apiParamExample {json} Example of request vitals raw data
-        {
-          "person_id": EXAMPLE_PERSON_ID,
-          "vital_type": "mbp",
-          "from":1542014000,
-          "to":1542018000
-        }
- * @apiSuccess {Number} value Vitals raw data.
- * @apiSuccess {Number} timestamp time in Unix seconds.
- * @apiSuccessExample Success-Response:
- *      
-      [
-        {
-          "value": value,
-          "time": timestamp
-        },
-        ...
-      ]
- *
- */
-
-router.post("/vitals", async (req, res) => {
-  const query = req.body;
-  try {
-    const toSend = await getVitalsQuery(query);
-    res.send(toSend);
-    return;
-  } catch (e) {
-    console.log(new Date());
-    console.log(e);
-    res.status(400);
-    res.send(e.toString());
-  }
-});
 
 /**
  * @api {post} /vitalsv2 V2 Binned vitals
@@ -1176,6 +1046,8 @@ router.post("/vitals", async (req, res) => {
 router.post("/vitalsv2", async (req, res) => {
   let query = req.body;
   query.person_id = Number(query.person_id);
+  query.from = Number(query.from);
+  query.to = Number(query.to);
   try {
     const toSend = await getVitalsQueryV2(query);
     res.send(toSend);
@@ -1188,58 +1060,7 @@ router.post("/vitalsv2", async (req, res) => {
   }
 });
 
-/**
- * @api {post} /vitals/temperature Temperature
- * @apiVersion 0.0.1
- * @apiName get-temperature
- * @apiGroup Vitals
- * @apiDescription 
- * 
- * From table `VITAL_V500`, get temperature data
- * 
- * from column `TEMPERATURE` then `TEMPERATURE_ESOPH` then `TEMPERATURE_SKIN` then table `VITALS`
- * 
- * if all three columns are null value then skiped.
- * 
- * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {Number} from Start timestamp.
- * @apiParam {Number} to End timestamp.
- * @apiParamExample {json} Example of request vitals raw data
-        {
-          "person_id": EXAMPLE_PERSON_ID,
-          "from":1542014000,
-          "to":1542018000
-        }
- * @apiSuccess {String="TEMPERATURE", "TEMPERATURE_ESOPH", "TEMPERATURE_SKIN", "VITALS"} type temperature source.
- * @apiSuccess {String} value temperature value String.
- * @apiSuccess {Number} time timestamp in Unix seconds.
- * @apiSuccessExample Success-Response:
- *      
-      [
-        {
-        "time": 1542014000,
-        "value": "37.2",
-        "type": "TEMPERATURE_ESOPH"
-        },
-        ...
-      ]
- *
- */
 
-router.post("/vitals/temperature", async (req, res) => {
-  let query = req.body;
-  query.person_id = Number(query.person_id);
-  try {
-    const toSend = await getTemp(query);
-    res.send(toSend);
-    return;
-  } catch (e) {
-    console.log(new Date());
-    console.log(e);
-    res.status(400);
-    res.send(e.toString());
-  }
-});
 
 // raw hr bewteen two timestamp
 
@@ -2514,6 +2335,7 @@ router.get("/FHIR/notes/:mrn", async (req, res) => {
  * @api {get} /person/:person_id/labs Labs for Patient
  * @apiVersion 0.0.1
  * @apiName Get Patient Labs
+ * @apiDeprecated use now (#Person:get-patient-labs-v2).
  * @apiGroup _Deprecated
  * @apiParam {Number} person_id patient unique ID.
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
@@ -2660,7 +2482,6 @@ router.post("/inout-tooltip", async (req, res) => {
  * @apiName Get in-out for patient
  * @apiGroup _Deprecated
  * @apiDeprecated use now (#Person:in-out-patient-V2).
-
  * @apiDescription 
  * Get in-out fluid data based on `person_id`, start time `from`, end time `to`, binned time resolution `resolution`, from table `INTAKE_OUTPUT` and `DRUG_DILUENTS`
  * 
@@ -2784,6 +2605,7 @@ router.get("/person/:person_id/nutrition/diluents", async (req, res) => {
  * @apiVersion 0.0.1
  * @apiName TPN-nutrients-for-patient
  * @apiGroup _Deprecated
+ * @apiDeprecated use now (#Person:nutrients-volume).
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
  *  {
@@ -2829,6 +2651,7 @@ router.get("/person/:person_id/nutrition/tpn", async (req, res) => {
  * @apiVersion 0.0.2
  * @apiName macro-nutrients-for-patient
  * @apiGroup _Deprecated
+ * @apiDeprecated use now (#Person:nutrients-volume).
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
  *  {
@@ -2879,6 +2702,7 @@ router.get("/person/:person_id/nutrition/macronutrients", async (req, res) => {
  * @apiVersion 0.0.1
  * @apiName Get Person Hr Binned
  * @apiGroup _Deprecated
+ * @apiDeprecated use now (#Vitals:get-raw-vitals).
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiSuccess {String} range Range of the binned heart rate, for example, "90-100".
@@ -2954,6 +2778,193 @@ router.get("/person/:person_id/vitals/hr/binned/5M", async (req, res) => {
     person_id,
   };
   res.send(await getHr5M(binds));
+});
+
+
+/**
+ * @api {post} /vitals/temperature Temperature
+ * @apiVersion 0.0.1
+ * @apiName get-temperature
+ * @apiGroup _Deprecated
+ * @apiDeprecated use now (#Vitals:get-raw-vitals).
+ * @apiDescription 
+ * 
+ * From table `VITAL_V500`, get temperature data
+ * 
+ * from column `TEMPERATURE` then `TEMPERATURE_ESOPH` then `TEMPERATURE_SKIN` then table `VITALS`
+ * 
+ * if all three columns are null value then skiped.
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {Number} from Start timestamp.
+ * @apiParam {Number} to End timestamp.
+ * @apiParamExample {json} Example of request vitals raw data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from":1542014000,
+          "to":1542018000
+        }
+ * @apiSuccess {String="TEMPERATURE", "TEMPERATURE_ESOPH", "TEMPERATURE_SKIN", "VITALS"} type temperature source.
+ * @apiSuccess {String} value temperature value String.
+ * @apiSuccess {Number} time timestamp in Unix seconds.
+ * @apiSuccessExample Success-Response:
+ *      
+      [
+        {
+        "time": 1542014000,
+        "value": "37.2",
+        "type": "TEMPERATURE_ESOPH"
+        },
+        ...
+      ]
+ *
+ */
+
+router.post("/vitals/temperature", async (req, res) => {
+  let query = req.body;
+  query.person_id = Number(query.person_id);
+  try {
+    const toSend = await getTemp(query);
+    res.send(toSend);
+    return;
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
+});
+
+// ~~~~~~~~-----------------------------
+/**
+ * @api {post} /vitals Binned api/vitals
+ * @apiVersion 0.0.2
+ * @apiName Get Vitals Binned
+ * @apiGroup _Deprecated
+ * @apiDeprecated use now (#Vitals:get-binned-vitals).
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
+ * @apiParam {String="binned"} data_type Type of data.
+ * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
+ * @apiParamExample {json} POST json example
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "vital_type": "mbp",
+          "data_type": "binned",
+          "data_resolution": "1D"
+        }
+
+  * @apiSuccess {String} bin_id BIN_ID in Table 'DEF_VITALS_LMT' in DWTST-Schema.
+  * @apiSuccess {Number} lmt_st LMT_ST in Table 'DEF_VITALS_LMT' in DWTST-Schema.
+  * @apiSuccess {Number} lmt_end LMT_END in Table 'DEF_VITALS_LMT' in DWTST-Schema.
+  * @apiSuccess {Number} value Value number of this BIN_ID lab during from and to timestamps.
+  * @apiSuccess {Number} from_timestamp UNIX timestamp seconds for start time.
+  * @apiSuccess {Number} to_timestamp UNIX timestamp seconds for end time.
+  * @apiSuccess {Number} average_timestamp UNIX timestamp seconds for average of start and end time.
+  * @apiSuccessExample Success-Response:
+  *      
+  *     [
+            {
+              bin_id : [lmt_st, lmt_end],
+              ...
+            },
+            {
+              bin_id: value,
+              ...
+              "from" : from_timestamp,
+              "to" : to_timestamp,
+              "time" : average_timestamp
+            }
+        ]
+
+  *
+  */
+
+/**
+ * @api {post} /vitals Calc api/vitals
+ * @apiVersion 0.0.2
+ * @apiName Get Vitals Calc
+ * @apiGroup _Deprecated
+ * @apiDeprecated use now (#Vitals:get-calc-vitals).
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
+ * @apiParam {String="calc"} data_type Type of data.
+ * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
+ * @apiParamExample {json} POST json example
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "vital_type": "mbp",
+          "data_type": "calc",
+          "data_resolution": "1D"
+        }
+
+ * @apiSuccess {String} perc Percentile String such as "perc25".
+ * @apiSuccess {Number} perc_value Value of this percentile.
+ * @apiSuccess {Number} mean_value Value of VAL_MEAN.
+ * @apiSuccess {Number} timestamp UNIX timestamp seconds of average start and end time.
+ * @apiSuccessExample Success-Response:
+ *      
+ *     [
+          {
+            perc: perc_value,
+            ...
+            "mean": mean_value,
+            "time": timestamp
+          },
+          ...
+       ]
+ *
+ */
+
+/**
+ * @api {post} /vitals Raw api/vitals
+ * @apiVersion 0.0.2
+ * @apiName Get Vitals Raw
+ * @apiGroup _Deprecateds
+ * @apiDeprecated use now (#Vitals:get-raw-vitals).
+ * @apiDescription Request vitals raw data from POST json
+ * 
+ * from table `VITALS`
+ * 
+ * null value vital records are skiped.
+ *
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
+ * @apiParam {Number} from Start timestamp.
+ * @apiParam {Number} to End timestamp.
+ * @apiParamExample {json} Example of request vitals raw data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "vital_type": "mbp",
+          "from":1542014000,
+          "to":1542018000
+        }
+ * @apiSuccess {Number} value Vitals raw data.
+ * @apiSuccess {Number} timestamp time in Unix seconds.
+ * @apiSuccessExample Success-Response:
+ *      
+      [
+        {
+          "value": value,
+          "time": timestamp
+        },
+        ...
+      ]
+ *
+ */
+
+router.post("/vitals", async (req, res) => {
+  const query = req.body;
+  try {
+    const toSend = await getVitalsQuery(query);
+    res.send(toSend);
+    return;
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
 });
 
 module.exports = router;
