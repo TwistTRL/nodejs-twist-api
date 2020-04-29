@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-05 22:12:07
+ * @Last Modified time: 2020-04-29 11:53:19
  */
 
 /**
@@ -24,7 +24,8 @@ const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
 const {
   EVENT_CD_DICT,
-  SL_ORDER_ARRAY
+  SL_ORDER_ARRAY,
+  CAT_ORDER_ARRAY,
 } = require("../db_relation/in-out-db-relation");
 const { getBinarySearchNearest } = require("./utils/binarySearchUtils");
 
@@ -864,6 +865,14 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
     });
   });
+
+// Order api/inout-tooltip-v2 by CAT_ORDER_ARRAY #15
+  for (const ts in inDict) {
+    inDict[ts].sort((a,b) => CAT_ORDER_ARRAY.indexOf(a.name) - CAT_ORDER_ARRAY.indexOf(b.name));
+  }
+  for (const ts in outDict) {
+    outDict[ts].sort((a,b) => CAT_ORDER_ARRAY.indexOf(a.name) - CAT_ORDER_ARRAY.indexOf(b.name));
+  }
 
   return [inDict, outDict];
 }

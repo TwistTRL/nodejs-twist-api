@@ -15,7 +15,7 @@ ExecStart=/usr/bin/pm2 start /home/nodejs/api/nodejs-twist-api/ecosystem.config.
 ExecReload=/usr/bin/pm2 reload all
 ExecStop=/usr/bin/pm2 kill
 
-Restart=always
+Restart=on-abnormal
 RestartSec=8
 
 [Install]

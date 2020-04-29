@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-13 17:23:49
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-26 21:27:20
+ * @Last Modified time: 2020-04-29 10:31:13
  */
 
 const isEmpty = require("lodash.isempty");
@@ -124,10 +124,9 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
   let retDict = {};
   let displayOrderDict;
 
-  let lastRecord;
+  let curSpeciesDesc;
 
   for (let record of arrMicbio) {
-    lastRecord = record;
     let od_st_d = record.OD_ST_D;
     let source = ODSTD_TO_SOURCE_DICT[od_st_d];
     let collect_time = new Date(record.COLLECT_DT_TM_UTC).getTime() / 1000;
@@ -143,12 +142,14 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
     if (record.ORDER_ID !== curOrderId) {
       if (curResult) {
         // changing ORDER_ID, push current result to retDict
+        // this mapreduce could be simplified
         if (displayOrderDict) {
           let display_log = Object.keys(displayOrderDict)
             .sort()
             .map((key) => displayOrderDict[key])
             .reduce((acc, cur) => [...acc, ...cur], []);
           curResult.tasks[curResult.tasks.length - 1].display_log = display_log;
+          curResult.species_desc = curSpeciesDesc;
         }
 
         if (curOrderId in sensDict) {
@@ -167,6 +168,14 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
             data.push(drugForBact);
           }
           curResult.sensitivity = { x, y, data };
+
+          // set order's species_desc as sensitivity.x[0]
+          let species_desc_from_x = getSpeciesString(x[0]);
+          if (curSpeciesDesc !== species_desc_from_x) {
+            console.log("curSpeciesDesc :>> ", curSpeciesDesc);
+            console.log("species_desc_from_x :>> ", species_desc_from_x);
+          }
+          curResult.species_desc = species_desc_from_x;
         }
 
         if (curSource in retDict) {
@@ -194,9 +203,9 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
           mnemonic_type,
           positive_ind,
           status,
-          species_desc,
         },
       ];
+      curSpeciesDesc = species_desc;
 
       if (record.DISPLAY_LOG !== "None") {
         displayOrderDict = {};
@@ -221,7 +230,6 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
         mnemonic_type,
         positive_ind,
         status,
-        species_desc,
       });
 
       if (record.DISPLAY_LOG !== "None") {
@@ -239,7 +247,7 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
         if (record.DISPLAY_ORDER in displayOrderDict) {
           // since `if records are different only at `EVENT_LOG_SEQ`, keep the last one.`
           // see Microbiology API documentation
-          console.log('this task_log_id has multiple display_log with the same display_order :>> ', task_log_id);
+          console.log("this task_log_id has multiple display_log with the same display_order :>> ", task_log_id);
           // displayOrderDict[record.DISPLAY_ORDER].push(record.DISPLAY_LOG);
         } else {
           displayOrderDict[record.DISPLAY_ORDER] = [record.DISPLAY_LOG];
@@ -257,6 +265,7 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
         .map((key) => displayOrderDict[key])
         .reduce((acc, cur) => [...acc, ...cur], []);
       curResult.tasks[curResult.tasks.length - 1].display_log = display_log;
+      curResult.species_desc = curSpeciesDesc;
     }
 
     if (curOrderId in sensDict) {
@@ -275,6 +284,14 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
         data.push(drugForBact);
       }
       curResult.sensitivity = { x, y, data };
+
+      // set order's species_desc as sensitivity.x[0]
+      let species_desc_from_x = getSpeciesString(x[0]);
+      if (curSpeciesDesc !== species_desc_from_x) {
+        console.log("curSpeciesDesc :>> ", curSpeciesDesc);
+        console.log("species_desc_from_x :>> ", species_desc_from_x);
+      }
+      curResult.species_desc = species_desc_from_x;
     }
 
     if (curSource in retDict) {
