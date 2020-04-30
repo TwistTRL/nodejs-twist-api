@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-29 21:48:09
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-29 23:03:55
+ * @Last Modified time: 2020-04-30 10:02:57
  */
 
 const { bisect_left } = require("bisect-js");
@@ -221,7 +221,7 @@ function _calculateRawRecords(arrTpnNutr, arrDiluNutr, arrInout, weightArr) {
     let curObj = { timestamp: Number(timestamp) };
 
     let sum = (retDict[timestamp].cho_tpn || 0) + (retDict[timestamp].cho_ivf || 0) + (retDict[timestamp].cho_dilu || 0);
-    curObj.gir = (sum * 0.699 * 1000) / 60;
+    curObj.gir = (sum * 1000) / 60;
 
     if (retDict[timestamp].cho_tpn) {
       curObj.tpn = retDict[timestamp].cho_tpn;

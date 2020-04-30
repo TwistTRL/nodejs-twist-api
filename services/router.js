@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-29 23:13:24
+ * @Last Modified time: 2020-04-30 13:08:17
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -17,6 +17,8 @@ const { getInitialFetch } = require("../db_apis/db_basic_tables/get-init-fetch")
 const { getRelationalQuery } = require("../db_apis/get-relational-query");
 const { getVitalsQuery } = require("../db_apis/get-vitals-all");
 const { getVitalsQueryV2 } = require("../db_apis/get-vitals-all-v2");
+const { getTemperature } = require("../db_apis/get-temperature");
+
 const { getLabsQuery } = require("../db_apis/get-labs-all");
 const { getRespiratorySupportVariable } = require("../db_apis/get_respiratory_support_variables");
 const { getHeartRate } = require("../db_apis/get_heart_rate");
@@ -1051,6 +1053,98 @@ router.post("/vitalsv2", async (req, res) => {
   query.to = Number(query.to);
   try {
     const toSend = await getVitalsQueryV2(query);
+    res.send(toSend);
+    return;
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
+});
+
+
+
+
+
+/**
+ * @api {post} /vitals/temperaturev2 V2 temperature
+ * @apiVersion 0.0.2
+ * @apiName get-vitals-temperature
+ * @apiGroup Vitals
+ * @apiDescription 
+ * 
+ * from tables:
+ * `STAGING_VITALS_V500_CALC_12H`, `STAGING_VITALS_V500_CALC_1D`, `STAGING_VITALS_V500_CALC_5H`, `STAGING_VITALS_V500_CALC_5M`
+ * `STAGING_VITALS_V500_BIN_12H`, `STAGING_VITALS_V500_BIN_1D`, `STAGING_VITALS_V500_BIN_5H`, `STAGING_VITALS_V500_BIN_5M`
+
+
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String="binned", "calc", "raw"} data_type Type of data.
+ * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
+ * @apiParamExample {json} POST json example
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "data_type": "binned",
+          "data_resolution": "1D"
+        }
+
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "data_type": "calc",
+          "data_resolution": "1D"
+        }
+
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "data_type": "raw",
+          "from": 1542014000,
+          "to": 1542018000
+        }
+  * @apiSuccessExample Success-Response:
+      // for `binned`:
+  *     [
+            {
+              135: [0, 33],
+              136: [33, 33.5]
+              ...
+            },
+            {
+              135: 0,
+              136: 2,
+              ...
+              "name": "temp",
+              "from" : 150000,
+              "to" : 1510000,
+              "time" : 150500
+            }
+        ]
+
+      // for `calc`:      
+ *    [
+        {
+            "perc0": 38,
+            "perc1": 43,
+            "perc5": 45,
+            "perc25": 48,
+            "perc50": 54,
+            "perc75": 64,
+            "perc95": 71,
+            "perc99": 73,
+            "perc100": 74,
+            "mean": 55.99,
+            "time": 1500000000,
+        },
+        ...
+      ]
+ *
+ */
+
+router.post("/vitals/temperaturev2", async (req, res) => {
+  let query = req.body;
+  query.person_id = Number(query.person_id);
+  try {
+    const toSend = await getTemperature(query);
     res.send(toSend);
     return;
   } catch (e) {

@@ -2,13 +2,14 @@
  * @Author: Peng
  * @Date: 2020-03-31 18:13:54
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-06 12:00:34
+ * @Last Modified time: 2020-04-30 11:32:51
  */
 
 const { bisect_left } = require("bisect-js");
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
+const { IVF_TO_DEXTROSE } = require("../db_relation/in-out-db-relation");
 
 const DEXTROSE_DICT = {
   "Dextrose 5% in Water": 0.05,
@@ -84,6 +85,15 @@ FROM TPN_LIPID
 WHERE PERSON_ID = :person_id
 ORDER BY DT_UNIX`;
 
+const SQL_GET_IN_OUT_EVENT = `
+SELECT  
+  DT_UNIX,
+  EVENT_CD,
+  VALUE
+FROM INTAKE_OUTPUT
+WHERE PERSON_ID = :person_id AND VALUE != 0
+ORDER BY DT_UNIX`;
+
 var timeLable = 0;
 
 async function weightCalcQuerySQLExecutor(conn, binds) {
@@ -137,7 +147,16 @@ async function diluNutrQuerySQLExecutor(conn, binds) {
   return rawRecord.rows;
 }
 
-function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weightArr) {
+async function inoutQuerySQLExecutor(conn, binds) {
+  let timestampLable = timeLable++;
+  console.log("~~SQL for in-out all time: ", SQL_GET_IN_OUT_EVENT);
+  console.time("getInout-sql" + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_IN_OUT_EVENT, binds);
+  console.timeEnd("getInout-sql" + timestampLable);
+  return rawRecord.rows;
+}
+
+function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, arrInout, weightArr) {
   // get hour binned pro, fat, cho data
   let retDict = {};
 
@@ -205,6 +224,20 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
     }
   }
 
+  if (arrInout && arrInout.length) {
+    // TPN database is already binned by hour
+    console.log("inout record size :", arrInout.length);
+    for (let row of arrInout) {
+      //   DT_UNIX,  EVENT_CD,  VALUE
+      if (row["EVENT_CD"] in IVF_TO_DEXTROSE) {
+        let timestamp = Math.floor(row.DT_UNIX / 3600) * 3600;
+        let ivfValue = (row["VALUE"] * (IVF_TO_DEXTROSE[row["EVENT_CD"]] / 100)) / getWeight(timestamp, weightArr);
+        accValueToDict(ivfValue, timestamp, "cho_ivf", retDict);
+      }
+    }
+  }
+
+
   if (arrDiluNutr && arrDiluNutr.length) {
     console.log("DiluNutr record size :", arrDiluNutr.length);
     for (let row of arrDiluNutr) {
@@ -266,12 +299,13 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
       curObj.pro = proObj;
     }
 
-    if (retDict[timestamp].cho_tpn || retDict[timestamp].cho_en || retDict[timestamp].cho_dilu) {
+    if (retDict[timestamp].cho_tpn || retDict[timestamp].cho_en || retDict[timestamp].cho_dilu || retDict[timestamp].cho_ivf) {
       let choObj = {
         sum:
           (retDict[timestamp].cho_tpn || 0) +
           (retDict[timestamp].cho_en || 0) +
-          (retDict[timestamp].cho_dilu || 0),
+          (retDict[timestamp].cho_dilu || 0) +
+          (retDict[timestamp].cho_ivf || 0),
       };
       if (retDict[timestamp].cho_tpn) {
         choObj.tpn = retDict[timestamp].cho_tpn;
@@ -281,6 +315,9 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, weigh
       }
       if (retDict[timestamp].cho_dilu) {
         choObj.diluents = retDict[timestamp].cho_dilu;
+      }
+      if (retDict[timestamp].cho_ivf) {
+        choObj.ivf = retDict[timestamp].cho_ivf;
       }
       curObj.cho = choObj;
     }
@@ -333,7 +370,8 @@ const getNutriFatProCho = database.withConnection(async function (conn, binds) {
   let tpnLipidRaw = await tpnLipidQuerySQLExecutor(conn, binds);
   let enRaw = await enQuerySQLExecutor(conn, binds);
   let diluRaw = await diluNutrQuerySQLExecutor(conn, binds);
-  let result = _calculateRawRecords(tpnRaw, tpnLipidRaw, enRaw, diluRaw, weightArr);
+  let inoutRaw = await inoutQuerySQLExecutor(conn, binds);
+  let result = _calculateRawRecords(tpnRaw, tpnLipidRaw, enRaw, diluRaw, inoutRaw, weightArr);
   return result;
 });
 

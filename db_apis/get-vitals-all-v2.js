@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 11:53:31
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-28 15:27:13
+ * @Last Modified time: 2020-04-30 13:17:34
  */
 
 const database = require("../services/database");
@@ -57,7 +57,7 @@ function _getQueryType(query) {
     throw new InputInvalidError("person_id is null");
   }
 
-  if (query[cat2] != null) {
+  if (query[cat2] != null && query[cat2] !== "raw") {
     if (!cat2Array.includes(query[cat2])) {
       throw new InputInvalidError('"data_type" is not valid. All "data_type": "binned", "calc".');
     }
