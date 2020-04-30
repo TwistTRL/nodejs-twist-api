@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:33:57
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-07 10:50:51
+ * @Last Modified time: 2020-04-29 16:15:32
  */
 
 const {
@@ -15,6 +15,7 @@ const {
   SL_ARRAY,
   CAT_TO_SL,
   CAT_CAP_TO_LOWER_MAP,
+  IVF_TO_DEXTROSE,
   IN_OUT_CODES_XLSX_PATH,
 } = require("twist-xlsx");
 
@@ -197,5 +198,6 @@ module.exports = {
   CAT_COLOR_DICT,
   CAT_CAP_TO_LOWER_MAP,
   CAT_ORDER_ARRAY,
+  IVF_TO_DEXTROSE,
   IN_OUT_CODES_XLSX_PATH,
 };

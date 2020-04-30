@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-28 11:06:22
+ * @Last Modified time: 2020-04-29 23:13:24
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -35,8 +35,7 @@ const { getDrugInfusions, getOrangeDrug, getDrugIntermittent } = require("../db_
 const { getMed } = require("../db_apis/get-med");
 
 const { getInOutTooltipQueryV2 } = require("../db_apis/get-in-out-tooltip-v2");
-
-const { getInOutTooltipQueryV3 } = require("../db_apis/get-in-out-tooltip-v3");
+const { getInOutTooltipQueryV1 } = require("../db_apis/get-in-out-tooltip-v1"); // Deprecated
 
 const { getInOutQuery } = require("../db_apis/get-in-out");
 
@@ -48,6 +47,8 @@ const { getDiluNutrients } = require("../db_apis/get-diluent-nutrition-calc");
 const { getNutriFatProCho } = require("../db_apis/get-nutrition-fat-pro-cho");
 const { getNutriVolume } = require("../db_apis/get-nutrition-volume");
 const { getNutriCalories } = require("../db_apis/get-nutrition-calories");
+const { getNutriGIR } = require("../db_apis/get-nutrition-GIR");
+
 const { getMicbio } = require("../db_apis/get-microbiology");
 
 const { getTemp } = require("../db_apis/get-temp");
@@ -2070,6 +2071,40 @@ router.post("/nutrition/volume", async (req, res) => {
   );
 });
 
+
+/**
+ * @api {get} /person/:person_id/nutrition/gir Nutr-GIR
+ * @apiVersion 0.0.1
+ * @apiName nutrients-gir
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *    [
+        {
+            "timestamp": 15000000,
+            "gir": 8.8,
+            "tpn": 0.66,
+            "ivf": 0.55,
+            "diluents": 0.33
+        },
+        ...
+      ]     
+ *
+ */
+
+router.get("/person/:person_id/nutrition/gir", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id :", person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting nutrition GIR for %s ...", person_id);
+
+  getApiFromRedis(res, getNutriGIR, { person_id }, "interface-nutri-gir");
+});
+
+
 /**
  * @api {get} /person/:person_id/nutrition/calories Nutr-Calories
  * @apiVersion 0.0.1
@@ -2464,7 +2499,7 @@ router.post("/inout-tooltip", async (req, res) => {
   }
 
   try {
-    const toSend = await getInOutTooltipQueryV3(query);
+    const toSend = await getInOutTooltipQueryV1(query);
     console.log("finished timestamp :", new Date().getTime());
     res.send(toSend);
     return;

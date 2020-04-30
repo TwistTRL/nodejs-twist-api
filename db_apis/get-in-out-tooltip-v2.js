@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-29 11:53:19
+ * @Last Modified time: 2020-04-29 21:42:36
  */
 
 /**
@@ -26,6 +26,7 @@ const {
   EVENT_CD_DICT,
   SL_ORDER_ARRAY,
   CAT_ORDER_ARRAY,
+  IVF_TO_DEXTROSE,
 } = require("../db_relation/in-out-db-relation");
 const { getBinarySearchNearest } = require("./utils/binarySearchUtils");
 
@@ -743,6 +744,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   Object.entries(type1Dict).forEach(([timestampKey, timestampValue]) => {
     inDict[timestampKey] = [];
     Object.entries(timestampValue).forEach(([catKey, catValue]) => {
+
       if (catKey !== "value") {
         let currentCatDict = {
           name: catKey,
@@ -750,7 +752,25 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           unit: UNIT_ML,
           items: []
         };
-        if (catKey === "Nutrition") {
+
+        if (catKey === "IVF") {
+          let currentIvfNameArray = [];
+          catValue.items.forEach(element => {
+            let currentIvfName = EVENT_CD_DICT[element.EVENT_CD].EVENT_CD_DEFINITION;
+            if (currentIvfNameArray.includes(currentIvfName)) {
+              for (const ivfItem of currentCatDict.items) {
+                if (ivfItem.name === currentIvfName) {
+                  ivfItem.value += element.VALUE;
+                  break;
+                }
+              }
+            } else {
+              currentIvfNameArray.push(currentIvfName);
+              let newSingleIvfObj = {"name": currentIvfName, "value": element.VALUE, "unit": UNIT_ML, "sub_cat": "IVF", "label": "IVF"};
+              currentCatDict.items.push(newSingleIvfObj);
+            }
+          });          
+        } else if (catKey === "Nutrition") {
           Object.entries(catValue).forEach(([slKey, slValue]) => {
             if (slKey !== "value") {
               slValue.forEach(element => {
@@ -891,6 +911,45 @@ function _updateRowToDict(currentTime, row, dict) {
   }
   dict[currentTime].value += newValue;
   dict[currentTime][newCat].value += newValue;
+
+  if (newCat === "IVF") {
+    if (!dict[currentTime].IVF.items) {
+      dict[currentTime].IVF.items = [];
+    }
+    dict[currentTime].IVF.items.push(row);
+  } else {
+    let isNewSlInDict = false;
+    for (let i = 0; i < dict[currentTime][newCat].short_labels.length; i++) {
+      if (
+        dict[currentTime][newCat].short_labels[i].short_label == newShortLabel
+      ) {
+        dict[currentTime][newCat].short_labels[i].value += newValue;
+        isNewSlInDict = true;
+        break;
+      }
+    }
+
+    if (!isNewSlInDict) {
+      let singleResult = {};
+      singleResult.short_label = newShortLabel;
+      singleResult.value = newValue;
+      singleResult.sub_cat = EVENT_CD_DICT[row.EVENT_CD].Subcat;
+      singleResult.label = EVENT_CD_DICT[row.EVENT_CD].LABEL;
+      if (dict[currentTime][newCat].short_labels.length == 0) {
+        dict[currentTime][newCat].short_labels.push(singleResult);
+      } else {
+        dict[currentTime][newCat].short_labels.splice(
+          binarySearch(
+            dict[currentTime][newCat].short_labels,
+            singleResult,
+            comp
+          ),
+          0,
+          singleResult
+        );
+      }
+    }
+  }
 
   let isNewSlInDict = false;
   for (let i = 0; i < dict[currentTime][newCat].short_labels.length; i++) {
