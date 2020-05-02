@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng
- * @Last Modified time: 2020-04-30 13:08:17
+ * @Last Modified time: 2020-05-01 22:22:36
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -13,6 +13,7 @@ const jwt = require("jsonwebtoken");
 // redis
 const { getApiFromRedis } = require("../config/redis-config");
 
+const { getCensus } = require("../db_apis/cross_tables/get-census");
 const { getInitialFetch } = require("../db_apis/db_basic_tables/get-init-fetch");
 const { getRelationalQuery } = require("../db_apis/get-relational-query");
 const { getVitalsQuery } = require("../db_apis/get-vitals-all");
@@ -124,6 +125,25 @@ const authenticateJWT = (req, res, next) => {
 // ``````````````````````````````````````````````
 //         api start
 // ``````````````````````````````````````````````
+
+/**
+ * @api {get} /census?timestamp=:timestamp&location=:location Census data
+ * @apiVersion 0.0.1
+ * @apiName get-census
+ * @apiGroup Census
+ * @apiParam {Number} timestamp Unix Timestamp in seconds.
+ * @apiParam {String} location nurse unit location name.
+ *     
+ *
+ */
+
+router.get("/census", async (req, res) => {
+  const timestamp = parseInt(req.query.timestamp) || parseInt(Date.now() / 1000);
+  console.log("timestamp is: " + timestamp);
+  const location = req.query.location;
+  const initCensus = {timestamp, location};
+  res.send(await getCensus(initCensus));
+});
 
 /**
  * @api {get} /mrn/:mrn/init Initial data for patient
