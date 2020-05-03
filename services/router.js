@@ -1,8 +1,8 @@
 /*
  * @Author: Mingyu/Peng
  * @Date:
- * @Last Modified by: Peng
- * @Last Modified time: 2020-05-01 22:22:36
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-05-03 16:15:24
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -85,7 +85,6 @@ router.use("/apidoc2", express.static(__dirname + "/../docs/apidoc2"));
 router.use("/files", express.static(__dirname + "/../docs/files"));
 // <<------------------------------------------------------------------------<<
 
-
 // >>~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~>>
 // middleware for authentication
 const accessTokenSecret = process.env.TWIST_API_TOKEN_SECRET || "youraccesstokensecret";
@@ -94,25 +93,25 @@ const authenticateJWT = (req, res, next) => {
 
   if (authHeader) {
     // since the authorization header has a value in the format of Bearer [JWT_TOKEN]
-      const token = authHeader.split(' ')[1];
+    const token = authHeader.split(" ")[1];
 
-      // verify the token with JWT
-      jwt.verify(token, accessTokenSecret, (err, user) => {
-          if (err) {
-              return res.sendStatus(403);
-          }
+    // verify the token with JWT
+    jwt.verify(token, accessTokenSecret, (err, user) => {
+      if (err) {
+        return res.sendStatus(403);
+      }
 
-          req.user = user;
-          next();
-      });
+      req.user = user;
+      next();
+    });
   } else {
-      res.sendStatus(401);
+    res.sendStatus(401);
   }
 };
 
 // ~~~~ use as:
 // app.get('/something', authenticateJWT, (req, res) => {
-  /** for checking role
+/** for checking role
    *     const { role } = req.user;
       if (role !== 'admin') {
           return res.sendStatus(403);
@@ -127,22 +126,25 @@ const authenticateJWT = (req, res, next) => {
 // ``````````````````````````````````````````````
 
 /**
- * @api {get} /census?timestamp=:timestamp&location=:location Census data
+ * @api {get} /census/:timestamp Census data
  * @apiVersion 0.0.1
  * @apiName get-census
  * @apiGroup Census
  * @apiParam {Number} timestamp Unix Timestamp in seconds.
- * @apiParam {String} location nurse unit location name.
- *     
+ *
  *
  */
 
-router.get("/census", async (req, res) => {
-  const timestamp = parseInt(req.query.timestamp) || parseInt(Date.now() / 1000);
+router.get("/census/:timestamp", async (req, res) => {
+  const timestamp = parseInt(Math.floor(req.params.timestamp / 60) * 60) || parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
   console.log("timestamp is: " + timestamp);
-  const location = req.query.location;
-  const initCensus = {timestamp, location};
-  res.send(await getCensus(initCensus));
+  getApiFromRedis(res, getCensus, timestamp, "interface-census");
+});
+
+router.get("/census", async (req, res) => {
+  const timestamp = parseInt(parseInt(Math.floor(Date.now() / 1000 / 60) * 60));
+  console.log("timestamp is: " + timestamp);
+  getApiFromRedis(res, getCensus, timestamp, "interface-census");
 });
 
 /**
@@ -186,10 +188,6 @@ router.get("/mrn/:mrn", async (req, res) => {
   console.log("mrn is: " + mrn);
   res.send(await getPersonFromMRN(mrn));
 });
-
-
-
-
 
 /**
  * @api {post} /labs Labs api/labs
@@ -912,8 +910,6 @@ router.post("/inout-tooltip-v2", async (req, res) => {
   getApiFromRedis(res, getInOutTooltipQueryV2, new_query, "interface-inout-tooltip");
 });
 
-
-
 /**
  * @api {post} /vitalsv2 V2 Binned vitals
  * @apiVersion 0.0.2
@@ -1083,10 +1079,6 @@ router.post("/vitalsv2", async (req, res) => {
   }
 });
 
-
-
-
-
 /**
  * @api {post} /vitals/temperaturev2 V2 temperature
  * @apiVersion 0.0.2
@@ -1174,8 +1166,6 @@ router.post("/vitals/temperaturev2", async (req, res) => {
     res.send(e.toString());
   }
 });
-
-
 
 // raw hr bewteen two timestamp
 
@@ -1415,8 +1405,6 @@ router.put("/test/crash", async (req, res) => {
 router.put("/test/abnormal-mrn", async (req, res) => {
   res.send(await testAbnormalMRN());
 });
-
-
 
 /**
  * @api {get} /person/:person_id/personnel Personnel For Patient
@@ -2174,17 +2162,11 @@ router.post("/nutrition/volume", async (req, res) => {
   }
 
   console.log("getting nutrition volume for %s ...", person_id);
-  console.log('resolution :', resolution);
-  console.log('input from :', from);
+  console.log("resolution :", resolution);
+  console.log("input from :", from);
 
-  getApiFromRedis(
-    res,
-    getNutriVolume,
-    { person_id, resolution, from },
-    "interface-nutri-volume"
-  );
+  getApiFromRedis(res, getNutriVolume, { person_id, resolution, from }, "interface-nutri-volume");
 });
-
 
 /**
  * @api {get} /person/:person_id/nutrition/gir Nutr-GIR
@@ -2218,7 +2200,6 @@ router.get("/person/:person_id/nutrition/gir", async (req, res) => {
   getApiFromRedis(res, getNutriGIR, { person_id }, "interface-nutri-gir");
 });
 
-
 /**
  * @api {get} /person/:person_id/nutrition/calories Nutr-Calories
  * @apiVersion 0.0.1
@@ -2250,7 +2231,12 @@ router.get("/person/:person_id/nutrition/calories", async (req, res) => {
   }
   console.log("getting nutrition calories for %s ...", person_id);
 
-  getApiFromRedis(res, getNutriCalories, { person_id, resolution, from }, "interface-nutri-calories");
+  getApiFromRedis(
+    res,
+    getNutriCalories,
+    { person_id, resolution, from },
+    "interface-nutri-calories"
+  );
 });
 
 /**
@@ -2310,8 +2296,8 @@ router.post("/nutrition/calories", async (req, res) => {
   }
 
   console.log("getting nutrition calories for %s ...", person_id);
-  console.log('resolution :', resolution);
-  console.log('input from :', from);
+  console.log("resolution :", resolution);
+  console.log("input from :", from);
 
   getApiFromRedis(
     res,
@@ -2385,7 +2371,6 @@ router.get("/person/:person_id/microbiology", async (req, res) => {
   console.log("getting microbiology for %s ...", person_id);
   getApiFromRedis(res, getMicbio, { person_id }, "microbiology");
 });
-
 
 /**
  * @api {get} /person/:person_id/ecmo ECMO Score
@@ -2928,7 +2913,6 @@ router.get("/person/:person_id/vitals/hr/binned/5M", async (req, res) => {
   };
   res.send(await getHr5M(binds));
 });
-
 
 /**
  * @api {post} /vitals/temperature Temperature
