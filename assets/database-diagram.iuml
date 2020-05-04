@@ -15,108 +15,121 @@ hide methods
 hide stereotypes
 
 ' entities
-Table(PERSON, "PERSON\n(person in system: patient and personnel)") {
- primary_key(PERSON_ID)					   NUMBER[38]
- NAME_FIRST					    VARCHAR2[128]
- NAME_MIDDLE					    VARCHAR2[128]
- NAME_LAST					    VARCHAR2[128]
- SEX_CD					            NUMBER[38]
- BIRTH_UNIX_TS					    NUMBER[38]
- DECEASED_UNIX_TS			          NUMBER[38]
-}
 
-Table(ENCOUNTER, "ENCOUNTER\n(encounter for patient)") {
-primary_key(ENCNTR_ID) NUMBER[38]
-PERSON_ID					    NUMBER[38]
- ENCNTR_TYPE_CD 				    NUMBER[38]
- ARRIVE_UNIX_TS 				    FLOAT[126]
- DEPART_UNIX_TS 				    FLOAT[126]
-}
+package PATIENT_BED #Plum {
 
-Table(ENCNTR_BED_SPACE, "ENCNTR_BED_SPACE\n(bed_assignment)") {
-primary_key(ENCNTR_BED_SPACE_ID) NUMBER[38]
-ENCNTR_ID					    NUMBER[38]
- BED_CD 					    NUMBER[38]
- START_UNIX_TS					    FLOAT[126]
- END_UNIX_TS					    FLOAT[126]
 
-}
+    Table(ENCOUNTER, "ENCOUNTER\n(encounter for patient)") {
+        primary_key(ENCNTR_ID) NUMBER[38]
+        PERSON_ID					    NUMBER[38]
+        ENCNTR_TYPE_CD 				    NUMBER[38]
+        ARRIVE_UNIX_TS 				    FLOAT[126]
+        DEPART_UNIX_TS 				    FLOAT[126]
+    }
 
-Table(BED_CODE, "BED_CODE\n(bed)") {
-primary_key(BED_CD) NUMBER[38]
-ROOM_CD					    NUMBER[38]
- VALUE						    VARCHAR2[128]
+    Table(ENCNTR_BED_SPACE, "ENCNTR_BED_SPACE\n(bed_assignment)") {
+        primary_key(ENCNTR_BED_SPACE_ID) NUMBER[38]
+        ENCNTR_ID					    NUMBER[38]
+        BED_CD 					    NUMBER[38]
+        START_UNIX_TS					    FLOAT[126]
+        END_UNIX_TS					    FLOAT[126]
 
-}
+    }
 
-Table(ROOM_CODE, "ROOM_CODE\n(room)") {
-primary_key(ROOM_CD) NUMBER[38]
-NURSE_UNIT_CD					    NUMBER[38]
- VALUE						    VARCHAR2[128]
-}
+    Table(BED_CODE, "BED_CODE\n(bed)") {
+        primary_key(BED_CD) NUMBER[38]
+        ROOM_CD					    NUMBER[38]
+        VALUE						    VARCHAR2[128]
 
-Table(NURSE_UNIT_CODE, "NURSE_UNIT_CODE\n(nurse unit)") {
-primary_key(NURSE_UNIT_CD) NUMBER[38]
- VALUE						    VARCHAR2[128]
-}
+    }
 
-Table(CHB_MRN, "CHB_MRN\n(patient mrn)") {
-primary_key(CHB_MRN_ID) NUMBER[38]
-PERSON_ID					    NUMBER[38]
- MRN						    VARCHAR2[128]
- BEG_EFFECTIVE_UNIX_TS				    FLOAT[126]
- END_EFFECTIVE_UNIX_TS				    FLOAT[126]
+    Table(ROOM_CODE, "ROOM_CODE\n(room)") {
+        primary_key(ROOM_CD) NUMBER[38]
+        NURSE_UNIT_CD					    NUMBER[38]
+        VALUE						    VARCHAR2[128]
+    }
+
+    Table(NURSE_UNIT_CODE, "NURSE_UNIT_CODE\n(nurse unit)") {
+        primary_key(NURSE_UNIT_CD) NUMBER[38]
+        VALUE						    VARCHAR2[128]
+    }
+
+    Table(CHB_MRN, "CHB_MRN\n(patient mrn)") {
+        primary_key(CHB_MRN_ID) NUMBER[38]
+        PERSON_ID					    NUMBER[38]
+        MRN						    VARCHAR2[128]
+        BEG_EFFECTIVE_UNIX_TS				    FLOAT[126]
+        END_EFFECTIVE_UNIX_TS				    FLOAT[126]
+    }
+
 }
 
 
-Table(CHB_PRSNL, "CHB_PRSNL\n(personnel)") {
-primary_key(CHB_PRSNL_ID) NUMBER[38]
-PERSON_ID					    NUMBER[38]
+package PERSONNEL_BED #LightSkyBlue {
+
+    Table(CHB_PRSNL, "CHB_PRSNL\n(personnel)") {
+        primary_key(CHB_PRSNL_ID) NUMBER[38]
+        PERSON_ID					    NUMBER[38]
+    }
+
+    Table(CHB_TRK_BED_ASSIGN, "CHB_TRK_BED_ASSIGN\n(bed assign)") {
+        primary_key(BED_ASSIGN_ID) NUMBER[38]
+        ASSIGN_ID					    NUMBER[38]
+        BED_CD 					    NUMBER[38]
+    }
+
+    Table(CHB_TRK_ASSIGN, "CHB_TRK_ASSIGN\n(bed assign)") {
+        primary_key(ASSIGN_ID) NUMBER[38]
+        ASSIGN_TYPE_CD 				    NUMBER[38]
+        CHB_PRSNL_ID					    NUMBER[38]
+        START_UNIX_TS					    FLOAT[126]
+        END_UNIX_TS					    FLOAT[126]
+    }
+
 }
 
-Table(CHB_TRK_BED_ASSIGN, "CHB_TRK_BED_ASSIGN\n(bed assign)") {
-primary_key(BED_ASSIGN_ID) NUMBER[38]
- ASSIGN_ID					    NUMBER[38]
- BED_CD 					    NUMBER[38] 
+Package PERSON_INFO #Beige  {
+    Table(PERSON, "PERSON\n(person in system: patient and personnel)") {
+        primary_key(PERSON_ID)					   NUMBER[38]
+        NAME_FIRST					    VARCHAR2[128]
+        NAME_MIDDLE					    VARCHAR2[128]
+        NAME_LAST					    VARCHAR2[128]
+        SEX_CD					            NUMBER[38]
+        BIRTH_UNIX_TS					    NUMBER[38]
+        DECEASED_UNIX_TS			          NUMBER[38]
+    }
+
 }
 
-Table(CHB_TRK_ASSIGN, "CHB_TRK_ASSIGN\n(bed assign)") {
-primary_key(ASSIGN_ID) NUMBER[38]
-ASSIGN_TYPE_CD 				    NUMBER[38]
- CHB_PRSNL_ID					    NUMBER[38]
- START_UNIX_TS					    FLOAT[126]
- END_UNIX_TS					    FLOAT[126]
-}
 
 ' Table(LABS, "LABS\n(patient labs)") {
-' primary_key(ASSIGN_ID) NUMBER[38]
-' PERSON_ID               NUMBER
-' ORDER_ID                NUMBER
-' DT_UTC                  DATE
-' EVENT_CD                NUMBER
-' LAB                     VARCHAR2[200]
-' VALUE                   VARCHAR2[200]
-' UNITS                   VARCHAR2[200]
-' NORMAL_LOW              VARCHAR2[200]
-' NORMAL_HIGH             VARCHAR2[200]
-' CRITICAL_LOW            VARCHAR2[200]
-' CRITICAL_HIGH           VARCHAR2[200]
-' CREATED_DT_TM           DATE
-' DT_UNIX                 NUMBER
-' }
-
-
+    ' primary_key(ASSIGN_ID) NUMBER[38]
+    ' PERSON_ID               NUMBER
+    ' ORDER_ID                NUMBER
+    ' DT_UTC                  DATE
+    ' EVENT_CD                NUMBER
+    ' LAB                     VARCHAR2[200]
+    ' VALUE                   VARCHAR2[200]
+    ' UNITS                   VARCHAR2[200]
+    ' NORMAL_LOW              VARCHAR2[200]
+    ' NORMAL_HIGH             VARCHAR2[200]
+    ' CRITICAL_LOW            VARCHAR2[200]
+    ' CRITICAL_HIGH           VARCHAR2[200]
+    ' CREATED_DT_TM           DATE
+    ' DT_UNIX                 NUMBER
+    '
+'}
 
 
 ' relationships
-PERSON "1"--> "*" ENCOUNTER : "A patient may have\n many encounters"
+CHB_MRN "1"--> "*" ENCOUNTER : "A patient may have\n many encounters"
 ENCOUNTER "1"--> "*" ENCNTR_BED_SPACE : "An encounter may have many\n bed assignments"
 ENCNTR_BED_SPACE "*" <-- "1" BED_CODE : "A bed may be \nin many bed assignments"
 ROOM_CODE "1"-up-> "*" BED_CODE : "A room may \ncontain many beds"
 NURSE_UNIT_CODE "1"-up-> "*" ROOM_CODE : "A nurse unit may \ncontain many rooms"
-PERSON "1"-up-> "*" CHB_MRN : "A patient may have\n many mrn"
-PERSON "1" -- "1" CHB_PRSNL : "A personnel have\n one person id"
-CHB_TRK_BED_ASSIGN "*"-left-> "1" BED_CODE : "A bed may be\nin assigned by many personnels"
+PERSON "1"-down-> "*" CHB_MRN : "A patient may have\n many mrn"
+PERSON "1" -down- "1" CHB_PRSNL : "A personnel have\n one person id"
+CHB_TRK_BED_ASSIGN "*"--> "1" BED_CODE : "A bed may be\nin assigned by many personnels"
 CHB_TRK_BED_ASSIGN "1" -up- "1" CHB_TRK_ASSIGN : "A personnel assignment\nhas one bed assignment"
 CHB_TRK_ASSIGN "*" -up-> "1" CHB_PRSNL : "A personnel can has\n many personnel assignments"
 ' PERSON "1"--> "*" LABS : "A patient may have\n many labs"

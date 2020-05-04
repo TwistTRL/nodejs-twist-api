@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-03 16:15:24
+ * @Last Modified time: 2020-05-03 22:28:12
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -811,72 +811,56 @@ router.post("/inout-v2", async (req, res) => {
 
  * @apiSuccessExample Success-Response: *    
  * 
- *  {
-       "1539568800": {
-            "acc_value": 20,
-            "weight": 50,
-            "IVF": {
-                "acc_value": 3,
-                "IVF": {
-                    "value": 3,
-                    "sub_cat": "IVF",
-                    "label": "IVF",
-                    "short_label": "IVF"
+    [
+        {
+            "1500000000": [
+                {
+                    "name": "Nutrition",
+                    "value": 17.4,
+                    "unit": "ml",
+                    "items": [
+                        {
+                            "name": "TPN",
+                            "value": 17,
+                            "unit": "ml",
+                            "items": [
+                                {
+                                    "name": "Dextrose PN",
+                                    "value": 165,
+                                    "unit": "g/L"
+                                },
+                                // ...                            
+                            ]
+                        },
+                        {
+                            "name": "Lipids",
+                            "value": 0.4,
+                            "unit": "ml"
+                        }
+                    ]
                 }
-            },
-            "Infusions": {
-                "acc_value": 5.0,
-                "drugs": [
-                    {
-                        "value": 2,
-                        "drug": "papaverine",
-                        "diluent": "Sodium Chloride 0.9%",
-                        "rate": 2,
-                        "unit": "mL/hr",
-                        "conc": 0.12,
-                        "strength_unit": "mg",
-                        "vol_unit": "mL"
-                    },
-                    ...
-                ]
-            },
-            "Flushes": {
-                "acc_value": 3,
-                "drugs": [
-                    {
-                        "value": 2,
-                        "drug": "heparin flush",
-                        "diluent": "Sodium Chloride 0.9%",
-                        "rate": 2,
-                        "unit": "mL/hr",
-                        "conc": 1,
-                        "strength_unit": "unit",
-                        "vol_unit": "mL"
-                        "location": "not ready"
-                    },
-                    ...
-                ]
-            },
-            "Nutrition": {
-                "acc_value": 10,
-                "items": [
-                    {
-                        "acc_value": 10,
-                        "name": "TPN",
-                        "items": [
-                            {
-                                "name": "Dextrose PN",
-                                "value": 210,
-                                "unit": "g/L"
-                            },
-                            ...
-                          ]
-                    }
-                ]
-            }
+            ]
         },
-        ...
-    }
+        {
+            "1500000000": [
+                {
+                    "name": "UOP",
+                    "value": -10,
+                    "unit": "ml",
+                    "items": [
+                        {
+                            "name": "UOP",
+                            "value": -10,
+                            "unit": "ml",
+                            "sub_cat": "Void",
+                            "label": "UOP"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+
  *
  */
 
@@ -1089,7 +1073,9 @@ router.post("/vitalsv2", async (req, res) => {
  * from tables:
  * `STAGING_VITALS_V500_CALC_12H`, `STAGING_VITALS_V500_CALC_1D`, `STAGING_VITALS_V500_CALC_5H`, `STAGING_VITALS_V500_CALC_5M`
  * `STAGING_VITALS_V500_BIN_12H`, `STAGING_VITALS_V500_BIN_1D`, `STAGING_VITALS_V500_BIN_5H`, `STAGING_VITALS_V500_BIN_5M`
-
+ * 
+ * 3 kinds of input (`data_type` = `binned`, `calc`, `raw`), see examples. 
+ * "data_type"="raw" is redirected to `Vitals - V2 Raw Vitals`
 
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="binned", "calc", "raw"} data_type Type of data.
@@ -1148,6 +1134,15 @@ router.post("/vitalsv2", async (req, res) => {
             "time": 1500000000,
         },
         ...
+      ]
+
+      // for `raw`:
+      [
+          {
+              "time": 1500000000,
+              "value": "37.2",
+              "type": "TEMPERATURE_ESOPH"
+          }
       ]
  *
  */
@@ -3053,7 +3048,7 @@ router.post("/vitals/temperature", async (req, res) => {
  * @api {post} /vitals Raw api/vitals
  * @apiVersion 0.0.2
  * @apiName Get Vitals Raw
- * @apiGroup _Deprecateds
+ * @apiGroup _Deprecated
  * @apiDeprecated use now (#Vitals:get-raw-vitals).
  * @apiDescription Request vitals raw data from POST json
  * 
