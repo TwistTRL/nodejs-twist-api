@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-03 22:28:12
+ * @Last Modified time: 2020-05-05 14:28:25
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -14,6 +14,7 @@ const jwt = require("jsonwebtoken");
 const { getApiFromRedis } = require("../config/redis-config");
 
 const { getCensus } = require("../db_apis/cross_tables/get-census");
+const { getRadiology } = require("../db_apis/get-radiology");
 const { getInitialFetch } = require("../db_apis/db_basic_tables/get-init-fetch");
 const { getRelationalQuery } = require("../db_apis/get-relational-query");
 const { getVitalsQuery } = require("../db_apis/get-vitals-all");
@@ -74,6 +75,7 @@ const settingsFluid = require("../db_relation/in-out-db-relation");
 
 const settingsMed = require("../db_relation/drug-category-relation");
 const settingsMicBio = require("../db_relation/microbiology-db-relation");
+const settingsRadio = require("../db_relation/radiology-db-relation");
 
 const { getAccessToken, getPDFUrl } = require("../cerner_apis/get-FHIR-api");
 
@@ -147,6 +149,40 @@ router.get("/census", async (req, res) => {
   getApiFromRedis(res, getCensus, timestamp, "interface-census");
 });
 
+
+/**
+ * @api {get} /person/:person_id/radiology Radiology image
+ * @apiVersion 0.0.1
+ * @apiName get-radiology
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient ID.
+ * @apiSuccessExample Success-Response:
+      [
+        {
+            "order_id": 2100000,
+            "catalog_cd": 220000,
+            "display": "XR-Chest 1 View",
+            "accession_number": 230000,
+            "reason_for_exam": "admission",
+            "order_physician_id": 120000,
+            "dt_unix": 1500000000,
+            "location": [
+                "Chest"
+            ],
+            "study_type": [
+                "XR"
+            ]
+        },
+      ]
+ *
+ */
+
+router.get("/person/:person_id/radiology", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id is: " + person_id);
+  getApiFromRedis(res, getRadiology, person_id, "interface-radiology");
+});
+
 /**
  * @api {get} /mrn/:mrn/init Initial data for patient
  * @apiVersion 0.0.1
@@ -157,7 +193,11 @@ router.get("/census", async (req, res) => {
  * @apiSuccessExample Success-Response:
  *     
       {
-
+            // data saved into redis cache
+            "inoutSize": 1000,
+            "nutriFpcSize": 200,
+            "nutriVolumeSize": 300,
+            "nutriCaloriesSize": 400            
       }
  *
  */
@@ -2017,6 +2057,42 @@ router.get("/settings/microbiology/:item", (req, res) => {
 router.get("/settings/microbiology", (req, res) => {
   res.send(settingsMicBio);
 });
+
+
+/**
+ * @api {get} /settings/radiology/:item Radiology Settings
+ * @apiVersion 0.0.1
+ * @apiName get-radio-setting
+ * @apiGroup Settings
+ * @apiDescription some setting of displaying radiology images
+ * 
+ * if `item` is empty or not valid, return all settings json
+
+ * @apiParam {String=`CATALOG_CD_DICT`,
+        `STUDY_TYPE_DICT`,
+        `LOCATION_DICT`,        
+        `RADIOLOGY_XLSX_PATH`} item for microbiology section
+ * @apiSuccessExample Success-Response:
+ *    {
+            CATALOG_CD_DICT,
+            STUDY_TYPE_DICT,
+            LOCATION_DICT,
+            RADIOLOGY_XLSX_PATH,
+      }
+ */
+router.get("/settings/radiology/:item", (req, res) => {
+  const item = req.params.item;
+  if (!req || !settingsRadio[item]) {
+    res.send(settingsRadio);
+  } else {
+    res.send(settingsRadio[item]);
+  }
+});
+
+router.get("/settings/radiology", (req, res) => {
+  res.send(settingsRadio);
+});
+
 
 /**
  * @api {get} /person/:person_id/nutrition/fat-pro-cho Nutrients - Fat-Pro-Cho

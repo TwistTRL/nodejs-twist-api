@@ -41,74 +41,122 @@ API documentation: web browser `twist:3333/api/`
 ├── apidoc-header.md
 ├── _apidoc.js
 ├── assets
-│   ├── database-diagram.iuml
-│   └── flowchart.iuml
+│   ├── api-cached-fetch.iuml
+│   ├── api-init-fetch.iuml
+│   ├── database-diagram.iuml
+│   ├── db-api-front.iuml
+│   ├── db-api-front-v2.iuml
+│   ├── flowchart.iuml
+│   └── sequence.iuml
+├── cerner_apis
+│   ├── cerner-FHIR-config.js
+│   ├── FHIR-flow.md
+│   └── get-FHIR-api.js
 ├── config
-│   ├── apidoc2-config
-│   │   └── apidoc.json
-│   ├── apidoc-config
-│   │   └── apidoc.json
-│   ├── database-config.js
-│   └── web-server-config.js
+│   ├── apidoc2-config
+│   ├── apidoc-config
+│   ├── database-config.js
+│   ├── ipList.txt
+│   ├── redis-config.js
+│   ├── users.js
+│   └── web-server-config.js
 ├── db_apis
-│   ├── cross_tables
-│   │   ├── get_personnel_for_patient.js
-│   │   └── get_room_time.js
-│   ├── get_bed.js
-│   ├── get_bed_survey.js
-│   ├── get_drug.js
-│   ├── get_heart_rate.js
-│   ├── get_hr_binned.js
-│   ├── get_hr_binned_v2.js
-│   ├── get_hr_calc.js
-│   ├── get-in-out.js
-│   ├── get-labs-all.js
-│   ├── get_labs.js
-│   ├── get_many_bed.js
-│   ├── get_many_personel.js
-│   ├── get_many_person.js
-│   ├── get_personel.js
-│   ├── get_person.js
-│   ├── get_raw_hr.js
-│   ├── get-relational-query.js
-│   ├── get_respiratory_support_variables.js
-│   ├── get-vitals-all.js
-│   └── get-vitals-all-v2.js
+│   ├── cross_tables
+│   ├── db_basic_tables
+│   ├── get_bed.js
+│   ├── get_bed_survey.js
+│   ├── get-diluent-nutrition-calc.js
+│   ├── get_drug.js
+│   ├── get-ecmo.js
+│   ├── get_heart_rate.js
+│   ├── get_hr_binned.js
+│   ├── get_hr_binned_v2.js
+│   ├── get_hr_calc.js
+│   ├── get-in-out.js
+│   ├── get-in-out-tooltip.js
+│   ├── get-in-out-tooltip-v1.js
+│   ├── get-in-out-tooltip-v2.js
+│   ├── get-in-out-v2.js
+│   ├── get-labs-all.js
+│   ├── get_labs.js
+│   ├── get-macro-nutrients.js
+│   ├── get_many_bed.js
+│   ├── get_many_personel.js
+│   ├── get_many_person.js
+│   ├── get-med.js
+│   ├── get-microbiology.js
+│   ├── get-nutrition-calories.js
+│   ├── get-nutrition-fat-pro-cho.js
+│   ├── get-nutrition-GIR.js
+│   ├── get-nutrition-volume.js
+│   ├── get_personel.js
+│   ├── get_person.js
+│   ├── get-radiology.js
+│   ├── get_raw_hr.js
+│   ├── get-relational-query.js
+│   ├── get_respiratory_support_variables.js
+│   ├── get-temperature.js
+│   ├── get-temp.js
+│   ├── get-tpn-nutrition-calc.js
+│   ├── get-vitals-all.js
+│   ├── get-vitals-all-v2.js
+│   ├── get-weight.js
+│   └── utils
 ├── db_relation
-│   ├── converted-database.js
-│   ├── drug-category-relation.js
-│   ├── hr-bin-config.js
-│   ├── hr-bin-config-v2.js
-│   ├── hr-calc-config.js
-│   ├── hr-raw-config.js
-│   ├── in-out-db-relation.js
-│   ├── labs-category-config.js
-│   ├── nurse-unit-abbr.js
-│   ├── vitals-calc-relation.js
-│   └── vitals-db-relation.js
+│   ├── converted-database.js
+│   ├── drug-category-relation.js
+│   ├── hr-bin-config.js
+│   ├── hr-bin-config-v2.js
+│   ├── hr-calc-config.js
+│   ├── hr-raw-config.js
+│   ├── in-out-db-relation.js
+│   ├── labs-category-config.js
+│   ├── microbiology-db-relation.js
+│   ├── nurse-unit-abbr.js
+│   ├── radiology-db-relation.js
+│   ├── vitals-calc-relation.js
+│   └── vitals-db-relation.js
+├── docs
+│   ├── apidoc
+│   ├── apidoc2
+│   ├── files
+│   ├── pm2.service
+│   └── redis.service
+├── ecosystem.config.js
 ├── index.js
+├── nodemon.json
 ├── package.json
 ├── package-lock.json
 ├── README.md
 ├── replace-pre-push.js
 ├── replace-string.js
 ├── services
-│   ├── database.js
-│   ├── relational-query-sql-builder.js
-│   ├── router.js
-│   └── web-server.js
+│   ├── access.log
+│   ├── database.js
+│   ├── login.html
+│   ├── relational-query-sql-builder.js
+│   ├── router.js
+│   └── web-server.js
 ├── template
-│   └── ...
+│   ├── css
+│   ├── fonts
+│   ├── img
+│   ├── index.html
+│   ├── locales
+│   ├── main.js
+│   ├── utils
+│   └── vendor
 ├── test
-│   ├── test_abnormal_mrn.js
-│   ├── test-crash.js
-│   ├── test-database.js
-│   ├── test_drug_overlap.js
-│   ├── test_drug_time.js
-│   ├── test-isJson.js
-│   ├── test-labs.js
-│   ├── test-vitals.js
-│   └── vital-calc-test.js
+│   ├── test_abnormal_mrn.js
+│   ├── test-binary-search.js
+│   ├── test-crash.js
+│   ├── test-database.js
+│   ├── test_drug_overlap.js
+│   ├── test_drug_time.js
+│   ├── test-isJson.js
+│   ├── test-labs.js
+│   ├── test-vitals.js
+│   └── vital-calc-test.js
 └── utils
     ├── errors.js
     ├── isJson.js
@@ -118,10 +166,11 @@ API documentation: web browser `twist:3333/api/`
 ## TODO list
 
 - [ ] FHIR files
-- [ ] Nutrition data
-- [ ] api cache layer
+- [x] Nutrition data
+- [x] api cache layer
+- [ ] Census page
 
-![db-api-front](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/db-api-front.iuml)
+<!-- ![db-api-front](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/db-api-front.iuml) -->
 
 
 
