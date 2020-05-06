@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-07 12:57:40
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-05 16:43:41
+ * @Last Modified time: 2020-05-06 12:02:06
  */
 
 const SQL_GET_PERSON_ID = (mrn) => `
@@ -51,7 +51,7 @@ SELECT
     START_TIME_UNIX,
     "VOLUME",
     "DISPLAY_LINE",
-    UNITS,
+    UNIT,
     CAL_DEN,
     G_PTN_ROW,
     G_FAT_ROW,

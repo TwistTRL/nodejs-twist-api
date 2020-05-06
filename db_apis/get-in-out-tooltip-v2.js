@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-05 22:22:50
+ * @Last Modified time: 2020-05-06 12:01:59
  */
 
 /**
@@ -81,7 +81,7 @@ SELECT
   START_TIME_UNIX,
   "VOLUME",
   "DISPLAY_LINE",
-  UNITS,
+  UNIT,
   CAL_DEN,
   G_PTN_ROW,
   G_FAT_ROW,
@@ -671,11 +671,11 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       let calTime = startTime;
       let value = row.VOLUME;
 
-      let enList = ["DISPLAY_LINE", "UNITS", "CAL_DEN", "G_PTN_ROW", "G_FAT_ROW", "G_CHO_ROW"];
+      let enList = ["DISPLAY_LINE", "UNIT", "CAL_DEN", "G_PTN_ROW", "G_FAT_ROW", "G_CHO_ROW"];
       let singleResult = {};
       singleResult.name = row["DISPLAY_LINE"];
       singleResult.value = row["VOLUME"];
-      singleResult.unit = row["UNITS"];
+      singleResult.unit = row["UNIT"];
       singleResult.fat = row["G_FAT_ROW"];
       singleResult.ptn = row["G_PTN_ROW"];
       singleResult.den = row["CAL_DEN"];

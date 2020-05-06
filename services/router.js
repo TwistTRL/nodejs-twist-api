@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-05 14:28:25
+ * @Last Modified time: 2020-05-06 12:03:47
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -49,6 +49,7 @@ const { getECMO } = require("../db_apis/get-ecmo");
 const { getTpnNutrients } = require("../db_apis/get-tpn-nutrition-calc");
 const { getDiluNutrients } = require("../db_apis/get-diluent-nutrition-calc");
 const { getNutriFatProCho } = require("../db_apis/get-nutrition-fat-pro-cho");
+const { getFormula } = require("../db_apis/get-formula");
 const { getNutriVolume } = require("../db_apis/get-nutrition-volume");
 const { getNutriCalories } = require("../db_apis/get-nutrition-calories");
 const { getNutriGIR } = require("../db_apis/get-nutrition-GIR");
@@ -2092,6 +2093,44 @@ router.get("/settings/radiology/:item", (req, res) => {
 router.get("/settings/radiology", (req, res) => {
   res.send(settingsRadio);
 });
+
+
+/**
+ * @api {get} /person/:person_id/nutrition/formula Nutrients - formula
+ * @apiVersion 0.0.1
+ * @apiName nutrients-formula
+ * @apiGroup Person
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ * 
+ *  [  
+ *    {
+        "timestamp": 1500000000,
+        "display_line": "Breast Milk (20 cal/oz)",
+        "volume": 2,
+        "unit": "mL",
+        "route": "NG",
+        "method": "Continuous"
+      },
+    ]     
+ *
+ */
+
+router.get("/person/:person_id/nutrition/formula", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id :", person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  console.log("getting formula for %s ...", person_id);
+
+  getApiFromRedis(res, getFormula, person_id, "interface-nutri-formula");
+});
+
+
+
+
 
 
 /**
