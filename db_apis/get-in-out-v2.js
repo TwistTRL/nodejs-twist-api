@@ -36,15 +36,15 @@ var timeLable = 0;
 
 const SQL_GET_EN_PART1 = `
 SELECT  
-  START_TIME_DTUNIX,
+  START_TIME_UNIX,
   "VOLUME"
 FROM EN
 WHERE PERSON_ID = `;
 const SQL_GET_EN_PART2 = `
-AND START_TIME_DTUNIX <= `;
-const SQL_GET_EN_PART3 = ` AND START_TIME_DTUNIX >= `;
+AND START_TIME_UNIX <= `;
+const SQL_GET_EN_PART3 = ` AND START_TIME_UNIX >= `;
 const SQL_GET_EN_PART4 = ` 
-ORDER BY START_TIME_DTUNIX`;
+ORDER BY START_TIME_UNIX`;
 
 const SQL_GET_TPN_PART1 = `
 SELECT  
@@ -535,16 +535,16 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   }
 
   //example arrEN[indexArrEN] = {
-  // START_TIME_DTUNIX
+  // START_TIME_UNIX
   // VOLUME
 
   let timeENDict = {};
   if (arrEN && arrEN.length) {
     console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
-      //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
+      //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
       let currentTime =
-        Math.floor(Math.max(row.START_TIME_DTUNIX, startTime) / timeInterval) *
+        Math.floor(Math.max(row.START_TIME_UNIX, startTime) / timeInterval) *
         timeInterval;
 
       let singleResult = {};

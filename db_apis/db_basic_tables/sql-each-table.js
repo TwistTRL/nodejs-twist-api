@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-04-07 12:57:40
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-17 15:30:37
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-05-05 16:43:41
  */
 
 const SQL_GET_PERSON_ID = (mrn) => `
@@ -48,19 +48,19 @@ ORDER BY START_UNIX`;
 // EN
 const SQL_GET_EN = ({ person_id, from, to }) => `
 SELECT  
-    START_TIME_DTUNIX,
+    START_TIME_UNIX,
     "VOLUME",
-    DISPLAY_LINE,
+    "DISPLAY_LINE",
     UNITS,
     CAL_DEN,
-    G_PTN,
-    G_FAT,
-    G_CHO
+    G_PTN_ROW,
+    G_FAT_ROW,
+    G_CHO_ROW
 FROM EN
 WHERE PERSON_ID = ${person_id}
-AND START_TIME_DTUNIX <= ${to}
-AND START_TIME_DTUNIX >= ${from}
-ORDER BY START_TIME_DTUNIX`;
+AND START_TIME_UNIX <= ${to}
+AND START_TIME_UNIX >= ${from}
+ORDER BY START_TIME_UNIX`;
 
 // INTAKE_OUTPUT
 const SQL_GET_IN_OUT_EVENT = ({ person_id, from, to }) => `

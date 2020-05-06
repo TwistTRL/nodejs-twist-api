@@ -82,8 +82,8 @@ const calculateNutriCalories = (rawRecords) => {
   if (arrEN && arrEN.length) {
     console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
-      //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
-      let timestamp = Math.floor(row["START_TIME_DTUNIX"] / 3600) * 3600;
+      //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
+      let timestamp = Math.floor(row["START_TIME_UNIX"] / 3600) * 3600;
       if (timestamp && row["VOLUME"]) {
         // calories calculation for EN
         let feeds = (row["VOLUME"] * row["CAL_DEN"]) / (30 * getWeight(timestamp, arrWeight));

@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-04-06 11:14:32
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-09 11:42:27
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-05-05 16:41:18
  */
 
 const moment = require("moment");
@@ -55,13 +55,13 @@ ORDER BY START_UNIX`;
 
 const SQL_GET_EN_VOL = `
 SELECT  
-  START_TIME_DTUNIX,
-  DISPLAY_LINE,
+  START_TIME_UNIX,
+  "DISPLAY_LINE",
   "VOLUME",
   CAL_DEN
 FROM EN
 WHERE PERSON_ID = :person_id
-ORDER BY START_TIME_DTUNIX`;
+ORDER BY START_TIME_UNIX`;
 
 const SQL_GET_DILUENTS_NUTRI = `
 SELECT  
@@ -233,8 +233,8 @@ function _calculateRawRecords(
   if (arrEN && arrEN.length) {
     console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
-      //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
-      let timestamp = Math.floor(row["START_TIME_DTUNIX"] / 3600) * 3600;
+      //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
+      let timestamp = Math.floor(row["START_TIME_UNIX"] / 3600) * 3600;
       if (timestamp && row["VOLUME"]) {
         // calories calculation for EN
         let feeds = (row["VOLUME"] * row["CAL_DEN"]) / (30 * getWeight(timestamp, weightArr));

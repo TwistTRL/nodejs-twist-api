@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-29 21:42:36
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-05-05 22:22:50
  */
 
 /**
@@ -78,21 +78,21 @@ ORDER BY START_UNIX`;
 
 const SQL_GET_EN_PART1 = `
 SELECT  
-  START_TIME_DTUNIX,
+  START_TIME_UNIX,
   "VOLUME",
-  DISPLAY_LINE,
+  "DISPLAY_LINE",
   UNITS,
   CAL_DEN,
-  G_PTN,
-  G_FAT,
-  G_CHO
+  G_PTN_ROW,
+  G_FAT_ROW,
+  G_CHO_ROW
 FROM EN
 WHERE PERSON_ID = `;
 const SQL_GET_EN_PART2 = `
-AND START_TIME_DTUNIX <= `;
-const SQL_GET_EN_PART3 = ` AND START_TIME_DTUNIX >= `;
+AND START_TIME_UNIX <= `;
+const SQL_GET_EN_PART3 = ` AND START_TIME_UNIX >= `;
 const SQL_GET_EN_PART4 = ` 
-ORDER BY START_TIME_DTUNIX`;
+ORDER BY START_TIME_UNIX`;
 
 // get raw in-out by event between two timestamp
 const SQL_GET_IN_OUT_EVENT_PART1 = `
@@ -667,24 +667,24 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   if (arrEN && arrEN.length) {
     console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
-      //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
+      //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
       let calTime = startTime;
       let value = row.VOLUME;
 
-      let enList = ["DISPLAY_LINE", "UNITS", "CAL_DEN", "G_PTN", "G_FAT", "G_CHO"];
+      let enList = ["DISPLAY_LINE", "UNITS", "CAL_DEN", "G_PTN_ROW", "G_FAT_ROW", "G_CHO_ROW"];
       let singleResult = {};
       singleResult.name = row["DISPLAY_LINE"];
       singleResult.value = row["VOLUME"];
       singleResult.unit = row["UNITS"];
-      singleResult.fat = row["G_FAT"];
-      singleResult.ptn = row["G_PTN"];
+      singleResult.fat = row["G_FAT_ROW"];
+      singleResult.ptn = row["G_PTN_ROW"];
       singleResult.den = row["CAL_DEN"];
-      singleResult.cho = row["G_CHO"];
+      singleResult.cho = row["G_CHO_ROW"];
 
 
       // for EN, will combine same name records, for example: 
       // {
-      //   display_line: "a",
+      //   DISPLAY_LINE: "a",
       //   value: 1,
       //   unit: "mL",
       //   fat: 1,
@@ -692,7 +692,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //   den: 100
       // },
       // {
-      //   display_line: "b",
+      //   DISPLAY_LINE: "b",
       //   value: 3,
       //   unit: "mL",
       //   fat: 3,
@@ -701,7 +701,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       // }
       // => will added to 
       // {
-      //   display_line: "b",
+      //   DISPLAY_LINE: "b",
       //   value: 4,
       //   unit: "mL",
       //   fat: 4,

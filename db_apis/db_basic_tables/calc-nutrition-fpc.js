@@ -78,20 +78,20 @@ const calculateFPC = (rawRecords) => {
   if (arrEN && arrEN.length) {
     // console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
-      //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
-      let timestamp = Math.floor(row["START_TIME_DTUNIX"] / 3600) * 3600;
-      if (row["G_FAT"]) {
-        let fatValue = row["G_FAT"] / getWeight(timestamp, arrWeight);
+      //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
+      let timestamp = Math.floor(row["START_TIME_UNIX"] / 3600) * 3600;
+      if (row["G_FAT_ROW"]) {
+        let fatValue = row["G_FAT_ROW"] / getWeight(timestamp, arrWeight);
         accValueToDict(fatValue, timestamp, "fat_en", retDict);
       }
 
-      if (row["G_PTN"]) {
-        let proValue = row["G_PTN"] / getWeight(timestamp, arrWeight);
+      if (row["G_PTN_ROW"]) {
+        let proValue = row["G_PTN_ROW"] / getWeight(timestamp, arrWeight);
         accValueToDict(proValue, timestamp, "pro_en", retDict);
       }
 
-      if (row["G_CHO"]) {
-        let choValue = row["G_CHO"] / getWeight(timestamp, arrWeight);
+      if (row["G_CHO_ROW"]) {
+        let choValue = row["G_CHO_ROW"] / getWeight(timestamp, arrWeight);
         accValueToDict(choValue, timestamp, "cho_en", retDict);
       }
     }

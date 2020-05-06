@@ -17,14 +17,14 @@ var timeLable = 0;
 
 const SQL_GET_EN = `
 SELECT  
-  START_TIME_DTUNIX,
-  DISPLAY_LINE,
-  G_PTN,
-  G_FAT,
-  G_CHO
+  START_TIME_UNIX,
+  "DISPLAY_LINE",
+  G_PTN_ROW,
+  G_FAT_ROW,
+  G_CHO_ROW
 FROM EN
 WHERE PERSON_ID = :person_id
-ORDER BY START_TIME_DTUNIX`;
+ORDER BY START_TIME_UNIX`;
 
 
 async function enQuerySQLExecutor(conn, binds) {
@@ -46,14 +46,14 @@ function _calculateRawRecords(arrEN) {
   if (arrEN && arrEN.length) {
     console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
-      //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
-      let time = row["START_TIME_DTUNIX"];
-      fat.push({time: time, value: row["G_FAT"], unit: "g"});
-      protein.push({time: time, value: row["G_PTN"], unit: "g"});
-      cho.push({time: time, value: row["G_CHO"], unit: "g"});
-      fatArr.push({time: time, value: row["G_FAT"], unit: "g"});
-      proteinArr.push({time: time, value: row["G_PTN"], unit: "g"});
-      choArr.push({time: time, value: row["G_CHO"], unit: "g"});
+      //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
+      let time = row["START_TIME_UNIX"];
+      fat.push({time: time, value: row["G_FAT_ROW"], unit: "g"});
+      protein.push({time: time, value: row["G_PTN_ROW"], unit: "g"});
+      cho.push({time: time, value: row["G_CHO_ROW"], unit: "g"});
+      fatArr.push({time: time, value: row["G_FAT_ROW"], unit: "g"});
+      proteinArr.push({time: time, value: row["G_PTN_ROW"], unit: "g"});
+      choArr.push({time: time, value: row["G_CHO_ROW"], unit: "g"});
     }
   }
   return {fat, protein, cho, fatArr, proteinArr, choArr};

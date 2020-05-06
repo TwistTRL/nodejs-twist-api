@@ -54,15 +54,15 @@ ORDER BY START_UNIX`;
 
 const SQL_GET_EN = `
 SELECT  
-  START_TIME_DTUNIX,
-  DISPLAY_LINE,
+  START_TIME_UNIX,
+  "DISPLAY_LINE",
   "VOLUME",
-  G_PTN,
-  G_FAT,
-  G_CHO
+  G_PTN_ROW,
+  G_FAT_ROW,
+  G_CHO_ROW
 FROM EN
 WHERE PERSON_ID = :person_id
-ORDER BY START_TIME_DTUNIX`;
+ORDER BY START_TIME_UNIX`;
 
 const SQL_GET_DILUENTS_NUTRI = `
 SELECT  
@@ -205,20 +205,20 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, arrIn
   if (arrEN && arrEN.length) {
     console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
-      //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
-      let timestamp = Math.floor(row["START_TIME_DTUNIX"] / 3600) * 3600;
-      if (row["G_FAT"]) {
-        let fatValue = row["G_FAT"] / getWeight(timestamp, weightArr);
+      //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
+      let timestamp = Math.floor(row["START_TIME_UNIX"] / 3600) * 3600;
+      if (row["G_FAT_ROW"]) {
+        let fatValue = row["G_FAT_ROW"] / getWeight(timestamp, weightArr);
         accValueToDict(fatValue, timestamp, "fat_en", retDict);
       }
 
-      if (row["G_PTN"]) {
-        let proValue = row["G_PTN"] / getWeight(timestamp, weightArr);
+      if (row["G_PTN_ROW"]) {
+        let proValue = row["G_PTN_ROW"] / getWeight(timestamp, weightArr);
         accValueToDict(proValue, timestamp, "pro_en", retDict);
       }
 
-      if (row["G_CHO"]) {
-        let choValue = row["G_CHO"] / getWeight(timestamp, weightArr);
+      if (row["G_CHO_ROW"]) {
+        let choValue = row["G_CHO_ROW"] / getWeight(timestamp, weightArr);
         accValueToDict(choValue, timestamp, "cho_en", retDict);
       }
     }

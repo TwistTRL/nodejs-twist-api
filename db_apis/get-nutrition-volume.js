@@ -32,12 +32,12 @@ ORDER BY START_UNIX`;
 
 const SQL_GET_EN_VOL = `
 SELECT  
-  START_TIME_DTUNIX,
-  DISPLAY_LINE,
+  START_TIME_UNIX,
+  "DISPLAY_LINE",
   "VOLUME"
 FROM EN
 WHERE PERSON_ID = :person_id
-ORDER BY START_TIME_DTUNIX`;
+ORDER BY START_TIME_UNIX`;
 
 const SQL_GET_DILUENTS_VOL = `
 SELECT  
@@ -203,8 +203,8 @@ function _calculateRawRecords(
   if (arrEN && arrEN.length) {
     console.log("EN record size :", arrEN.length);
     for (let row of arrEN) {
-      //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
-      let timestamp = Math.floor(row["START_TIME_DTUNIX"] / 3600) * 3600;
+      //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
+      let timestamp = Math.floor(row["START_TIME_UNIX"] / 3600) * 3600;
       if (timestamp && row["VOLUME"]) {
         let feeds = row["VOLUME"] / getWeight(timestamp, weightArr);
         accValueToDict(feeds, timestamp, "FEEDS", retDict);

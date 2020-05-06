@@ -1,8 +1,8 @@
 /*
  * @Author: Peng 
  * @Date: 2020-04-08 12:57:25 
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-17 13:14:21
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-05-05 16:44:44
  */
 
 const {
@@ -437,24 +437,24 @@ const calculateIOTooltips = (rawRecords) => {
     if (arrEN && arrEN.length) {
       console.log("EN record size :", arrEN.length);
       for (let row of arrEN) {
-        //example row = {"START_TIME_DTUNIX": 1524700800, "VOLUME": 2}
+        //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
         let calTime = startTime;
         let value = row.VOLUME;
   
-        let enList = ["DISPLAY_LINE", "UNITS", "CAL_DEN", "G_PTN", "G_FAT", "G_CHO"];
+        let enList = ["DISPLAY_LINE", "UNITS", "CAL_DEN", "G_PTN_ROW", "G_FAT_ROW", "G_CHO_ROW"];
         let singleResult = {};
         singleResult.name = row["DISPLAY_LINE"];
         singleResult.value = row["VOLUME"];
         singleResult.unit = row["UNITS"];
-        singleResult.fat = row["G_FAT"];
-        singleResult.ptn = row["G_PTN"];
+        singleResult.fat = row["G_FAT_ROW"];
+        singleResult.ptn = row["G_PTN_ROW"];
         singleResult.den = row["CAL_DEN"];
-        singleResult.cho = row["G_CHO"];
+        singleResult.cho = row["G_CHO_ROW"];
   
   
         // for EN, will combine same name records, for example: 
         // {
-        //   display_line: "a",
+        //   DISPLAY_LINE: "a",
         //   value: 1,
         //   unit: "mL",
         //   fat: 1,
@@ -462,7 +462,7 @@ const calculateIOTooltips = (rawRecords) => {
         //   den: 100
         // },
         // {
-        //   display_line: "b",
+        //   DISPLAY_LINE: "b",
         //   value: 3,
         //   unit: "mL",
         //   fat: 3,
@@ -471,7 +471,7 @@ const calculateIOTooltips = (rawRecords) => {
         // }
         // => will added to 
         // {
-        //   display_line: "b",
+        //   DISPLAY_LINE: "b",
         //   value: 4,
         //   unit: "mL",
         //   fat: 4,
