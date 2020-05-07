@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-05-06 10:16:13
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-06 11:39:42
+ * @Last Modified time: 2020-05-07 18:15:56
  */
 
 const database = require("../services/database");
@@ -11,6 +11,8 @@ const InputInvalidError = require("../utils/errors").InputInvalidError;
 
 let timeLable = 0;
 
+// EN table is already binned by hour
+// START_TIME_UNIX % 3600 === 0 
 const SQL_GET_EN = (person_id) => `
 SELECT  
   START_TIME_UNIX,
@@ -38,6 +40,7 @@ const getFormula = database.withConnection(async function (conn, person_id) {
       // if last record is Bolus and need calculat hours base on this record
       if (delayHoursCalc) {
         ret[ret.length - 1].hours_between_feeds = getHourDiff(curTS, preTS);
+        delayHoursCalc = false;
       }
 
       let currentRecord = {
