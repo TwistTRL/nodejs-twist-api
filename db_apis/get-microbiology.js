@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-04-13 17:23:49
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-30 17:43:10
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-05-08 00:12:33
  */
 
 const isEmpty = require("lodash.isempty");
@@ -15,10 +15,10 @@ SELECT
     ORDER_ID,
     OD_ST_D,
     ORDER_MNEMONIC,
-    COLLECT_DT_TM_UTC,
-    CULTURE_START_DT_TM_UTC,
+    COLLECT_DTUNIX,
+    CULTURE_START_DTUNIX,
     TASK_LOG_ID,
-    TASK_DT_TM_UTC,
+    TASK_DTUNIX ,
     POSITIVE_IND,
     STATUS,
     SPECIES_DESC,
@@ -26,7 +26,8 @@ SELECT
     DISPLAY_ORDER
 FROM MIC_CULT_RES
 WHERE PERSON_ID = :person_id
-ORDER BY ORDER_ID, TASK_LOG_ID, TASK_DT_TM_UTC`;
+ORDER BY ORDER_ID, TASK_LOG_ID, TASK_DTUNIX
+`;
 
 const SQL_GET_MICROBIOLOGY_SENS = `
 SELECT 
@@ -129,10 +130,10 @@ const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
   for (let record of arrMicbio) {
     let od_st_d = record.OD_ST_D;
     let source = ODSTD_TO_SOURCE_DICT[od_st_d];
-    let collect_time = new Date(record.COLLECT_DT_TM_UTC).getTime() / 1000;
-    let culture_start_time = new Date(record.CULTURE_START_DT_TM_UTC).getTime() / 1000;
+    let collect_time = record.COLLECT_DTUNIX;
+    let culture_start_time = record.CULTURE_START_DTUNIX;
     let task_log_id = record.TASK_LOG_ID;
-    let task_time = new Date(record.TASK_DT_TM_UTC).getTime() / 1000;
+    let task_time = record.TASK_DTUNIX;
     let order_mnemonic = record.ORDER_MNEMONIC;
     let mnemonic_type = MNEMONIC_TO_TYPE_DICT[record.ORDER_MNEMONIC];
     let positive_ind = record.POSITIVE_IND;
