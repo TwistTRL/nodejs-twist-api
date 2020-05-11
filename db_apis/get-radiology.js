@@ -2,11 +2,12 @@
  * @Author: Peng Zeng
  * @Date: 2020-05-04 17:16:28
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-05 14:55:07
+ * @Last Modified time: 2020-05-11 14:49:21
  */
 
 const database = require("../services/database");
 const { CATALOG_CD_DICT } = require("../db_relation/radiology-db-relation");
+const { RADIOLOGY_TOKEN } = require("../config/database-config");
 var timeLable = 0;
 
 const SQL_GET_RADIOLOGY = (person_id) => `
@@ -41,6 +42,7 @@ async function radiologyQuerySQLExecutor(conn, person_id) {
       let reason_for_exam = row.REASON_FOR_EXAM;
       let order_physician_id = row.ORDER_PHYSICIAN_ID;
       let dt_unix = row.COMPLETE_DT_TM_UNIX;
+      let token = RADIOLOGY_TOKEN;
       return {
         order_id,
         catalog_cd,
@@ -51,6 +53,7 @@ async function radiologyQuerySQLExecutor(conn, person_id) {
         dt_unix,
         location,
         study_type,
+        token,
       };
     });
   }

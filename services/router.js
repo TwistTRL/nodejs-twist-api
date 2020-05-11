@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-06 12:03:47
+ * @Last Modified time: 2020-05-11 15:38:30
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -172,7 +172,8 @@ router.get("/census", async (req, res) => {
             ],
             "study_type": [
                 "XR"
-            ]
+            ],
+            "token": "TOKEN@#$%^"
         },
       ]
  *

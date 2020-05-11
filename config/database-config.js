@@ -14,11 +14,14 @@ let { user, password, connectString } = splitConnectionString(
   process.env.DWTST_DB || process.env.DWTST_CONNECTION_STRING
 );
 
+let RADIOLOGY_TOKEN = process.env.RADIOLOGY_TOKEN;
+
 module.exports = {
   user,
   password,
   connectString,
   poolMin: 10,
   poolMax: 10,
-  poolIncrement: 0
+  poolIncrement: 0,
+  RADIOLOGY_TOKEN,
 };

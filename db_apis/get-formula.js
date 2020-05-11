@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-05-06 10:16:13
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-07 18:15:56
+ * @Last Modified time: 2020-05-11 15:36:47
  */
 
 const database = require("../services/database");
@@ -12,7 +12,7 @@ const InputInvalidError = require("../utils/errors").InputInvalidError;
 let timeLable = 0;
 
 // EN table is already binned by hour
-// START_TIME_UNIX % 3600 === 0 
+// START_TIME_UNIX % 3600 === 0
 const SQL_GET_EN = (person_id) => `
 SELECT  
   START_TIME_UNIX,
@@ -37,6 +37,16 @@ const getFormula = database.withConnection(async function (conn, person_id) {
     rawResults.rows.forEach((element) => {
       let curTS = element.START_TIME_UNIX;
 
+      if (curTS === preTS) {
+        if (ret[ret.length - 1].display_line === element.DISPLAY_LINE) {
+          ret[ret.length - 1].volume += element.VOLUME;
+          return;
+        } else {
+          console.warn("this element has same ts as last one :>> ", element);
+          console.warn("display_line not equal :>> ", ret[ret.length - 1]);
+        }
+      }
+
       // if last record is Bolus and need calculat hours base on this record
       if (delayHoursCalc) {
         ret[ret.length - 1].hours_between_feeds = getHourDiff(curTS, preTS);
@@ -51,7 +61,10 @@ const getFormula = database.withConnection(async function (conn, person_id) {
       };
       currentRecord.route = getRoute(element.ROUTE);
 
-      if ((element.METHOD && element.METHOD.includes("Continuous")) || getHourDiff(curTS, preTS) === 1) {
+      if (
+        (element.METHOD && element.METHOD.includes("Continuous")) ||
+        getHourDiff(curTS, preTS) === 1
+      ) {
         currentRecord.method = "Continuous";
       } else {
         let lastFeedHourDiff = getHourDiff(curTS, preTS);
@@ -69,7 +82,7 @@ const getFormula = database.withConnection(async function (conn, person_id) {
   }
 
   console.timeEnd("getFormula" + consoleTimeCount);
-  console.log('get formula array length :>> ', ret.length);
+  console.log("get formula array length :>> ", ret.length);
   return ret;
 });
 
