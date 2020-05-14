@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-14 12:26:14
+ * @Last Modified time: 2020-05-14 16:14:14
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -14,6 +14,12 @@ const jwt = require("jsonwebtoken");
 const { getApiFromRedis } = require("../config/redis-config");
 
 const { getDiagnosis, testDiagnosis } = require("../db_apis/phenotyping/get-diagnosis");
+const {
+  diagnosisGetMRN,
+  diagnosisGetAnatomy,
+  diagnosisGetCodes,
+  diagnosisGetProcedure,
+} = require("../db_apis/phenotyping/get-diagnosis-steps");
 
 const { getAdtCensus } = require("../db_apis/cross_tables/get-adt-census");
 const { getCensus } = require("../db_apis/cross_tables/get-census");
@@ -181,6 +187,128 @@ router.get("/phenotyping/:person_id", async (req, res) => {
   getApiFromRedis(res, getDiagnosis, person_id, "interface-phenotyping-diagnosis");
 });
 
+/**
+ * @api {get} /phenotyping/mrn/:person_id Diagnosis MRN
+ * @apiVersion 0.0.1
+ * @apiName get-phenotyping-diagnosis-mrn
+ * @apiDescription step 2
+
+    input: person_id
+    
+    output: mrn of this patient. 
+    
+ * @apiGroup Phenotyping
+ * @apiParam {Number} person_id Patient person id
+ * @apiSuccessExample Success-Response:
+ *[
+    "100000"
+  ]
+
+ */
+
+router.get("/phenotyping/mrn/:person_id", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id is: " + person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  getApiFromRedis(res, diagnosisGetMRN, person_id, "interface-phenotyping-diagnosis-mrn");
+});
+
+/**
+ * @api {get} /phenotyping/anatomy/:mrn Diagnosis Anatomy
+ * @apiVersion 0.0.1
+ * @apiName get-phenotyping-diagnosis-anatomy
+ * @apiDescription step 3
+
+    input: mrn
+    
+    output: anatomy of this patient. 
+    
+ * @apiGroup Phenotyping
+ * @apiParam {String} mrn Patient MRN
+ * @apiSuccessExample Success-Response:
+ *[
+    {
+        "MRN": "10000000",
+        "ANATOMY": "Aortic valve - AS - Moderate to severe",
+        "SUBCAT_ANAT": "Aortic valve - AS - Moderate to severe",
+        "SUBCAT_NAME": "Commissure",
+        "SUBCAT_VALUE": "Unmentioned",
+        "COVARIATE": null
+    },
+  ]
+
+ */
+
+router.get("/phenotyping/anatomy/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  console.log("mrn is: " + mrn);
+  getApiFromRedis(res, diagnosisGetAnatomy, mrn, "interface-phenotyping-diagnosis-anatomy");
+});
+
+
+/**
+ * @api {get} /phenotyping/codes/:anatomy Diagnosis Codes
+ * @apiVersion 0.0.1
+ * @apiName get-phenotyping-diagnosis-codes
+ * @apiDescription step 4
+
+    input: amatomy
+    
+    output: codes of anatomy. 
+    
+ * @apiGroup Phenotyping
+ * @apiParam {String} anatomy Native disease
+ * @apiSuccessExample Success-Response:
+ *{
+    "Biventricular Aortic valve-AS- Moderate to severe 1": [
+        "Aortic valve replacement",
+        "Aortic valve replacement - Using autologous pericardium (Ozaki)",
+        "Ross procedure",
+        "Aortic valvuloplasty",
+        "Aortic annulus enlargment or augmentation"
+    ],
+  }
+ */
+
+router.get("/phenotyping/codes/:anatomy", async (req, res) => {
+  const anatomy = req.params.anatomy;
+  console.log("anatomy is: " + anatomy);
+  getApiFromRedis(res, diagnosisGetCodes, anatomy, "interface-phenotyping-diagnosis-codes");
+});
+
+/**
+ * @api {get} /phenotyping/procedure/:codes Diagnosis Procedure
+ * @apiVersion 0.0.1
+ * @apiName get-phenotyping-diagnosis-procedure
+ * @apiDescription step 4
+
+    input: codes
+    
+    output: procedure of codes. 
+    
+ * @apiGroup Phenotyping
+ * @apiParam {String} codes disease - group - codes
+ * @apiSuccessExample Success-Response:
+ *[
+    {
+        "mrn": "10000",
+        "time": "1992-03-06T04:00:00.000Z"
+    },
+  ]
+
+ */
+
+router.get("/phenotyping/procedure/:codes", async (req, res) => {
+  const codes =  JSON.parse(req.params.codes);
+  console.log("codes is: " + codes);
+  getApiFromRedis(res, diagnosisGetProcedure, codes, "interface-phenotyping-diagnosis-procedure");
+});
+
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /**
  * @api {get} /census/:timestamp Census data
