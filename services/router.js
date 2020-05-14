@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-13 22:12:12
+ * @Last Modified time: 2020-05-14 12:26:14
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -149,6 +149,14 @@ router.get("/phenotyping/test", async (req, res) => {
  * @api {get} /phenotyping/:person_id Phenotyping Diagnosis
  * @apiVersion 0.0.1
  * @apiName get-phenotyping-diagnosis
+ * @apiDescription get_patients_based_on_original_anatomy
+
+    input: person_id
+    
+    output: get a list of patients mrn with earliest date. 
+    
+  these patients have the same `dominant_proc` with the input patient's `codes` of `native_disease`(`anatomy`)
+
  * @apiGroup Phenotyping
  * @apiParam {Number} person_id Patient person id
  * @apiSuccessExample Success-Response:
