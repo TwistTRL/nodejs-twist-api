@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-11 15:38:30
+ * @Last Modified time: 2020-05-13 22:12:12
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -13,6 +13,9 @@ const jwt = require("jsonwebtoken");
 // redis
 const { getApiFromRedis } = require("../config/redis-config");
 
+const { getDiagnosis, testDiagnosis } = require("../db_apis/phenotyping/get-diagnosis");
+
+const { getAdtCensus } = require("../db_apis/cross_tables/get-adt-census");
 const { getCensus } = require("../db_apis/cross_tables/get-census");
 const { getRadiology } = require("../db_apis/get-radiology");
 const { getInitialFetch } = require("../db_apis/db_basic_tables/get-init-fetch");
@@ -129,6 +132,49 @@ const authenticateJWT = (req, res, next) => {
 // ``````````````````````````````````````````````
 
 /**
+ * @api {get} /phenotyping/test Phenotyping Test
+ * @apiVersion 0.0.1
+ * @apiName get-phenotyping-test
+ * @apiDescription These diagnosis are not listed in xlsx file
+ * @apiGroup Phenotyping
+ *
+ *
+ */
+
+router.get("/phenotyping/test", async (req, res) => {
+    res.send(await testDiagnosis());
+});
+
+/**
+ * @api {get} /phenotyping/:person_id Phenotyping Diagnosis
+ * @apiVersion 0.0.1
+ * @apiName get-phenotyping-diagnosis
+ * @apiGroup Phenotyping
+ * @apiParam {Number} person_id Patient person id
+ * @apiSuccessExample Success-Response:
+ *{
+    "Biventricular Aortic valve-AS- Moderate to severe 1": [
+        {
+            "mrn": "123",
+            "time": "1992-03-06T04:00:00.000Z"
+        },
+    ],
+  }
+
+ */
+
+router.get("/phenotyping/:person_id", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id is: " + person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  getApiFromRedis(res, getDiagnosis, person_id, "interface-phenotyping-diagnosis");
+});
+
+
+/**
  * @api {get} /census/:timestamp Census data
  * @apiVersion 0.0.1
  * @apiName get-census
@@ -141,10 +187,33 @@ const authenticateJWT = (req, res, next) => {
 router.get("/census/:timestamp", async (req, res) => {
   const timestamp = parseInt(Math.floor(req.params.timestamp / 60) * 60) || parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
   console.log("timestamp is: " + timestamp);
-  getApiFromRedis(res, getCensus, timestamp, "interface-census");
+  getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
 });
 
 router.get("/census", async (req, res) => {
+  const timestamp = parseInt(parseInt(Math.floor(Date.now() / 1000 / 60) * 60));
+  console.log("timestamp is: " + timestamp);
+  getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
+});
+
+
+/**
+ * @api {get} /censusv0/:timestamp Census data old
+ * @apiVersion 0.0.1
+ * @apiName get-census-old
+ * @apiGroup Census
+ * @apiParam {Number} timestamp Unix Timestamp in seconds.
+ *
+ *
+ */
+
+router.get("/censusv0/:timestamp", async (req, res) => {
+  const timestamp = parseInt(Math.floor(req.params.timestamp / 60) * 60) || parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
+  console.log("timestamp is: " + timestamp);
+  getApiFromRedis(res, getCensus, timestamp, "interface-census");
+});
+
+router.get("/censusv0", async (req, res) => {
   const timestamp = parseInt(parseInt(Math.floor(Date.now() / 1000 / 60) * 60));
   console.log("timestamp is: " + timestamp);
   getApiFromRedis(res, getCensus, timestamp, "interface-census");
