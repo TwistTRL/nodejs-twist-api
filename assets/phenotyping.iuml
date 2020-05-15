@@ -1,0 +1,24 @@
+@startuml phenotyping
+skinparam componentStyle uml2
+
+title next procedure
+component codes
+component prior_group
+component mrn_list_output
+component mrn_list_input
+
+frame fixed {
+component patient
+component ANATOMY
+}
+
+patient --> ANATOMY
+ANATOMY --> codes
+ANATOMY -[hidden]-> mrn_list_input: initial at beginning
+prior_group --> codes
+mrn_list_input --> mrn_list_output
+codes --> mrn_list_output
+mrn_list_output ~up~~> mrn_list_input: next procedure
+
+note left of prior_group : User selected
+@enduml

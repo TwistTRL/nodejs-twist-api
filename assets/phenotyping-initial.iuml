@@ -1,0 +1,35 @@
+@startuml phenotyping
+skinparam componentStyle uml2
+title initial procedure
+component patient
+component ANATOMY
+component codes
+component prior_group
+component mrn_list_output
+component mrn_list_input
+
+patient --> ANATOMY
+ANATOMY --> codes
+ANATOMY --> mrn_list_input: initial at beginning
+prior_group --> codes
+mrn_list_input --> mrn_list_output
+codes --> mrn_list_output
+
+note left of prior_group : empty at beginning
+note left of codes : list of list codes
+
+note right of patient : User input person_id
+note right of mrn_list_input
+list of patients with birth date
+have this ANATOMY
+[ {mrn: 1001, datetime: 15000000},
+  {mrn: 1002, datetime: 15000200},
+]
+end note
+note right of mrn_list_output
+first procedure matched the codes
+and after the input datetime
+[ {mrn: 1001, datetime: 15002000},
+]
+end note
+@enduml

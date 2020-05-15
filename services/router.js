@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-14 19:29:10
+ * @Last Modified time: 2020-05-15 14:01:12
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -188,7 +188,7 @@ router.get("/phenotyping/:person_id", async (req, res) => {
 });
 
 /**
- * @api {get} /phenotyping/mrn/:person_id Diagnosis MRN
+ * @api {get} /phenotyping/mrn/:person_id 2.MRN
  * @apiVersion 0.0.1
  * @apiName get-phenotyping-diagnosis-mrn
  * @apiDescription step 2
@@ -217,7 +217,7 @@ router.get("/phenotyping/mrn/:person_id", async (req, res) => {
 });
 
 /**
- * @api {get} /phenotyping/anatomy/:mrn Diagnosis Anatomy
+ * @api {get} /phenotyping/anatomy/:mrn 3.Anatomy
  * @apiVersion 0.0.1
  * @apiName get-phenotyping-diagnosis-anatomy
  * @apiDescription step 3
@@ -250,7 +250,7 @@ router.get("/phenotyping/anatomy/:mrn", async (req, res) => {
 
 
 /**
- * @api {get} /phenotyping/codes/:anatomy/:prior_group Diagnosis Codes
+ * @api {get} /phenotyping/codes/:anatomy/:prior_group 4.Codes
  * @apiVersion 0.0.1
  * @apiName get-phenotyping-diagnosis-codes
  * @apiDescription step 4
@@ -306,10 +306,10 @@ router.get("/phenotyping/codes/:anatomy", async (req, res) => {
 });
 
 /**
- * @api {get} /phenotyping/procedure/:codes Diagnosis Procedure
+ * @api {get} /phenotyping/procedure/:codes 5.Procedure
  * @apiVersion 0.0.1
  * @apiName get-phenotyping-diagnosis-procedure
- * @apiDescription step 4
+ * @apiDescription step 5
 
     input: list of list codes
     
@@ -320,8 +320,14 @@ router.get("/phenotyping/codes/:anatomy", async (req, res) => {
  * @apiSuccessExample Success-Response:
  *[
     {
-        "mrn": "10000",
-        "time": "1992-03-06T04:00:00.000Z"
+        "mrn": "10009",
+        "time": [
+            680500800,
+            "1992-03-06T04:00:00.000Z"
+        ],
+        "proc": [
+            "Aortic valvuloplasty"
+        ]
     },
   ]
 

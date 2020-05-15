@@ -62,3 +62,10 @@ VITAL_TYPE: SQL_COLUNM_NAME_FOR_CAT_VITAL_TYPE_ARRAY and SQL_COLUNM_NAME_2ND_CHO
 LMT_ST: number
 
 LMT_END: number
+
+## phenotyping
+
+![init](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/phenotyping-initial.iuml)
+
+
+![next step](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/phenotyping.iuml)

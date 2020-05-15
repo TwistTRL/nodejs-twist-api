@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-05-13 11:11:52
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-14 22:48:46
+ * @Last Modified time: 2020-05-15 13:55:54
  */
 
 const database = require("../../services/database");
@@ -15,8 +15,10 @@ const {
 
 const STEP2_GET_MRN_SQL = (person_id) => `
 SELECT
-  MRN
+  MRN,
+  BIRTH_UNIX_TS
 FROM CHB_MRN
+JOIN PERSON USING (PERSON_ID)
 WHERE PERSON_ID = ${person_id}
 `;
 
@@ -32,16 +34,24 @@ FROM DIAGNOSIS
 WHERE MRN = '${mrn.toString()}'
 `;
 
-const STEP4_GET_CODES = ({anatomy, prior_group}) => PRIOR_GROUP_TO_CODES_DICT[anatomy][prior_group];
+const STEP4_GET_CODES = ({ anatomy, prior_group }) =>
+  PRIOR_GROUP_TO_CODES_DICT[anatomy][prior_group];
 
-const FLATTEN_ARRAY_SQL = (codeList) => codeList.reduce((acc, arr) => acc + arr.reduce((itemAcc, cur) => itemAcc + ` OR DOMINANT_PROC = '${cur}'`, ''), '');
+const FLATTEN_ARRAY_SQL = (codeList) =>
+  codeList.reduce(
+    (acc, arr) => acc + arr.reduce((itemAcc, cur) => itemAcc + ` OR DOMINANT_PROC = '${cur}'`, ""),
+    ""
+  );
 
 const STEP5_GET_PROCEDURE_SQL = (codeList) => `
 SELECT
   MRN,
   DT,
-  DOMINANT_PROC
+  DOMINANT_PROC,
+  BIRTH_UNIX_TS
 FROM PROCEDURE
+JOIN CHB_MRN USING (MRN)
+JOIN PERSON USING (PERSON_ID)
 WHERE 0=1${FLATTEN_ARRAY_SQL(codeList)}
 ORDER BY MRN, DT
 `;
@@ -75,18 +85,19 @@ async function getProcedureSqlExecutor(conn, codeList) {
   }
   // mrn, dt
   let preMrn = procedureArr[0].MRN;
-  let preTime = procedureArr[0].DT;
+  let preTime = [procedureArr[0].BIRTH_UNIX_TS];
   let preCodeArr = [];
   procedureArr.forEach((element) => {
     if (element.MRN !== preMrn) {
       if (isValidCodes(preCodeArr, codeList)) {
-      result.push({ mrn: element.MRN, time: element.DT, proc: preCodeArr});
+        result.push({ mrn: element.MRN, time: preTime, proc: preCodeArr });
       }
       preMrn = element.MRN;
-      preTime = element.DT;
+      preTime = [element.BIRTH_UNIX_TS, element.DT];
       preCodeArr = [element.DOMINANT_PROC];
     } else {
       preCodeArr.push(element.DOMINANT_PROC);
+      preTime.push(element.DT);
     }
   });
   return result;
@@ -94,7 +105,7 @@ async function getProcedureSqlExecutor(conn, codeList) {
 
 const isValidCodes = (preCodeArr, codeList) => {
   let ret = false;
-  codeList.forEach(element => {
+  codeList.forEach((element) => {
     let curRet = false;
     for (let item of element) {
       if (!preCodeArr.includes(item)) {
@@ -104,8 +115,7 @@ const isValidCodes = (preCodeArr, codeList) => {
     ret = true;
   });
   return ret;
-}
-
+};
 
 const diagnosisGetMRN = database.withConnection(getMRNSqlExecutor);
 const diagnosisGetAnatomy = database.withConnection(getAnatomySqlExecutor);
