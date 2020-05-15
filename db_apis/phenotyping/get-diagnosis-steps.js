@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-05-13 11:11:52
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-15 13:55:54
+ * @Last Modified time: 2020-05-15 14:49:54
  */
 
 const database = require("../../services/database");
@@ -88,9 +88,12 @@ async function getProcedureSqlExecutor(conn, codeList) {
   let preTime = [procedureArr[0].BIRTH_UNIX_TS];
   let preCodeArr = [];
   procedureArr.forEach((element) => {
+    if (element.MRN === '350026') {
+      console.log('element :>> ', element);
+    }
     if (element.MRN !== preMrn) {
       if (isValidCodes(preCodeArr, codeList)) {
-        result.push({ mrn: element.MRN, time: preTime, proc: preCodeArr });
+        result.push({ mrn: preMrn, time: preTime, proc: preCodeArr });
       }
       preMrn = element.MRN;
       preTime = [element.BIRTH_UNIX_TS, element.DT];
@@ -117,14 +120,21 @@ const isValidCodes = (preCodeArr, codeList) => {
   return ret;
 };
 
+const STEP6_NEXT_PROCEDURE = (mrn) => {
+  
+}
+
 const diagnosisGetMRN = database.withConnection(getMRNSqlExecutor);
 const diagnosisGetAnatomy = database.withConnection(getAnatomySqlExecutor);
 const diagnosisGetCodes = STEP4_GET_CODES;
 const diagnosisGetProcedure = database.withConnection(getProcedureSqlExecutor);
+const diagnosisGetNextProcedure = STEP6_NEXT_PROCEDURE;
 
 module.exports = {
   diagnosisGetMRN,
   diagnosisGetAnatomy,
   diagnosisGetCodes,
   diagnosisGetProcedure,
+  diagnosisGetNextProcedure,
+
 };
