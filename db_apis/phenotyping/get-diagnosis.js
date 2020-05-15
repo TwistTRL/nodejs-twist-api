@@ -8,7 +8,6 @@
 const database = require("../../services/database");
 const {
   DIAGNOSIS_GROUP_JSON,
-  CODES_LIST,
   ANATOMY_LIST,
   ANATOMY_TO_CODES_DICT,
 } = require("./diagnosis");

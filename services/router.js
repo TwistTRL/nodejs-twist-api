@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-14 16:14:14
+ * @Last Modified time: 2020-05-14 19:29:10
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -250,33 +250,59 @@ router.get("/phenotyping/anatomy/:mrn", async (req, res) => {
 
 
 /**
- * @api {get} /phenotyping/codes/:anatomy Diagnosis Codes
+ * @api {get} /phenotyping/codes/:anatomy/:prior_group Diagnosis Codes
  * @apiVersion 0.0.1
  * @apiName get-phenotyping-diagnosis-codes
  * @apiDescription step 4
 
-    input: amatomy
+    input: `anatomy`, `prior_group`
     
-    output: codes of anatomy. 
+    output: codes for next group.
     
  * @apiGroup Phenotyping
- * @apiParam {String} anatomy Native disease
+ * @apiParam {String} anatomy `native_disease`
+ * @apiParam {String} prior_group `prior_group` in `groups`
  * @apiSuccessExample Success-Response:
  *{
-    "Biventricular Aortic valve-AS- Moderate to severe 1": [
-        "Aortic valve replacement",
-        "Aortic valve replacement - Using autologous pericardium (Ozaki)",
-        "Ross procedure",
-        "Aortic valvuloplasty",
-        "Aortic annulus enlargment or augmentation"
+    "TOF repair 1": [
+        ["VSD closure",
+         "RVOT reconstruction"],
+        ["DORV repair"],
+        ["VSD closure",
+         "Pulmonary valvuloplasty"],
+        ["TOF repair"]
     ],
+    "Palliative TOF 1": [
+        ["Unifocalization pulmonary artery and collaterals"],
+        ["Main pulmonary arterial banding"],
+        ["PDA enlargement"],
+        ["Systemic-to-pulmonary artery shunt"]
+    ]
   }
  */
 
+router.get("/phenotyping/codes/:anatomy/:prior_group", async (req, res) => {
+  const anatomy = req.params.anatomy;
+  const prior_group = req.params.prior_group || "";
+  console.log("anatomy is: " + anatomy);
+  console.log("prior_group is: " + prior_group);
+  if (!anatomy) {
+    res.send({});
+    return;
+  }
+  getApiFromRedis(res, diagnosisGetCodes, {anatomy, prior_group}, "interface-phenotyping-diagnosis-codes");
+});
+
 router.get("/phenotyping/codes/:anatomy", async (req, res) => {
   const anatomy = req.params.anatomy;
+  const prior_group = "";
   console.log("anatomy is: " + anatomy);
-  getApiFromRedis(res, diagnosisGetCodes, anatomy, "interface-phenotyping-diagnosis-codes");
+  console.log("prior_group is: " + prior_group);
+  if (!anatomy) {
+    res.send({});
+    return;
+  }
+  getApiFromRedis(res, diagnosisGetCodes, {anatomy, prior_group}, "interface-phenotyping-diagnosis-codes");
 });
 
 /**
@@ -285,9 +311,9 @@ router.get("/phenotyping/codes/:anatomy", async (req, res) => {
  * @apiName get-phenotyping-diagnosis-procedure
  * @apiDescription step 4
 
-    input: codes
+    input: list of list codes
     
-    output: procedure of codes. 
+    output: matched MRNs and date of matched procedure.
     
  * @apiGroup Phenotyping
  * @apiParam {String} codes disease - group - codes

@@ -2,15 +2,15 @@
  * @Author: Peng Zeng
  * @Date: 2020-05-13 11:11:52
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-14 16:11:23
+ * @Last Modified time: 2020-05-14 22:48:46
  */
 
 const database = require("../../services/database");
 const {
   DIAGNOSIS_GROUP_JSON,
-  CODES_LIST,
   ANATOMY_LIST,
   ANATOMY_TO_CODES_DICT,
+  PRIOR_GROUP_TO_CODES_DICT,
 } = require("./diagnosis");
 
 const STEP2_GET_MRN_SQL = (person_id) => `
@@ -32,34 +32,17 @@ FROM DIAGNOSIS
 WHERE MRN = '${mrn.toString()}'
 `;
 
-const STEP4_GET_CODES = (anatomy) => {
-  if (!anatomy) {
-    return {};
-  }
-  let result = {};
-  for (let group in ANATOMY_TO_CODES_DICT[anatomy]) {
-    if (!(group in result)) {
-      result[group] = [];
-      let curCodes = ANATOMY_TO_CODES_DICT[anatomy][group];
-      curCodes.forEach((element) => {
-        if (element && element.length) {
-          element.forEach((code) => {
-            result[group].push(code);
-          });
-        }
-      });
-    }
-  }
+const STEP4_GET_CODES = ({anatomy, prior_group}) => PRIOR_GROUP_TO_CODES_DICT[anatomy][prior_group];
 
-  return result;
-};
+const FLATTEN_ARRAY_SQL = (codeList) => codeList.reduce((acc, arr) => acc + arr.reduce((itemAcc, cur) => itemAcc + ` OR DOMINANT_PROC = '${cur}'`, ''), '');
 
 const STEP5_GET_PROCEDURE_SQL = (codeList) => `
 SELECT
   MRN,
-  DT
+  DT,
+  DOMINANT_PROC
 FROM PROCEDURE
-WHERE 0=1${codeList.reduce((acc, cur) => acc + ` OR DOMINANT_PROC = '${cur}'`, ``)}
+WHERE 0=1${FLATTEN_ARRAY_SQL(codeList)}
 ORDER BY MRN, DT
 `;
 
@@ -91,15 +74,38 @@ async function getProcedureSqlExecutor(conn, codeList) {
     return [];
   }
   // mrn, dt
-  let preMrn;
+  let preMrn = procedureArr[0].MRN;
+  let preTime = procedureArr[0].DT;
+  let preCodeArr = [];
   procedureArr.forEach((element) => {
     if (element.MRN !== preMrn) {
+      if (isValidCodes(preCodeArr, codeList)) {
+      result.push({ mrn: element.MRN, time: element.DT, proc: preCodeArr});
+      }
       preMrn = element.MRN;
-      result.push({ mrn: element.MRN, time: element.DT });
+      preTime = element.DT;
+      preCodeArr = [element.DOMINANT_PROC];
+    } else {
+      preCodeArr.push(element.DOMINANT_PROC);
     }
   });
   return result;
 }
+
+const isValidCodes = (preCodeArr, codeList) => {
+  let ret = false;
+  codeList.forEach(element => {
+    let curRet = false;
+    for (let item of element) {
+      if (!preCodeArr.includes(item)) {
+        return false;
+      }
+    }
+    ret = true;
+  });
+  return ret;
+}
+
 
 const diagnosisGetMRN = database.withConnection(getMRNSqlExecutor);
 const diagnosisGetAnatomy = database.withConnection(getAnatomySqlExecutor);

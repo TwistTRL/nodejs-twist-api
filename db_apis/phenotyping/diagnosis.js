@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-05-13 14:46:50
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-13 18:36:52
+ * @Last Modified time: 2020-05-14 18:39:24
  */
 
 // Fhasai's table
@@ -2992,33 +2992,34 @@ const DIAGNOSIS_GROUP_JSON = [
   },
 ];
 
-let CODES_LIST = [];
 let ANATOMY_LIST = [];
 let ANATOMY_TO_CODES_DICT = {};
+let PRIOR_GROUP_TO_CODES_DICT = {};
 
 DIAGNOSIS_GROUP_JSON.forEach((element) => {
   ANATOMY_LIST.push(element.native_disease);
   ANATOMY_TO_CODES_DICT[element.native_disease] = {};
+  PRIOR_GROUP_TO_CODES_DICT[element.native_disease] = {};
   element.groups.forEach((group) => {
     if (group.group_name) {
       ANATOMY_TO_CODES_DICT[element.native_disease][group.group_name] = group.codes;
-      group.codes.forEach((code) => {
-        code.forEach((item) => {
-          if (!CODES_LIST.includes(item)) {
-            CODES_LIST.push(item);
-          }
-        });
-      });
+
+      let prior_group = group.prior_group;
+      if (prior_group in PRIOR_GROUP_TO_CODES_DICT[element.native_disease]) {
+        PRIOR_GROUP_TO_CODES_DICT[element.native_disease][prior_group][group.group_name] = group.codes;
+      } else {
+        PRIOR_GROUP_TO_CODES_DICT[element.native_disease][prior_group] = {};
+        PRIOR_GROUP_TO_CODES_DICT[element.native_disease][prior_group][group.group_name] = group.codes;
+      }
     }
   });
 });
-// console.log("CODES_LIST :>> ", CODES_LIST);
 // console.log('ANATOMY_LIST :>> ', ANATOMY_LIST);
 // console.log("ANATOMY_TO_CODES_DICT :>> ", ANATOMY_TO_CODES_DICT);
-
+// console.log('PRIOR_GROUP_TO_CODES_DICT :>> ', PRIOR_GROUP_TO_CODES_DICT);
 module.exports = {
   DIAGNOSIS_GROUP_JSON,
-  CODES_LIST,
   ANATOMY_LIST,
   ANATOMY_TO_CODES_DICT,
+  PRIOR_GROUP_TO_CODES_DICT,
 };
