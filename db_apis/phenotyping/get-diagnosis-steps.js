@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-05-13 11:11:52
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-15 14:49:54
+ * @Last Modified time: 2020-05-17 11:46:43
  */
 
 const database = require("../../services/database");
@@ -37,15 +37,22 @@ WHERE MRN = '${mrn.toString()}'
 const STEP4_GET_CODES = ({ anatomy, prior_group }) =>
   PRIOR_GROUP_TO_CODES_DICT[anatomy][prior_group];
 
-const FLATTEN_ARRAY_SQL = (codeList) =>
-  codeList.reduce(
-    (acc, arr) => acc + arr.reduce((itemAcc, cur) => itemAcc + ` OR DOMINANT_PROC = '${cur}'`, ""),
+const FLATTEN_ARRAY_SQL = (codeList) => {
+  let ret = codeList.reduce(
+    (acc, cur) =>
+      acc +
+      cur.include.reduce((itemAcc, itemCur) => itemAcc + ` OR DOMINANT_PROC = '${itemCur}'`, "") +
+      cur.exclude.reduce((itemAcc, itemCur) => itemAcc + ` OR DOMINANT_PROC = '${itemCur}'`, ""),
     ""
   );
+  console.log("ret :>> ", ret);
+  return ret;
+};
 
 const STEP5_GET_PROCEDURE_SQL = (codeList) => `
 SELECT
   MRN,
+  ID,
   DT,
   DOMINANT_PROC,
   BIRTH_UNIX_TS
@@ -77,52 +84,83 @@ async function getAnatomySqlExecutor(conn, mrn) {
 }
 
 async function getProcedureSqlExecutor(conn, codeList) {
+  console.log("codeList :>> ", codeList);
   let rawRecords = await conn.execute(STEP5_GET_PROCEDURE_SQL(codeList));
   let procedureArr = rawRecords.rows;
-  let result = [];
+  console.log("procedureArr :>> ", procedureArr);
+  let mrn_proc = [];
   if (!procedureArr) {
     return [];
   }
   // mrn, dt
+  // assume that same ID will be only for same MRN
+  let mrnDict = {};
   let preMrn = procedureArr[0].MRN;
   let preTime = [procedureArr[0].BIRTH_UNIX_TS];
+  let preId = procedureArr[0].ID;
   let preCodeArr = [];
+  
   procedureArr.forEach((element) => {
-    if (element.MRN === '350026') {
-      console.log('element :>> ', element);
-    }
-    if (element.MRN !== preMrn) {
+    if (element.ID === preId) {
+      preCodeArr.push(element.DOMINANT_PROC);
+      preTime.push(element.DT)
+    } else {
       if (isValidCodes(preCodeArr, codeList)) {
-        result.push({ mrn: preMrn, time: preTime, proc: preCodeArr });
+        mrn_proc.push({ mrn: preMrn, time: preTime, proc: preCodeArr, id: preId});
+        if (preMrn in mrnDict) {
+          mrnDict[preMrn].push(preId);
+        } else {
+          mrnDict[preMrn] = [preId];
+        }
       }
+
       preMrn = element.MRN;
+      preId = element.ID;
       preTime = [element.BIRTH_UNIX_TS, element.DT];
       preCodeArr = [element.DOMINANT_PROC];
-    } else {
-      preCodeArr.push(element.DOMINANT_PROC);
-      preTime.push(element.DT);
     }
   });
-  return result;
+  let mrn_count = Object.keys(mrnDict).length;
+
+  return {mrn_count, mrn_proc};
 }
 
+/**
+codeList = 
+[
+  {
+    include: ["a", "b"],
+    exclude: ["c"],
+  },
+]
+
+ */
 const isValidCodes = (preCodeArr, codeList) => {
-  let ret = false;
-  codeList.forEach((element) => {
-    let curRet = false;
-    for (let item of element) {
-      if (!preCodeArr.includes(item)) {
-        return false;
+  for (let code of codeList) {
+    let excludeSatisfy = true;
+    let includeSatisfy = true;
+    for (let excludeItem of code.exclude) {
+      if (preCodeArr.includes(excludeItem)) {
+        excludeSatisfy = false;
+        break;
       }
     }
-    ret = true;
-  });
-  return ret;
+    if (excludeSatisfy) {
+      for (let includeItem of code.include) {
+        if (!preCodeArr.includes(includeItem)) {
+          includeSatisfy = false;
+          break;
+        }
+      }
+      if (includeSatisfy) {
+        return true;
+      }
+    }
+  }
+  return false;
 };
 
-const STEP6_NEXT_PROCEDURE = (mrn) => {
-  
-}
+const STEP6_NEXT_PROCEDURE = (mrn) => {};
 
 const diagnosisGetMRN = database.withConnection(getMRNSqlExecutor);
 const diagnosisGetAnatomy = database.withConnection(getAnatomySqlExecutor);
@@ -136,5 +174,4 @@ module.exports = {
   diagnosisGetCodes,
   diagnosisGetProcedure,
   diagnosisGetNextProcedure,
-
 };

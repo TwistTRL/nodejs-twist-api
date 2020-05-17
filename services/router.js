@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-15 14:01:12
+ * @Last Modified time: 2020-05-17 11:50:02
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -313,23 +313,28 @@ router.get("/phenotyping/codes/:anatomy", async (req, res) => {
 
     input: list of list codes
     
-    output: matched MRNs and date of matched procedure.
+    output: matched MRNs count and arrays of id/date of matched procedure.
     
  * @apiGroup Phenotyping
  * @apiParam {String} codes disease - group - codes
  * @apiSuccessExample Success-Response:
- *[
-    {
-        "mrn": "10009",
-        "time": [
-            680500800,
-            "1992-03-06T04:00:00.000Z"
-        ],
-        "proc": [
-            "Aortic valvuloplasty"
-        ]
-    },
-  ]
+  {
+    "mrn_count": 1544,
+    "mrn_proc": [
+        {
+            "mrn": "10001",
+            "time": [
+                680500800,
+                "1992-03-06T04:00:00.000Z"
+            ],
+            "proc": [
+                "Aortic valvuloplasty"
+            ],
+            "id": 22664
+        },
+    ]
+  }
+ *
 
  */
 
@@ -348,8 +353,6 @@ router.get("/phenotyping/procedure/:codes", async (req, res) => {
  * @apiName get-census
  * @apiGroup Census
  * @apiParam {Number} timestamp Unix Timestamp in seconds.
- *
- *
  */
 
 router.get("/census/:timestamp", async (req, res) => {
