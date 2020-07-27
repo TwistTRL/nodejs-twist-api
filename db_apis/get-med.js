@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-02-11 11:50:13
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-17 11:02:39
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-05-19 15:21:45
  */
 
 const database = require("../services/database");
@@ -23,7 +23,8 @@ SELECT
   DRUG,
   RXCUI,
   INFUSION_RATE,
-  INFUSION_RATE_UNITS
+  INFUSION_RATE_UNITS,
+  DOSING_WEIGHT
 FROM DRUG_INFUSIONS
 WHERE (1=0`;
 
@@ -37,7 +38,8 @@ SELECT
   RXCUI,
   ADMIN_DOSAGE,
   ADMIN_ROUTE,
-  DOSAGE_UNITS
+  DOSAGE_UNITS,
+  DOSING_WEIGHT
 FROM DRUG_INTERMITTENT
 WHERE (1=0`;
 
@@ -198,6 +200,7 @@ function _calculateRawRecords(rawRecords) {
       singleResult.end = element.END_UNIX;
       singleResult.unit = element.INFUSION_RATE_UNITS;
       singleResult.RXCUI = element.RXCUI;
+      singleResult.dosing_weight = element.DOSING_WEIGHT;
       let cats = RXCUI_TO_CAT_DICT[element.RXCUI];
       cats.forEach(cat => {
         result_dict[cat].push(singleResult);
@@ -214,6 +217,7 @@ function _calculateRawRecords(rawRecords) {
       singleResult.unit = element.DOSAGE_UNITS;
       singleResult.route = element.ADMIN_ROUTE;
       singleResult.RXCUI = element.RXCUI;
+      singleResult.dosing_weight = element.DOSING_WEIGHT;
       let cats = RXCUI_TO_CAT_DICT[element.RXCUI];
       cats.forEach(cat => {
         result_dict[cat].push(singleResult);
