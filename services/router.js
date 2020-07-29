@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-17 11:50:02
+ * @Last Modified time: 2020-07-27 21:37:09
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -13,13 +13,8 @@ const jwt = require("jsonwebtoken");
 // redis
 const { getApiFromRedis } = require("../config/redis-config");
 
-const { getDiagnosis, testDiagnosis } = require("../db_apis/phenotyping/get-diagnosis");
-const {
-  diagnosisGetMRN,
-  diagnosisGetAnatomy,
-  diagnosisGetCodes,
-  diagnosisGetProcedure,
-} = require("../db_apis/phenotyping/get-diagnosis-steps");
+const { getPhenotypingStep1 } = require("../db_apis/phenotyping/step1");
+const { getPhenotypingStep2 } = require("../db_apis/phenotyping/step2");
 
 const { getAdtCensus } = require("../db_apis/cross_tables/get-adt-census");
 const { getCensus } = require("../db_apis/cross_tables/get-census");
@@ -89,6 +84,9 @@ const settingsRadio = require("../db_relation/radiology-db-relation");
 
 const { getAccessToken, getPDFUrl } = require("../cerner_apis/get-FHIR-api");
 
+const { getDiagnosis } = require("../db_apis/diagnosis/get-diagnosis");
+
+
 // >>------------------------------------------------------------------------>>
 // apidoc folder is a static files folder
 // user express.static to display this index.html
@@ -152,196 +150,53 @@ router.get("/phenotyping/test", async (req, res) => {
 });
 
 /**
- * @api {get} /phenotyping/:person_id Phenotyping Diagnosis
+ * @api {get} /phenotyping/step1/:mrn Phenotyping Step1
  * @apiVersion 0.0.1
- * @apiName get-phenotyping-diagnosis
- * @apiDescription get_patients_based_on_original_anatomy
-
-    input: person_id
-    
-    output: get a list of patients mrn with earliest date. 
-    
-  these patients have the same `dominant_proc` with the input patient's `codes` of `native_disease`(`anatomy`)
-
- * @apiGroup Phenotyping
- * @apiParam {Number} person_id Patient person id
- * @apiSuccessExample Success-Response:
- *{
-    "Biventricular Aortic valve-AS- Moderate to severe 1": [
-        {
-            "mrn": "123",
-            "time": "1992-03-06T04:00:00.000Z"
-        },
-    ],
-  }
-
- */
-
-router.get("/phenotyping/:person_id", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  console.log("person_id is: " + person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-  getApiFromRedis(res, getDiagnosis, person_id, "interface-phenotyping-diagnosis");
-});
-
-/**
- * @api {get} /phenotyping/mrn/:person_id 2.MRN
- * @apiVersion 0.0.1
- * @apiName get-phenotyping-diagnosis-mrn
- * @apiDescription step 2
-
-    input: person_id
-    
-    output: mrn of this patient. 
-    
- * @apiGroup Phenotyping
- * @apiParam {Number} person_id Patient person id
- * @apiSuccessExample Success-Response:
- *[
-    "100000"
-  ]
-
- */
-
-router.get("/phenotyping/mrn/:person_id", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  console.log("person_id is: " + person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-  getApiFromRedis(res, diagnosisGetMRN, person_id, "interface-phenotyping-diagnosis-mrn");
-});
-
-/**
- * @api {get} /phenotyping/anatomy/:mrn 3.Anatomy
- * @apiVersion 0.0.1
- * @apiName get-phenotyping-diagnosis-anatomy
- * @apiDescription step 3
+ * @apiName get-phenotyping-step1
+ * @apiDescription get-phenotyping-step1
 
     input: mrn
     
-    output: anatomy of this patient. 
-    
+    output: step1    
+
  * @apiGroup Phenotyping
  * @apiParam {String} mrn Patient MRN
  * @apiSuccessExample Success-Response:
- *[
-    {
-        "MRN": "10000000",
-        "ANATOMY": "Aortic valve - AS - Moderate to severe",
-        "SUBCAT_ANAT": "Aortic valve - AS - Moderate to severe",
-        "SUBCAT_NAME": "Commissure",
-        "SUBCAT_VALUE": "Unmentioned",
-        "COVARIATE": null
-    },
-  ]
+ *{
 
+
+  }
  */
 
-router.get("/phenotyping/anatomy/:mrn", async (req, res) => {
-  const mrn = req.params.mrn;
+router.get("/phenotyping/step1/:mrn", async (req, res) => {
+  const mrn = parseInt(req.params.mrn);
   console.log("mrn is: " + mrn);
-  getApiFromRedis(res, diagnosisGetAnatomy, mrn, "interface-phenotyping-diagnosis-anatomy");
+  getApiFromRedis(res, getPhenotypingStep1, mrn, "interface-phenotyping-step1");
 });
 
-
 /**
- * @api {get} /phenotyping/codes/:anatomy/:prior_group 4.Codes
+ * @api {get} /phenotyping/step2/:mrn Phenotyping Step2
  * @apiVersion 0.0.1
- * @apiName get-phenotyping-diagnosis-codes
- * @apiDescription step 4
+ * @apiName get-phenotyping-step2
+ * @apiDescription get-phenotyping-step2
 
-    input: `anatomy`, `prior_group`
+    input: mrn
     
-    output: codes for next group.
-    
+    output: step2   
+
  * @apiGroup Phenotyping
- * @apiParam {String} anatomy `native_disease`
- * @apiParam {String} prior_group `prior_group` in `groups`
+ * @apiParam {String} mrn Patient MRN
  * @apiSuccessExample Success-Response:
  *{
-    "TOF repair 1": [
-        ["VSD closure",
-         "RVOT reconstruction"],
-        ["DORV repair"],
-        ["VSD closure",
-         "Pulmonary valvuloplasty"],
-        ["TOF repair"]
-    ],
-    "Palliative TOF 1": [
-        ["Unifocalization pulmonary artery and collaterals"],
-        ["Main pulmonary arterial banding"],
-        ["PDA enlargement"],
-        ["Systemic-to-pulmonary artery shunt"]
-    ]
+
+
   }
  */
 
-router.get("/phenotyping/codes/:anatomy/:prior_group", async (req, res) => {
-  const anatomy = req.params.anatomy;
-  const prior_group = req.params.prior_group || "";
-  console.log("anatomy is: " + anatomy);
-  console.log("prior_group is: " + prior_group);
-  if (!anatomy) {
-    res.send({});
-    return;
-  }
-  getApiFromRedis(res, diagnosisGetCodes, {anatomy, prior_group}, "interface-phenotyping-diagnosis-codes");
-});
-
-router.get("/phenotyping/codes/:anatomy", async (req, res) => {
-  const anatomy = req.params.anatomy;
-  const prior_group = "";
-  console.log("anatomy is: " + anatomy);
-  console.log("prior_group is: " + prior_group);
-  if (!anatomy) {
-    res.send({});
-    return;
-  }
-  getApiFromRedis(res, diagnosisGetCodes, {anatomy, prior_group}, "interface-phenotyping-diagnosis-codes");
-});
-
-/**
- * @api {get} /phenotyping/procedure/:codes 5.Procedure
- * @apiVersion 0.0.1
- * @apiName get-phenotyping-diagnosis-procedure
- * @apiDescription step 5
-
-    input: list of list codes
-    
-    output: matched MRNs count and arrays of id/date of matched procedure.
-    
- * @apiGroup Phenotyping
- * @apiParam {String} codes disease - group - codes
- * @apiSuccessExample Success-Response:
-  {
-    "mrn_count": 1544,
-    "mrn_proc": [
-        {
-            "mrn": "10001",
-            "time": [
-                680500800,
-                "1992-03-06T04:00:00.000Z"
-            ],
-            "proc": [
-                "Aortic valvuloplasty"
-            ],
-            "id": 22664
-        },
-    ]
-  }
- *
-
- */
-
-router.get("/phenotyping/procedure/:codes", async (req, res) => {
-  const codes =  JSON.parse(req.params.codes);
-  console.log("codes is: " + codes);
-  getApiFromRedis(res, diagnosisGetProcedure, codes, "interface-phenotyping-diagnosis-procedure");
+router.get("/phenotyping/step2/:mrn", async (req, res) => {
+  const mrn = parseInt(req.params.mrn);
+  console.log("mrn is: " + mrn);
+  getApiFromRedis(res, getPhenotypingStep2, mrn, "interface-phenotyping-step2");
 });
 
 
@@ -3449,6 +3304,27 @@ router.post("/vitals", async (req, res) => {
     res.status(400);
     res.send(e.toString());
   }
+});
+
+
+
+/**
+ * @api {get} /diagnosis/:mrn Diagnosis for Patient
+ * @apiVersion 0.0.1
+ * @apiName Get Diagnosis
+ * @apiGroup Diagnosis
+ * @apiParam {String} mrn Patient MRN.
+ * @apiSuccess {String} string_diagnosis Diagnosis display
+ * @apiSuccessExample Success-Response:
+ * DORV/subpulmonary VSD/Rdom
+ */
+
+router.get("/diagnosis/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  const binds = {
+    mrn,
+  };
+  res.send(await getDiagnosis(binds));
 });
 
 module.exports = router;
