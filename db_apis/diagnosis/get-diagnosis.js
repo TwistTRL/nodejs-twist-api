@@ -2,11 +2,17 @@
  * @Author: Peng Zeng
  * @Date: 2020-07-27 01:00:04
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-07-28 23:09:56
+ * @Last Modified time: 2020-07-29 12:23:22
  */
 
 const database = require("../../services/database");
-var timeLable = 0;
+const {
+  DISEASE_TO_COVARIATE_DICT,
+  DISEASE_TO_SUBCAT_DICT,
+  DISEASE_TO_PATIENT_SELECTION,
+  COVARIATE_TO_DISPLAY_DICT,
+  DISEASE_TO_COVARIATE_DISPLAY_DICT,
+} = require("../phenotyping/codes721");
 
 const SQL_GET_DIAGNOSIS = `
 SELECT 
@@ -42,22 +48,52 @@ const DIAGNOSIS_RULES_DICT = {
   TAPVC: {},
 };
 
-const DIAGNOSIS_RULES_ORDER = {
-  TAPVC: ["Type", "PVO", "SELF"],
-  AVC: ["Ventricle balance", "Ventricle dominance", "Type"],
-  DORV: ["VSD position"],
+// TAPVC: ["Type", "PVO", "SELF"],
+// AVC: ["Ventricle balance", "Ventricle dominance", "Type"],
+// DORV: ["VSD position"],
+const getSubcatOrder = () => {
+  let subcat_order = {};
+  for (disease in DISEASE_TO_SUBCAT_DICT) {
+    if (disease === "AVC") {
+      // exception 1
+      subcat_order[disease] = ["Ventricle balance", "Ventricle dominance", "Type"];
+    } else if (DISEASE_TO_SUBCAT_DICT[disease]) {
+      subcat_order[disease] = Object.keys(DISEASE_TO_SUBCAT_DICT[disease]);
+    }
+    // exception 2
+    if (disease === "TAPVC") {
+      subcat_order[disease] = [...subcat_order[disease], "SELF"];
+    }
+  }
+
+  console.log("subcat_order :>> ", subcat_order);
+  return subcat_order;
 };
 
-const DIAGNOSIS_OUTPUT_ORDER = {
-  DORV: ["DORV", "AVC", "TAPVC"],
-  AVC: ["AVC"],
-  TAPVC: ["TAPVC"],
+// {
+//   DORV: ["DORV", "AVC", "TAPVC"],
+//   AVC: ["AVC"],
+//   TAPVC: ["TAPVC"],
+// };
+const getOutputOrder = () => {
+  let output_order = {};
+  for (item in DISEASE_TO_COVARIATE_DICT) {
+    if (DISEASE_TO_COVARIATE_DICT[item]) {
+      output_order[item] = [item, ...DISEASE_TO_COVARIATE_DICT[item]];
+    } else {
+      output_order[item] = [item];
+    }
+  }
+  console.log("output_order :>> ", output_order);
+  return output_order;
 };
 
 async function diagnosisQuerySQLExecutor(conn, binds) {
-  let timestampLable = timeLable++;
   console.log("~~SQL_GET_DIAGNOSIS: ", SQL_GET_DIAGNOSIS);
   let rawRecord = await conn.execute(SQL_GET_DIAGNOSIS, binds);
+  if (!rawRecord.rows[0]) {
+    return "Error: no ANATOMY";
+  }
   const curAnatomy = rawRecord.rows[0].ANATOMY;
   console.log("curAnatomy :>> ", curAnatomy);
   let arr = rawRecord.rows.filter((item) => item.SUBCAT_ANAT);
@@ -73,6 +109,8 @@ async function diagnosisQuerySQLExecutor(conn, binds) {
     }
   });
   console.log("diagDict :>> ", diagDict);
+  const DIAGNOSIS_OUTPUT_ORDER = getOutputOrder();
+  const DIAGNOSIS_SUBCAT_ORDER = getSubcatOrder();
   const curOutputOrder = DIAGNOSIS_OUTPUT_ORDER[curAnatomy];
   //curOutputOrder = ["DORV", "AVC", "TAPVC"]
   console.log("curOutputOrder :>> ", curOutputOrder);
@@ -81,16 +119,15 @@ async function diagnosisQuerySQLExecutor(conn, binds) {
   curOutputOrder.forEach((anat) => {
     if (anat in diagDict) {
       let eachAnat = [];
-      DIAGNOSIS_RULES_ORDER[anat].forEach((item) => {
+      DIAGNOSIS_SUBCAT_ORDER[anat].forEach((item) => {
         let curItemDisp;
         if (item === "SELF") {
           curItemDisp = anat;
         } else {
-          let alias = DIAGNOSIS_RULES_DICT[anat][item];
-          if (alias && diagDict[anat][item] in alias) {
-            curItemDisp = alias[diagDict[anat][item]];
+          if (DIAGNOSIS_RULES_DICT[anat] && DIAGNOSIS_RULES_DICT[anat][item] && diagDict[anat][item] in DIAGNOSIS_RULES_DICT[anat][item]) {
+            curItemDisp = DIAGNOSIS_RULES_DICT[anat][item][diagDict[anat][item]];
           } else {
-            curItemDisp = diagDict[anat][item];
+            curItemDisp = diagDict[anat][item].toLowerCase();
           }
         }
         if (curItemDisp) {

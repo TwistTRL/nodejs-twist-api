@@ -2,13 +2,11 @@
  * @Author: Peng Zeng 
  * @Date: 2020-07-29 09:03:39 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-07-29 10:02:09
+ * @Last Modified time: 2020-07-29 10:35:26
  */
 
 // codes.xlsm
 const PATH = require("path").join(__dirname, "./codes721.xlsm");
-
-const Service = require("egg").Service;
 const XLSX = require("xlsx");
 
 const workbook = XLSX.readFile(PATH);
@@ -218,11 +216,11 @@ for (let key in DISEASE_TO_COVARIATE_DICT) {
         DISEASE_TO_COVARIATE_DISPLAY_DICT[key] = null;
     }
 }
-console.log('DISEASE_TO_COVARIATE_DISPLAY_DICT :>> ', DISEASE_TO_COVARIATE_DISPLAY_DICT);
-
+// console.log('DISEASE_TO_COVARIATE_DISPLAY_DICT :>> ', DISEASE_TO_COVARIATE_DISPLAY_DICT);
 module.exports = {
   DISEASE_TO_COVARIATE_DICT,
   DISEASE_TO_SUBCAT_DICT,
   DISEASE_TO_PATIENT_SELECTION,
   COVARIATE_TO_DISPLAY_DICT,
+  DISEASE_TO_COVARIATE_DISPLAY_DICT,
 };
