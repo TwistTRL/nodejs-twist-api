@@ -85,6 +85,8 @@ const settingsRadio = require("../db_relation/radiology-db-relation");
 const { getAccessToken, getPDFUrl } = require("../cerner_apis/get-FHIR-api");
 
 const { getDiagnosis } = require("../db_apis/diagnosis/get-diagnosis");
+const { getDiagnosisForMrnList } = require("../db_apis/diagnosis/get-diagnosis-for-same-anatomy");
+
 
 
 // >>------------------------------------------------------------------------>>
@@ -3326,5 +3328,25 @@ router.get("/diagnosis/:mrn", async (req, res) => {
   };
   res.send(await getDiagnosis(binds));
 });
+
+/**
+ * @api {get} /diagnosis-list/:mrn Diagnosis for Patient List
+ * @apiVersion 0.0.1
+ * @apiName Get Diagnosis List
+ * @apiGroup Diagnosis
+ * @apiParam {String} mrn Patient MRN.
+ * @apiSuccess {String} string_diagnosis Diagnosis display
+ * @apiSuccessExample Success-Response:
+ * DORV/subpulmonary VSD/Rdom
+ */
+
+router.get("/diagnosis-list/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  const binds = {
+    mrn,
+  };
+  res.send(await getDiagnosisForMrnList(binds));
+});
+
 
 module.exports = router;
