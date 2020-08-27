@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-06 11:14:32
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-05 16:41:18
+ * @Last Modified time: 2020-08-27 12:48:37
  */
 
 const moment = require("moment");
@@ -47,8 +47,8 @@ SELECT
   START_UNIX,
   END_UNIX,
   RESULT_VAL,
-  "Amino_Acids g/kg",
-  "Dextrose g/kg"
+  "AMINO_ACIDS_G_KG",
+  "DEXTROSE_G_KG"
 FROM TPN
 WHERE PERSON_ID = :person_id
 ORDER BY START_UNIX`;
@@ -194,7 +194,7 @@ function _calculateRawRecords(
     // TPN database is already binned by hour
     console.log("TpnNutr record size :", arrTpnNutr.length);
     for (let row of arrTpnNutr) {
-      //example row = {"START_UNIX": 1524700800, "Amino_Acids g/kg": 2}
+      //example row = {"START_UNIX": 1524700800, "AMINO_ACIDS_G_KG": 2}
       let start = row["START_UNIX"];
       let end = row["END_UNIX"];
       if (start >= end) {
@@ -210,7 +210,7 @@ function _calculateRawRecords(
         }
         // calories calculation for TPN
         let caloriesTPN =
-          (row["Amino_Acids g/kg"] || 0) * AA_CALORIES + (row["Dextrose g/kg"] || 0) * DEX_CALORIES;
+          (row["AMINO_ACIDS_G_KG"] || 0) * AA_CALORIES + (row["DEXTROSE_G_KG"] || 0) * DEX_CALORIES;
         accValueToDict(caloriesTPN, timestamp, "TPN", retDict);
       } else {
         console.log("TPN start or end time null :", row);

@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-07-27 01:00:04
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-08-04 11:07:05
+ * @Last Modified time: 2020-08-04 13:41:02
  */
 
 const database = require("../../services/database");
@@ -53,7 +53,7 @@ const DIAGNOSIS_RULES_DICT = {
 // DORV: ["VSD position"],
 const getSubcatOrder = () => {
   let subcat_order = {};
-  for (disease in DISEASE_TO_SUBCAT_DICT) {
+  for (let disease in DISEASE_TO_SUBCAT_DICT) {
     if (disease === "AVC") {
       // exception 1
       subcat_order[disease] = ["Ventricle balance", "Ventricle dominance", "Type"];
@@ -76,7 +76,7 @@ const getSubcatOrder = () => {
 // };
 const getOutputOrder = () => {
   let output_order = {};
-  for (item in DISEASE_TO_COVARIATE_DICT) {
+  for (let item in DISEASE_TO_COVARIATE_DICT) {
     if (DISEASE_TO_COVARIATE_DICT[item]) {
       output_order[item] = [item, ...DISEASE_TO_COVARIATE_DICT[item]];
     } else {

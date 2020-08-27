@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-07-27 21:37:09
+ * @Last Modified time: 2020-08-27 11:12:18
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -84,8 +84,9 @@ const settingsRadio = require("../db_relation/radiology-db-relation");
 
 const { getAccessToken, getPDFUrl } = require("../cerner_apis/get-FHIR-api");
 
-const { getDiagnosis } = require("../db_apis/diagnosis/get-diagnosis");
-const { getDiagnosisForMrnList } = require("../db_apis/diagnosis/get-diagnosis-for-same-anatomy");
+const { getDiagnosisDisplay } = require("../db_apis/diagnosis_display/get-disease-display");
+
+const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 
 
 
@@ -964,7 +965,7 @@ router.post("/inout-v2", async (req, res) => {
                             "unit": "ml",
                             "items": [
                                 {
-                                    "name": "Dextrose PN",
+                                    "name": "DEXTROSE_PN",
                                     "value": 165,
                                     "unit": "g/L"
                                 },
@@ -3326,27 +3327,45 @@ router.get("/diagnosis/:mrn", async (req, res) => {
   const binds = {
     mrn,
   };
-  res.send(await getDiagnosis(binds));
+  res.send(await getDiagnosisDisplay(binds));
+});
+
+
+
+/**
+ * @api {get} /lines/:person_id Lines for Patient
+ * @apiVersion 0.0.1
+ * @apiName Get Patient Lines
+ * @apiGroup Lines
+ * @apiParam {String} person_id Patient ID.
+ * @apiSuccess {Array} lines_list Lines list display
+ */
+
+router.get("/lines/:person_id", async (req, res) => {
+  const person_id = req.params.person_id;
+  const binds = {
+    person_id,
+  };
+  res.send(await getLines(binds));
 });
 
 /**
- * @api {get} /diagnosis-list/:mrn Diagnosis for Patient List
+ * @api {get} /lines-counter/:person_id Lines-counter for Patient
  * @apiVersion 0.0.1
- * @apiName Get Diagnosis List
- * @apiGroup Diagnosis
- * @apiParam {String} mrn Patient MRN.
- * @apiSuccess {String} string_diagnosis Diagnosis display
- * @apiSuccessExample Success-Response:
- * DORV/subpulmonary VSD/Rdom
+ * @apiName Get Patient Lines-counter
+ * @apiGroup Lines
+ * @apiParam {String} person_id Patient ID.
+ * @apiSuccess {Array} lines_counter_list Lines-counter list display
  */
 
-router.get("/diagnosis-list/:mrn", async (req, res) => {
-  const mrn = req.params.mrn;
+router.get("/lines-counter/:person_id", async (req, res) => {
+  const person_id = req.params.person_id;
   const binds = {
-    mrn,
+    person_id,
   };
-  res.send(await getDiagnosisForMrnList(binds));
+  res.send(await getLinesCounter(binds));
 });
+
 
 
 module.exports = router;

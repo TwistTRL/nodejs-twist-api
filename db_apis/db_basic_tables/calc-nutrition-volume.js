@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-17 15:14:08
+ * @Last Modified by: Peng Zeng Zeng
+ * @Last Modified time: 2020-08-27 12:47:34
  */
 
 const moment = require("moment");
@@ -22,7 +22,7 @@ console.log('arrEN.length :', arrEN.length);
     // TPN database is already binned by hour
     console.log("Tpn record size :", arrTPN.length);
     for (let row of arrTPN) {
-      //example row = {"START_UNIX": 1524700800, "Amino_Acids g/kg": 2}
+      //example row = {"START_UNIX": 1524700800, "AMINO_ACIDS_G_KG": 2}
       let start = row["START_UNIX"];
       let end = row["END_UNIX"];
       if (start >= end) {

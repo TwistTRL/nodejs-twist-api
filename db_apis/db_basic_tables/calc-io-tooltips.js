@@ -334,33 +334,33 @@ const calculateIOTooltips = (rawRecords) => {
   
           let tpnResultArr = [];
           const tpnList = [
-            "Dextrose PN",
-            "Amino Acid PN",
-            "Selenium PN",
-            "Potassium PN",
-            "Calcium PN",
-            "Magnesium PN",
-            "Phosphorus PN",
-            "Heparin PN",
-            "Ranitidine PN",
-            "Extra Phytonadione PN",
-            "Sodium PN",
-            "Carnitine PN"
+            "DEXTROSE_PN",
+            "AMINO_ACID_PN",
+            "SELENIUM_PN",
+            "POTASSIUM_PN",
+            "CALCIUM_PN",
+            "MAGNESIUM_MEQ",
+            "PHOSPHORUS_PN",
+            "HEPARIN_PN",
+            "RANITIDINE_PN",
+            "EXTRA_PHYTONADIONE_PN",
+            "SODIUM_PN",
+            "CARNITINE_PN"
           ];
   
           const TPN_UNIT_DICT = {
-            "Dextrose PN": "g/L",
-            "Amino Acid PN": "g/L",
-            "Selenium PN": "mcg/L",
-            "Potassium PN": "mEq/L",
-            "Calcium PN": "mEq/L",
-            "Magnesium PN": "mEq/L",
-            "Phosphorus PN": "mmol/L",
-            "Heparin PN": "unit/L",
-            "Ranitidine PN": "mg/L",
-            "Extra Phytonadione PN": "mg/L",
-            "Sodium PN": "mEq/L",
-            "Carnitine PN": "mg/L"
+            "DEXTROSE_PN": "g/L",
+            "AMINO_ACID_PN": "g/L",
+            "SELENIUM_PN": "mcg/L",
+            "POTASSIUM_PN": "mEq/L",
+            "CALCIUM_PN": "mEq/L",
+            "MAGNESIUM_MEQ": "mEq/L",
+            "PHOSPHORUS_PN": "mmol/L",
+            "HEPARIN_PN": "unit/L",
+            "RANITIDINE_PN": "mg/L",
+            "EXTRA_PHYTONADIONE_PN": "mg/L",
+            "SODIUM_PN": "mEq/L",
+            "CARNITINE_PN": "mg/L"
           };
   
           tpnList.forEach(element => {

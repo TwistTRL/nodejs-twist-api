@@ -14,8 +14,8 @@ const SQL_GET_TPN_NUTR = `
 SELECT 
   START_UNIX,
   END_UNIX,
-  "Amino_Acids g/kg",
-  "Dextrose g/kg"
+  "AMINO_ACIDS_G_KG",
+  "DEXTROSE_G_KG"
 FROM TPN
 WHERE PERSON_ID = :person_id
 ORDER BY START_UNIX`;
@@ -35,15 +35,15 @@ function _calculateRawRecords(arrTpnNutr) {
   if (arrTpnNutr && arrTpnNutr.length) {
     console.log("TpnNutr record size :", arrTpnNutr.length);
     for (let row of arrTpnNutr) {
-      //example row = {"START_UNIX": 1524700800, "Amino_Acids g/kg": 2}
+      //example row = {"START_UNIX": 1524700800, "AMINO_ACIDS_G_KG": 2}
       let start = row["START_UNIX"];
       let end = row["END_UNIX"]
       if (start && end) {
-        if (row["Amino_Acids g/kg"]) {
-          amino_acids.push({start: start, end: end, value: row["Amino_Acids g/kg"], unit: "g/kg"});
+        if (row["AMINO_ACIDS_G_KG"]) {
+          amino_acids.push({start: start, end: end, value: row["AMINO_ACIDS_G_KG"], unit: "g/kg"});
         }
-        if (row["Dextrose g/kg"]) {
-          dextrose.push({start: start, end: end, value: row["Dextrose g/kg"], unit: "g/kg"});
+        if (row["DEXTROSE_G_KG"]) {
+          dextrose.push({start: start, end: end, value: row["DEXTROSE_G_KG"], unit: "g/kg"});
         }
       } else {
         console.log('start or end time null :', row);

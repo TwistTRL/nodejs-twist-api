@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-06 12:01:59
+ * @Last Modified time: 2020-08-27 12:25:49
  */
 
 /**
@@ -55,19 +55,19 @@ SELECT
   START_UNIX,
   END_UNIX, 
   RESULT_VAL,
-  "Dextrose PN",
-"Amino Acid PN",
-"Selenium PN",
-"Potassium PN",
-"Calcium PN",
-"Magnesium PN",
-"Phosphorus PN",
-"Heparin PN",
-"Ranitidine PN",
-"Extra Phytonadione PN",
-"Sodium PN",
-"Vitamin PN",
-"Carnitine PN"
+  "DEXTROSE_PN",
+"AMINO_ACID_PN",
+"SELENIUM_PN",
+"POTASSIUM_PN",
+"CALCIUM_PN",
+"MAGNESIUM_MEQ",
+"PHOSPHORUS_PN",
+"HEPARIN_PN",
+"RANITIDINE_PN",
+"EXTRA_PHYTONADIONE_PN",
+"SODIUM_PN",
+"VITAMIN_PN",
+"CARNITINE_PN"
 FROM TPN
 WHERE PERSON_ID = `;
 const SQL_GET_TPN_PART2 = `
@@ -564,33 +564,33 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
         let tpnResultArr = [];
         const tpnList = [
-          "Dextrose PN",
-          "Amino Acid PN",
-          "Selenium PN",
-          "Potassium PN",
-          "Calcium PN",
-          "Magnesium PN",
-          "Phosphorus PN",
-          "Heparin PN",
-          "Ranitidine PN",
-          "Extra Phytonadione PN",
-          "Sodium PN",
-          "Carnitine PN"
+          "DEXTROSE_PN",
+          "AMINO_ACID_PN",
+          "SELENIUM_PN",
+          "POTASSIUM_PN",
+          "CALCIUM_PN",
+          "MAGNESIUM_MEQ",
+          "PHOSPHORUS_PN",
+          "HEPARIN_PN",
+          "RANITIDINE_PN",
+          "EXTRA_PHYTONADIONE_PN",
+          "SODIUM_PN",
+          "CARNITINE_PN"
         ];
 
         const TPN_UNIT_DICT = {
-          "Dextrose PN": "g/L",
-          "Amino Acid PN": "g/L",
-          "Selenium PN": "mcg/L",
-          "Potassium PN": "mEq/L",
-          "Calcium PN": "mEq/L",
-          "Magnesium PN": "mEq/L",
-          "Phosphorus PN": "mmol/L",
-          "Heparin PN": "unit/L",
-          "Ranitidine PN": "mg/L",
-          "Extra Phytonadione PN": "mg/L",
-          "Sodium PN": "mEq/L",
-          "Carnitine PN": "mg/L"
+          "DEXTROSE_PN": "g/L",
+          "AMINO_ACID_PN": "g/L",
+          "SELENIUM_PN": "mcg/L",
+          "POTASSIUM_PN": "mEq/L",
+          "CALCIUM_PN": "mEq/L",
+          "MAGNESIUM_MEQ": "mEq/L",
+          "PHOSPHORUS_PN": "mmol/L",
+          "HEPARIN_PN": "unit/L",
+          "RANITIDINE_PN": "mg/L",
+          "EXTRA_PHYTONADIONE_PN": "mg/L",
+          "SODIUM_PN": "mEq/L",
+          "CARNITINE_PN": "mg/L"
         };
 
         tpnList.forEach(element => {

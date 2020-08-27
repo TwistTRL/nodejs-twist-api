@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-07 12:57:40
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-06 12:02:06
+ * @Last Modified time: 2020-08-27 12:31:22
  */
 
 const SQL_GET_PERSON_ID = (mrn) => `
@@ -27,19 +27,19 @@ SELECT
     START_UNIX,
     END_UNIX, 
     RESULT_VAL,
-    "Dextrose PN",
-    "Amino Acid PN",
-    "Selenium PN",
-    "Potassium PN",
-    "Calcium PN",
-    "Magnesium PN",
-    "Phosphorus PN",
-    "Heparin PN",
-    "Ranitidine PN",
-    "Extra Phytonadione PN",
-    "Sodium PN",
-    "Vitamin PN",
-    "Carnitine PN"
+    "DEXTROSE_PN",
+    "AMINO_ACID_PN",
+    "SELENIUM_PN",
+    "POTASSIUM_PN",
+    "CALCIUM_PN",
+    "MAGNESIUM_MEQ",
+    "PHOSPHORUS_PN",
+    "HEPARIN_PN",
+    "RANITIDINE_PN",
+    "EXTRA_PHYTONADIONE_PN",
+    "SODIUM_PN",
+    "VITAMIN_PN",
+    "CARNITINE_PN"
 FROM TPN
 WHERE PERSON_ID = ${person_id}
 AND START_UNIX <= ${to} AND END_UNIX >= ${from}
