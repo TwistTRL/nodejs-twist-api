@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-01-21 11:53:31
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-30 13:17:34
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-08-31 12:53:54
  */
 
 const database = require("../services/database");
@@ -98,16 +98,16 @@ function _getSqlTable(query) {
   if (query[cat2] == "binned") {
     switch (query[cat3]) {
       case "1D":
-        sqlTable = "STAGING_VITALS_BIN_1D";
+        sqlTable = "VITALS_BIN_1D"
         break;
       case "12H":
-        sqlTable = "STAGING_VITALS_BIN_12H";
+        sqlTable = "VITALS_BIN_12H"
         break;
       case "5H":
-        sqlTable = "STAGING_VITALS_BIN_5H";
+        sqlTable = "VITALS_BIN_5H"
         break;
       case "5M":
-        sqlTable = "STAGING_VITALS_BIN_5M";
+        sqlTable = "VITALS_BIN_5M"
         break;
       default:
         console.log("error for query.cat3");
@@ -116,16 +116,16 @@ function _getSqlTable(query) {
   } else if (query[cat2] == "calc") {
     switch (query[cat3]) {
       case "1D":
-        sqlTable = "STAGING_VITALS_CALC_1D";
+        sqlTable = "VITALS_CALC_1D"
         break;
       case "12H":
-        sqlTable = "STAGING_VITALS_CALC_12H";
+        sqlTable = "VITALS_CALC_12H"
         break;
       case "5H":
-        sqlTable = "STAGING_VITALS_CALC_5H";
+        sqlTable = "VITALS_CALC_5H"
         break;
       case "5M":
-        sqlTable = "STAGING_VITALS_CALC_5M";
+        sqlTable = "VITALS_CALC_5M"
         break;
       default:
         console.log("error for query.cat3");

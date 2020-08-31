@@ -35,7 +35,7 @@ ORDER BY START_TM
 async function getHr12HCalcSqlExecutor(conn,binds){
   console.time('getHrCalc');
 
-  let hrRecords = await conn.execute(SQL_PART1 + `STAGING_NEW_VITALS_CALC_12H` + SQL_PART2,binds);
+  let hrRecords = await conn.execute(SQL_PART1 + `VITALS_CALC_12H` + SQL_PART2,binds);
     
   let jsonString = calculateRecords(hrRecords, "12H");
   console.timeEnd('getHrCalc');
@@ -45,7 +45,7 @@ async function getHr12HCalcSqlExecutor(conn,binds){
 async function getHr5HCalcSqlExecutor(conn,binds){
   console.time('getHrCalc');
 
-  let hrRecords = await conn.execute(SQL_PART1 + `STAGING_NEW_VITALS_CALC_5H` + SQL_PART2,binds);
+  let hrRecords = await conn.execute(SQL_PART1 + `VITALS_CALC_5H` + SQL_PART2,binds);
   let jsonString = calculateRecords(hrRecords, "5H");
   console.timeEnd('getHrCalc');
   return jsonString;
@@ -54,7 +54,7 @@ async function getHr5HCalcSqlExecutor(conn,binds){
 async function getHr1DCalcSqlExecutor(conn,binds){
   console.time('getHrCalc');
 
-  let hrRecords = await conn.execute(SQL_PART1 + `STAGING_NEW_VITALS_CALC_1D` + SQL_PART2,binds);
+  let hrRecords = await conn.execute(SQL_PART1 + `VITALS_CALC_1D` + SQL_PART2,binds);
   let jsonString = calculateRecords(hrRecords, "1D");
   console.timeEnd('getHrCalc');
   return jsonString;
@@ -63,7 +63,7 @@ async function getHr1DCalcSqlExecutor(conn,binds){
 async function getHr5MCalcSqlExecutor(conn,binds){
   console.time('getHrCalc');
 
-  let hrRecords = await conn.execute(SQL_PART1 + `STAGING_NEW_VITALS_CALC_5M` + SQL_PART2,binds);
+  let hrRecords = await conn.execute(SQL_PART1 + `VITALS_CALC_5M` + SQL_PART2,binds);
   let jsonString = calculateRecords(hrRecords, "5M");
   console.timeEnd('getHrCalc');
   return jsonString;
