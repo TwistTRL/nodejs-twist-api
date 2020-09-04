@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-08-27 11:12:18
+ * @Last Modified time: 2020-09-04 17:19:22
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -87,6 +87,7 @@ const { getAccessToken, getPDFUrl } = require("../cerner_apis/get-FHIR-api");
 const { getDiagnosisDisplay } = require("../db_apis/diagnosis_display/get-disease-display");
 
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
+const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
 
 
 
@@ -3365,6 +3366,30 @@ router.get("/lines-counter/:person_id", async (req, res) => {
   };
   res.send(await getLinesCounter(binds));
 });
+
+/**
+ * @api {get} /lines-tooltips/:person_id Lines Tooltips for Patient
+ * @apiVersion 0.0.1
+ * @apiName Get Patient Lines Tooltips
+ * @apiGroup Lines
+ * @apiParam {String} person_id Patient ID.
+ * @apiSuccess {String} tooltip_dict Lines tooltips object
+ * @apiDescription For lines tooltips. 
+ 
+ not include the color nor order. Binned by day (86400s), and day starts from 7AM.
+
+ */
+
+router.get("/lines-tooltips/:person_id", async (req, res) => {
+  const person_id = req.params.person_id;
+  const binds = {
+    person_id,
+  };
+  res.send(await getLinesTooltips(binds));
+});
+
+
+
 
 
 
