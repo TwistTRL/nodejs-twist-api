@@ -2,16 +2,39 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-04 13:19:34
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-04 17:05:28
+ * @Last Modified time: 2020-09-10 11:07:21
  */
 
 const database = require("../../services/database");
 const moment = require("moment");
 
+const DAY_START_HOUR = 7; // 7AM
 
-  const DAY_START_HOUR = 7; // 7AM
+const LINE_ITEMS_ORDER_ARRAY = [
+  "MEDICATIONS",
+  "THROMBOLYTICS",
+  "BLOOD DRAW",
+  "FLUSH",
+  "CULTURE",
+  "ZERO",
+  "CAP CHANGE",
+  "LINE CHANGE",
+  "TRANSDUCER CHANGE",
+  "TUBING CHANGE",
+];
 
-
+const LINE_ITEMS_DICTIONARY = {
+  MEDICATIONS: "MEDICATIONS",
+  THROMBOL: "THROMBOLYTICS",
+  DRAW: "BLOOD DRAW",
+  FLUSH: "FLUSH",
+  CULTURE: "CULTURE",
+  ZERO: "ZERO",
+  CAP_CHG: "CAP CHANGE",
+  LINE_CHG: "LINE CHANGE",
+  TRANSDUCER_CHG: "TRANSDUCER CHANGE",
+  TUBING_CHG: "TUBING CHANGE",
+};
 
 const GET_PERSON_LINES_SQL = `
 SELECT 
@@ -133,7 +156,6 @@ async function getLinesTooltipsSqlExecutor(conn, binds) {
     }
   });
 
-
   const start_record_time =
     moment(person_lines[0].INSERT_DTM) - moment(person_lines_counter[0].PERFORMED_DT_TM)
       ? moment(person_lines_counter[0].PERFORMED_DT_TM)
@@ -173,7 +195,7 @@ async function getLinesTooltipsSqlExecutor(conn, binds) {
 
     let cur_id = element.LINE_ID;
     if (!(cur_id in tooltip_dict[cur_ts])) {
-      tooltip_dict[cur_ts][cur_id] = { disp: lines_dict[cur_id].disp };
+      tooltip_dict[cur_ts][cur_id] = {};
     }
 
     if (element.DRUG) {
@@ -244,7 +266,100 @@ async function getLinesTooltipsSqlExecutor(conn, binds) {
     }
   });
 
-  return tooltip_dict;
+  // return tooltip_dict;
+  // "1524654000": {
+  //       "25796315.77334246.CVL1.1": {
+  //           "disp": "3.5 Fr double lumen UVC ",
+  //           "FLUSH": 7
+  //       },
+  //       "25796315.77334246.PIV1.1": {
+  //           "disp": "24g L saphenous PIV",
+  //           "MEDICATIONS": {
+  //               "fentaNYL": 4,
+  //               "atropine": 1,
+  //               "rocuronium": 2,
+  //               "albumin human": 1,
+  //               "EPINEPHrine": 4,
+  //               "sodium bicarbonate": 3,
+  //               "famotidine": 1,
+  //               "hydrocortisone": 1,
+  //               "vecuronium": 1,
+  //               "ceFAZolin": 1
+  //           }
+  //       },}
+
+  // =>
+
+  // “25796315.77334246.PIV2.1”: {
+  //  “disp”: “24g R digital dorsal PIV”,
+  //  count: 14,
+  //  breakdown: [{
+  //  count: 7,
+  //  item_name: “MEDICATIONS”,
+  //  breakdown: [{item_name: “sodium bicarbonate:, count: 3}, ...]
+  //  },
+  //  {
+  //  count: 7,
+  //  item_name: “FLUSH”,
+  //  breakdown: []
+  //  }]]
+  //  }
+  let result = {};
+  for (let ts in tooltip_dict) {
+    result[ts] = {};
+    for (let lineId in tooltip_dict[ts]) {
+      result[ts][lineId] = {};
+      result[ts][lineId].disp = lines_dict[lineId].disp;
+      result[ts][lineId].subtype = lines_dict[lineId].event_subtype;
+      result[ts][lineId].breakdown = [];
+      let cur_line_count = 0;
+      for (let item_name in tooltip_dict[ts][lineId]) {
+        if (item_name === "MEDICATIONS") {
+          let cur_medications_count = 0;
+          let medications_breakdown = [];
+          for (let medication in tooltip_dict[ts][lineId].MEDICATIONS) {
+            let cur_medication = {
+              item_name: medication,
+              count: tooltip_dict[ts][lineId]["MEDICATIONS"][medication],
+            };
+            medications_breakdown.push(cur_medication);
+            cur_line_count += cur_medication.count;
+            cur_medications_count += cur_medication.count;
+          }
+
+          // sort by count large to small
+          // then sort by alphabetically 'a' to 'z'
+          // * using String.prototype.localeCompare() in sort for comapre alphabetically
+          medications_breakdown.sort(
+            (a, b) => b.count - a.count || a.item_name.localeCompare(b.item_name)
+          );
+          
+          result[ts][lineId].breakdown.push({
+            count: cur_medications_count,
+            item_name: "MEDICATIONS",
+            breakdown: medications_breakdown,
+          });
+        } else {
+          let cur_item = {
+            item_name: LINE_ITEMS_DICTIONARY[item_name],
+            count: tooltip_dict[ts][lineId][item_name],
+            breakdown: [],
+          };
+          cur_line_count += cur_item.count;
+          result[ts][lineId].breakdown.push(cur_item);
+        }
+      }
+
+      // order item's name by LINE_ITEMS_ORDER_ARRAY
+      result[ts][lineId].breakdown.sort(
+        (a, b) =>
+          LINE_ITEMS_ORDER_ARRAY.indexOf(a.item_name) - LINE_ITEMS_ORDER_ARRAY.indexOf(b.item_name)
+      );
+      result[ts][lineId].count = cur_line_count;
+    }
+  }
+
+  return result;
 }
 
 const getLinesTooltips = database.withConnection(getLinesTooltipsSqlExecutor);

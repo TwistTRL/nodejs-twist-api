@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-04 17:19:22
+ * @Last Modified time: 2020-09-10 11:12:52
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -3376,8 +3376,44 @@ router.get("/lines-counter/:person_id", async (req, res) => {
  * @apiSuccess {String} tooltip_dict Lines tooltips object
  * @apiDescription For lines tooltips. 
  
- not include the color nor order. Binned by day (86400s), and day starts from 7AM.
+ not include the line_id level order/color. 
+ Binned by day (86400s), and day starts from 7AM.
 
+ * @apiSuccessExample Success-Response:
+  {
+    "SAMPLE_DAY_START_TS": {
+      "SAMPLE_LINE_ID": {
+        "disp": "24g R digital dorsal PIV",
+        "subtype": "PIV",
+        "count": 12,
+        "breakdown": [
+            {
+                "count": 8,
+                "item_name": "MEDICATIONS",
+                "breakdown": [
+                    {
+                        "item_name": "fentaNYL",
+                        "count": 3
+                    },
+                    {
+                        "item_name": "hydrocortisone",
+                        "count": 3
+                    },
+                    {
+                        "item_name": "ampicillin",
+                        "count": 2
+                    },                        
+                ]
+            },
+            {
+                "item_name": "FLUSH",
+                "count": 4,
+                "breakdown": []
+            }
+        ],
+      },
+    }
+  }
  */
 
 router.get("/lines-tooltips/:person_id", async (req, res) => {
