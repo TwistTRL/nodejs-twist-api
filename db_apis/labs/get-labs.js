@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-09-10 17:00:02 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-11 10:20:08
+ * @Last Modified time: 2020-09-11 11:51:58
  */
 
 const database = require('../../services/database');
@@ -12,7 +12,6 @@ const {  LABS_EVENT_CD_DICT,
 
 const GET_LABS_BY_PERSONID_SQL = `
 SELECT 
-  PERSON_ID,
   DT_UNIX,
   ORDER_ID,
   EVENT_CD,

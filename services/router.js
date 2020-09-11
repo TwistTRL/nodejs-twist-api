@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-11 10:47:14
+ * @Last Modified time: 2020-09-11 11:52:55
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -390,22 +390,23 @@ router.post("/labs", async (req, res) => {
  *
  * @apiSuccessExample Success-Response:
  *     
-      {
-        "keys":
-          [
-            labName,
-            ...
-          ],
-        "data":
-          [
-            {
-                "time": timestamp,
-                labName : labValue,
-                ...
-              },
-              ...
-          ]
-      }
+    {
+        "DT_UNIX": 1524725340,
+        "ORDER_ID": 2451959503,
+        "EVENT_CD": 3775110,
+        "LAB": "O2 Sat Venous",
+        "VALUE": "69",
+        "UNITS": "%",
+        "NORMAL_LOW": "60",
+        "NORMAL_HIGH": "80",
+        "CRITICAL_LOW": " ",
+        "CRITICAL_HIGH": " ",
+        "EVENT_CD_DEFINITION": "O2 Sat Venous",
+        "TABLE": "BLOOD GAS",
+        "SOURCE": "VENOUS",
+        "DISPLAY_ABBREV": "SvO2",
+        "DISPLAY_ORDER": 8
+    },
  *
  */
 
