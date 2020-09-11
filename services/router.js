@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-11 14:45:46
+ * @Last Modified time: 2020-09-11 17:42:05
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -27,7 +27,14 @@ const { getTemperature } = require("../db_apis/get-temperature");
 
 const { getRespiratorySupportVariable } = require("../db_apis/get_respiratory_support_variables");
 const { getHeartRate } = require("../db_apis/get_heart_rate");
-const { getPerson, getPersonFromMRN } = require("../db_apis/get_person");
+const { getPerson, getPersonFromMRN } = require("../db_apis/get_person"); // old
+const {
+  getPersonFromPersonId,
+  getPersonFromMrn,
+  getMrnListFromMrn,
+} = require("../db_apis/person/get-person-info"); // new
+const { getRssRange } = require("../db_apis/person/get-rss-range");
+
 const { getWeight, getWeightCalc } = require("../db_apis/get-weight");
 const { getPersonel } = require("../db_apis/get_personel");
 const { getBed } = require("../db_apis/get_bed");
@@ -90,8 +97,6 @@ const { getDiagnosisDisplay } = require("../db_apis/diagnosis_display/get-diseas
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
 
-
-
 // >>------------------------------------------------------------------------>>
 // apidoc folder is a static files folder
 // user express.static to display this index.html
@@ -151,7 +156,7 @@ const authenticateJWT = (req, res, next) => {
  */
 
 router.get("/phenotyping/test", async (req, res) => {
-    res.send(await testDiagnosis());
+  res.send(await testDiagnosis());
 });
 
 /**
@@ -204,7 +209,6 @@ router.get("/phenotyping/step2/:mrn", async (req, res) => {
   getApiFromRedis(res, getPhenotypingStep2, mrn, "interface-phenotyping-step2");
 });
 
-
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /**
@@ -216,7 +220,9 @@ router.get("/phenotyping/step2/:mrn", async (req, res) => {
  */
 
 router.get("/census/:timestamp", async (req, res) => {
-  const timestamp = parseInt(Math.floor(req.params.timestamp / 60) * 60) || parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
+  const timestamp =
+    parseInt(Math.floor(req.params.timestamp / 60) * 60) ||
+    parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
   console.log("timestamp is: " + timestamp);
   getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
 });
@@ -226,7 +232,6 @@ router.get("/census", async (req, res) => {
   console.log("timestamp is: " + timestamp);
   getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
 });
-
 
 /**
  * @api {get} /censusv0/:timestamp Census data old
@@ -239,7 +244,9 @@ router.get("/census", async (req, res) => {
  */
 
 router.get("/censusv0/:timestamp", async (req, res) => {
-  const timestamp = parseInt(Math.floor(req.params.timestamp / 60) * 60) || parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
+  const timestamp =
+    parseInt(Math.floor(req.params.timestamp / 60) * 60) ||
+    parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
   console.log("timestamp is: " + timestamp);
   getApiFromRedis(res, getCensus, timestamp, "interface-census");
 });
@@ -249,7 +256,6 @@ router.get("/censusv0", async (req, res) => {
   console.log("timestamp is: " + timestamp);
   getApiFromRedis(res, getCensus, timestamp, "interface-census");
 });
-
 
 /**
  * @api {get} /person/:person_id/radiology Radiology image
@@ -473,54 +479,6 @@ router.get("/person/:person_id/labsv4", async (req, res) => {
     person_id,
   };
   res.send(await getLabsDictionary(binds));
-});
-
-
-/**
- * @api {get} /person/:person_id/labsv2 Labs for Patient V2
- * @apiVersion 0.0.2
- * @apiName get-patient-labs-v2
- * @apiGroup Person
- * @apiParam {Number} person_id patient unique ID.
- *
- * @apiSuccess {Number} timestamp UNIX Timestamp seconds of the lab.
- * @apiSuccess {String} labName Name of this lab, such as "SvO2".
- * @apiSuccess {Number} labValue Value of this lab.
- * @apiSuccessExample Success-Response:
- *     
-      {
-        "keys":
-          [
-            labName,
-            ...
-          ],
-        "data":
-          [
-            {
-                "time": timestamp,
-                labName : labValue,
-                ...
-              },
-              ...
-          ]
-      }
- *
- */
-
-router.get("/person/:person_id/labsv2", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-
-  console.log("getting labsV2 for %s ...", person_id);
-
-  const binds = {
-    person_id,
-  };
-  res.send(await getLabV2(binds));
 });
 
 /**
@@ -1796,66 +1754,126 @@ router.get("/HeartRate", async (req, res) => {
 });
 
 /**
- * @api {get} /person/:person_id Basic Person Information
+ * @api {get} /person/id/:person_id Person Information From ID
  * @apiVersion 0.0.1
- * @apiName Get Person Basic Information
- * @apiGroup Person
- * @apiDescription Legacy API
- * 
- * "0" : basic information.
- * 
- * "NAMES": Current and Alternate names of person.
- * 
- * "MRNS" and "PHONES" are not available now. (null)
-
+ * @apiName Get Person Information From ID
+ * @apiGroup Person-Init
+ * @apiDescription person_id to mrn list
  * @apiParam {Number} person_id Patient unique ID.
- * @apiSuccess {String} name_string Patient first/middle/last name.
- * @apiSuccess {String} sex_string Patient sex.
- * @apiSuccess {Number} person_id Patient unique ID.
- * @apiSuccess {Number} unix_time Unix Second Time.
  * @apiSuccessExample Success-Response:
- *      
-            
-      {
-        "0": {
-          "PERSON_ID": person_id,
-          "NAME_FIRST": name_string,
-          "NAME_MIDDLE": name_string,
-          "NAME_LAST": name_string,
-          "SEX": sex_string,
-          "BIRTH_UNIX_TS": unix_time,
-          "DECEASED_UNIX_TS": unix_time
-        },
-        "NAMES": [
+ *                  
+  {
+      "PERSON_ID": 11111222,
+      "NAME_FIRST": "AAAAA",
+      "NAME_MIDDLE": "B",
+      "NAME_LAST": "CCCCCC",
+      "SEX": "Male",
+      "BIRTH_UNIX_TS": 1524715200,
+      "DECEASED_UNIX_TS": 1550968200,
+      "MRNS": [
           {
-            "NAME_FIRST": name_string,
-            "NAME_MIDDLE": name_string,
-            "NAME_LAST": name_string,
-            "NAME_TYPE": "Current"
-          },
-          {
-            "NAME_FIRST": name_string,
-            "NAME_MIDDLE": name_string,
-            "NAME_LAST": name_string,
-            "NAME_TYPE": "Alternate"
-          },
-          ...
-        ],
-        "MRNS": null,
-        "PHONES": null
-      }
+              "MRN": "2222222",
+              "BEG_EFFECTIVE_UNIX_TS": 1524721433,
+              "END_EFFECTIVE_UNIX_TS": 4133894400
+          }
+      ]
+  }
  *
  */
 
-router.get("/person/:person_id", async (req, res) => {
+router.get("/person/id/:person_id", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
     res.send("Invalid person_id. Should be integer.");
     return;
   }
-  console.log("router person_id is: " + person_id);
+  console.log("get person information for ID: " + person_id);
+  const binds = {
+    person_id,
+  };
+  res.send(await getPersonFromPersonId(binds));
+});
 
-  res.send(await getPerson(person_id));
+/**
+ * @api {get} /person/mrn/:mrn Person ID List From MRN
+ * @apiVersion 0.0.1
+ * @apiName Get Person ID From MRN
+ * @apiGroup Person-Init
+ * @apiDescription mrn to person_id list
+ * @apiParam {String} mrn Patient MRN.
+ * @apiSuccessExample Success-Response:
+ *      
+  [
+      {
+          "PERSON_ID": 1222222
+      }
+  ]
+ *
+ */
+
+router.get("/person/mrn/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  console.log("get person id list for MRN: " + mrn);
+  const binds = {
+    mrn,
+  };
+  res.send(await getPersonFromMrn(binds));
+});
+
+/**
+ * @api {get} /person/mrn-list/:mrn MRN List From MRN
+ * @apiVersion 0.0.1
+ * @apiName Get MRN List From MRN
+ * @apiGroup Person-Init
+ * @apiDescription mrn to mrn list
+ * @apiParam {String} mrn Patient MRN.
+ * @apiSuccessExample Success-Response:
+ *                  
+  {
+      "12222222": [
+          {
+              "MRN": "3333333",
+              "BEG_EFFECTIVE_UNIX_TS": 1524721433,
+              "END_EFFECTIVE_UNIX_TS": 4133894400
+          }
+      ]
+  }
+ *
+ */
+
+router.get("/person/mrn-list/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  console.log("get mrn list for MRN: " + mrn);
+  const binds = {
+    mrn,
+  };
+  res.send(await getMrnListFromMrn(binds));
+});
+
+
+/**
+ * @api {get} /person/rss-range/:person_id RSS Range
+ * @apiVersion 0.0.1
+ * @apiName rss-range
+ * @apiGroup Person-Init
+ * @apiDescription Get RSS Range For Person ID
+ * @apiParam {String} person_id Patient Person ID.
+ * @apiSuccessExample Success-Response:
+ *                  
+      {
+        rss_start: 122222,
+        rss_end: 122222,
+      }
+ *
+ */
+
+router.get("/person/rss-range/:person_id", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("get rss range for person_id: " + person_id);
+  const binds = {
+    person_id,
+  };
+  res.send(await getRssRange(binds));
 });
 
 /**
@@ -1926,6 +1944,72 @@ router.get("/person/:person_id/weight-calc", async (req, res) => {
     return;
   }
   getApiFromRedis(res, getWeightCalc, person_id, "interface-weight");
+});
+
+/**
+ * @api {get} /person/:person_id Basic Person Information
+ * @apiVersion 0.0.1
+ * @apiName Get Person Basic Information
+ * @apiGroup _Legacy
+ * @apiDescription Legacy API
+ * 
+ * "0" : basic information.
+ * 
+ * "NAMES": Current and Alternate names of person.
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccess {String} name_string Patient first/middle/last name.
+ * @apiSuccess {String} sex_string Patient sex.
+ * @apiSuccess {Number} person_id Patient unique ID.
+ * @apiSuccess {Number} unix_time Unix Second Time.
+ * @apiSuccessExample Success-Response:
+ *      
+            
+      {
+        "0": {
+          "PERSON_ID": person_id,
+          "NAME_FIRST": name_string,
+          "NAME_MIDDLE": name_string,
+          "NAME_LAST": name_string,
+          "SEX": sex_string,
+          "BIRTH_UNIX_TS": unix_time,
+          "DECEASED_UNIX_TS": unix_time
+        },
+        "NAMES": [
+          {
+            "NAME_FIRST": name_string,
+            "NAME_MIDDLE": name_string,
+            "NAME_LAST": name_string,
+            "NAME_TYPE": "Current"
+          },
+          {
+            "NAME_FIRST": name_string,
+            "NAME_MIDDLE": name_string,
+            "NAME_LAST": name_string,
+            "NAME_TYPE": "Alternate"
+          },
+          ...
+        ],
+        "MRNS": [
+          {
+              "MRN": "11111111",
+              "BEG_EFFECTIVE_UNIX_TS": 1524721433,
+              "END_EFFECTIVE_UNIX_TS": 4133894400
+          }
+        ]
+      }
+ *
+ */
+
+router.get("/person/:person_id", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id. Should be integer.");
+    return;
+  }
+  console.log("router person_id is: " + person_id);
+
+  res.send(await getPerson(person_id));
 });
 
 /**
@@ -2255,7 +2339,6 @@ router.get("/settings/microbiology", (req, res) => {
   res.send(settingsMicBio);
 });
 
-
 /**
  * @api {get} /settings/radiology/:item Radiology Settings
  * @apiVersion 0.0.1
@@ -2290,7 +2373,6 @@ router.get("/settings/radiology", (req, res) => {
   res.send(settingsRadio);
 });
 
-
 /**
  * @api {get} /person/:person_id/nutrition/formula Nutrients - formula
  * @apiVersion 0.0.1
@@ -2323,11 +2405,6 @@ router.get("/person/:person_id/nutrition/formula", async (req, res) => {
 
   getApiFromRedis(res, getFormula, person_id, "interface-nutri-formula");
 });
-
-
-
-
-
 
 /**
  * @api {get} /person/:person_id/nutrition/fat-pro-cho Nutrients - Fat-Pro-Cho
@@ -2770,6 +2847,53 @@ router.get("/FHIR/notes/:mrn", async (req, res) => {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // ~~~~~~ Deprecated API ~~~~~
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+/**
+ * @api {get} /person/:person_id/labsv2 Labs for Patient
+ * @apiVersion 0.0.2
+ * @apiName get-patient-labs-v2
+ * @apiGroup _Deprecated
+ * @apiParam {Number} person_id patient unique ID.
+ *
+ * @apiSuccess {Number} timestamp UNIX Timestamp seconds of the lab.
+ * @apiSuccess {String} labName Name of this lab, such as "SvO2".
+ * @apiSuccess {Number} labValue Value of this lab.
+ * @apiSuccessExample Success-Response:
+ *     
+      {
+        "keys":
+          [
+            labName,
+            ...
+          ],
+        "data":
+          [
+            {
+                "time": timestamp,
+                labName : labValue,
+                ...
+              },
+              ...
+          ]
+      }
+ *
+ */
+
+router.get("/person/:person_id/labsv2", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+
+  console.log("getting labsV2 for %s ...", person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(await getLabV2(binds));
+});
 
 /**
  * @api {get} /person/:person_id/labs Labs for Patient
@@ -3406,8 +3530,6 @@ router.post("/vitals", async (req, res) => {
   }
 });
 
-
-
 /**
  * @api {get} /diagnosis/:mrn Diagnosis for Patient
  * @apiVersion 0.0.1
@@ -3426,8 +3548,6 @@ router.get("/diagnosis/:mrn", async (req, res) => {
   };
   res.send(await getDiagnosisDisplay(binds));
 });
-
-
 
 /**
  * @api {get} /lines/:person_id Lines for Patient
@@ -3474,6 +3594,7 @@ router.get("/lines-counter/:person_id", async (req, res) => {
  
  not include the line_id level order/color. 
  Binned by day (86400s), and day starts from 7AM.
+ Good for DST/EST.
 
  * @apiSuccessExample Success-Response:
   {
@@ -3519,10 +3640,5 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
   };
   res.send(await getLinesTooltips(binds));
 });
-
-
-
-
-
 
 module.exports = router;
