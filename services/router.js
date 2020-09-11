@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-10 11:12:52
+ * @Last Modified time: 2020-09-11 10:47:14
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -25,7 +25,6 @@ const { getVitalsQuery } = require("../db_apis/get-vitals-all");
 const { getVitalsQueryV2 } = require("../db_apis/get-vitals-all-v2");
 const { getTemperature } = require("../db_apis/get-temperature");
 
-const { getLabsQuery } = require("../db_apis/get-labs-all");
 const { getRespiratorySupportVariable } = require("../db_apis/get_respiratory_support_variables");
 const { getHeartRate } = require("../db_apis/get_heart_rate");
 const { getPerson, getPersonFromMRN } = require("../db_apis/get_person");
@@ -37,6 +36,8 @@ const { getHr12H, getHr5H, getHr1D, getHr5M } = require("../db_apis/get_hr_binne
 const { getHr12Hv2, getHr5Hv2, getHr1Dv2, getHr5Mv2 } = require("../db_apis/get_hr_binned_v2");
 const { getHrCalc12H, getHrCalc5H, getHrCalc1D, getHrCalc5M } = require("../db_apis/get_hr_calc");
 const { getRawHr } = require("../db_apis/get_raw_hr");
+const { getLabsQuery } = require("../db_apis/get-labs-all");
+const { getLabs } = require("../db_apis/labs/get-labs"); // new
 const { getLab, getLabV2, getABG } = require("../db_apis/get_labs");
 const { getDrugInfusions, getOrangeDrug, getDrugIntermittent } = require("../db_apis/get_drug");
 
@@ -379,6 +380,51 @@ router.post("/labs", async (req, res) => {
     res.send(e.toString());
   }
 });
+
+/**
+ * @api {get} /person/:person_id/labsv3 Labs for Patient (new)
+ * @apiVersion 0.0.2
+ * @apiName get-labs-v3
+ * @apiGroup Person
+ * @apiParam {Number} person_id patient unique ID.
+ *
+ * @apiSuccessExample Success-Response:
+ *     
+      {
+        "keys":
+          [
+            labName,
+            ...
+          ],
+        "data":
+          [
+            {
+                "time": timestamp,
+                labName : labValue,
+                ...
+              },
+              ...
+          ]
+      }
+ *
+ */
+
+router.get("/person/:person_id/labsv3", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+
+  console.log("getting labsv3 for %s ...", person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(await getLabs(binds));
+});
+
 
 /**
  * @api {get} /person/:person_id/labsv2 Labs for Patient V2
