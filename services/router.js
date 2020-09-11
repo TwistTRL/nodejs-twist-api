@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-11 13:05:27
+ * @Last Modified time: 2020-09-11 14:45:46
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -445,8 +445,12 @@ router.get("/person/:person_id/labsv3", async (req, res) => {
         "UNITS":"%",
         "DATA":[
           {
-              "DT_UNIX":1524725340,
-              "VALUE":"69"
+            "DT_UNIX": 1524725340,
+            "VALUE": "69",
+            "EVENT_CD_DEFINITION": "O2 Sat Venous",
+            "SOURCE": "VENOUS",
+            "DISPLAY_ABBREV": "SvO2",
+            "DISPLAY_ORDER": 8
           },
         ]
       }
