@@ -1,14 +1,15 @@
 /*
- * @Author: Peng Zeng 
- * @Date: 2020-09-10 17:00:02 
+ * @Author: Peng Zeng
+ * @Date: 2020-09-10 17:00:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-11 11:51:58
+ * @Last Modified time: 2020-09-11 13:12:14
  */
 
-const database = require('../../services/database');
-const {  LABS_EVENT_CD_DICT,
+const database = require("../../services/database");
+const {
+  LABS_EVENT_CD_DICT,
   WORKING_LABS_XLSX_PATH,
-  } = require('../../db_relation/labs-db-relation');
+} = require("../../db_relation/labs-db-relation");
 
 const GET_LABS_BY_PERSONID_SQL = `
 SELECT 
@@ -30,15 +31,49 @@ ORDER BY DT_UNIX
 async function getLabSqlExecutor(conn, binds) {
   const lab = await conn.execute(GET_LABS_BY_PERSONID_SQL, binds);
   let arr = lab.rows;
-  console.log('lab size of current person', arr.length);
-  let result = arr.map(x => {
-    return {...x, ...LABS_EVENT_CD_DICT[x.EVENT_CD]}
+  console.log("lab size of current person", arr.length);
+  let resultArr = arr.map((x) => {
+    return { ...x, ...LABS_EVENT_CD_DICT[x.EVENT_CD] };
   });
-  return result;
+
+  return resultArr;
 }
 
-const getLabs = database.withConnection(getLabSqlExecutor);
+async function getLabDictSqlExecutor(conn, binds) {
+  const labArray = await getLabSqlExecutor(conn, binds);
+  let resultDict = {};
+  labArray.forEach((element) => {
+    if (!(element.TABLE in resultDict)) {
+      resultDict[element.TABLE] = {};
+    }
+    if (element.LAB in resultDict[element.TABLE]) {
+      resultDict[element.TABLE][element.LAB].DATA.push({
+        DT_UNIX: element.DT_UNIX,
+        VALUE: element.VALUE,
+      });
+    } else {
+      resultDict[element.TABLE][element.LAB] = {};
+      resultDict[element.TABLE][element.LAB].NORMAL_LOW = element.NORMAL_LOW;
+      resultDict[element.TABLE][element.LAB].NORMAL_HIGH = element.NORMAL_HIGH;
+      resultDict[element.TABLE][element.LAB].CRITICAL_LOW = element.CRITICAL_LOW;
+      resultDict[element.TABLE][element.LAB].CRITICAL_HIGH = element.CRITICAL_HIGH;
+      resultDict[element.TABLE][element.LAB].UNITS = element.UNITS;
+      resultDict[element.TABLE][element.LAB].DATA = [
+        {
+          DT_UNIX: element.DT_UNIX,
+          VALUE: element.VALUE,
+        },
+      ];
+    }
+  });
+
+  return resultDict;
+}
+
+const getLabsArray = database.withConnection(getLabSqlExecutor);
+const getLabsDictionary = database.withConnection(getLabDictSqlExecutor);
 
 module.exports = {
-  getLabs
+  getLabsArray,
+  getLabsDictionary,
 };

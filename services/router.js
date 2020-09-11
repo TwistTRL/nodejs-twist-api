@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-11 11:52:55
+ * @Last Modified time: 2020-09-11 13:05:27
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -37,7 +37,7 @@ const { getHr12Hv2, getHr5Hv2, getHr1Dv2, getHr5Mv2 } = require("../db_apis/get_
 const { getHrCalc12H, getHrCalc5H, getHrCalc1D, getHrCalc5M } = require("../db_apis/get_hr_calc");
 const { getRawHr } = require("../db_apis/get_raw_hr");
 const { getLabsQuery } = require("../db_apis/get-labs-all");
-const { getLabs } = require("../db_apis/labs/get-labs"); // new
+const { getLabsArray, getLabsDictionary } = require("../db_apis/labs/get-labs"); // new
 const { getLab, getLabV2, getABG } = require("../db_apis/get_labs");
 const { getDrugInfusions, getOrangeDrug, getDrugIntermittent } = require("../db_apis/get_drug");
 
@@ -382,8 +382,8 @@ router.post("/labs", async (req, res) => {
 });
 
 /**
- * @api {get} /person/:person_id/labsv3 Labs for Patient (new)
- * @apiVersion 0.0.2
+ * @api {get} /person/:person_id/labsv3 Labs for Patient (new3)
+ * @apiVersion 0.0.1
  * @apiName get-labs-v3
  * @apiGroup Person
  * @apiParam {Number} person_id patient unique ID.
@@ -423,7 +423,52 @@ router.get("/person/:person_id/labsv3", async (req, res) => {
   const binds = {
     person_id,
   };
-  res.send(await getLabs(binds));
+  res.send(await getLabsArray(binds));
+});
+
+/**
+ * @api {get} /person/:person_id/labsv4 Labs for Patient (new4)
+ * @apiVersion 0.0.1
+ * @apiName get-labs-v4
+ * @apiGroup Person
+ * @apiParam {Number} person_id patient unique ID.
+ *
+ * @apiSuccessExample Success-Response:
+ *     
+  {
+   "BLOOD GAS":{
+      "O2 Sat Venous":{
+        "NORMAL_LOW":"60",
+        "NORMAL_HIGH":"80",
+        "CRITICAL_LOW":" ",
+        "CRITICAL_HIGH":" ",
+        "UNITS":"%",
+        "DATA":[
+          {
+              "DT_UNIX":1524725340,
+              "VALUE":"69"
+          },
+        ]
+      }
+    }
+  }
+ *
+ */
+
+router.get("/person/:person_id/labsv4", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+
+  console.log("getting labsv4 for %s ...", person_id);
+
+  const binds = {
+    person_id,
+  };
+  res.send(await getLabsDictionary(binds));
 });
 
 
