@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-10 17:00:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-11 13:12:14
+ * @Last Modified time: 2020-09-11 14:40:06
  */
 
 const database = require("../../services/database");
@@ -38,6 +38,14 @@ async function getLabSqlExecutor(conn, binds) {
 
   return resultArr;
 }
+//  "EVENT_CD_DEFINITION": "O2 Sat Venous",
+//     "TABLE": "BLOOD GAS",
+//     "SOURCE": "VENOUS",
+//     "DISPLAY_ABBREV": "SvO2",
+//     "DISPLAY_ORDER": 8
+
+
+
 
 async function getLabDictSqlExecutor(conn, binds) {
   const labArray = await getLabSqlExecutor(conn, binds);
@@ -62,6 +70,10 @@ async function getLabDictSqlExecutor(conn, binds) {
         {
           DT_UNIX: element.DT_UNIX,
           VALUE: element.VALUE,
+          EVENT_CD_DEFINITION: element.EVENT_CD_DEFINITION,
+          SOURCE: element.SOURCE,
+          DISPLAY_ABBREV: element.DISPLAY_ABBREV,
+          DISPLAY_ORDER: element.DISPLAY_ORDER,
         },
       ];
     }
