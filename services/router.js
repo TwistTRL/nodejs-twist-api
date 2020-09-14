@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-11 17:42:05
+ * @Last Modified time: 2020-09-14 14:36:06
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -1776,7 +1776,11 @@ router.get("/HeartRate", async (req, res) => {
               "BEG_EFFECTIVE_UNIX_TS": 1524721433,
               "END_EFFECTIVE_UNIX_TS": 4133894400
           }
-      ]
+      ],
+      "RSS": {
+        "RSS_START": 1524000000,
+        "RSS_END": 1550000000
+      }
   }
  *
  */
@@ -1861,8 +1865,8 @@ router.get("/person/mrn-list/:mrn", async (req, res) => {
  * @apiSuccessExample Success-Response:
  *                  
       {
-        rss_start: 122222,
-        rss_end: 122222,
+        RSS_START: 122222,
+        RSS_END: 122222,
       }
  *
  */
