@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-08-27 12:25:49
+ * @Last Modified time: 2020-09-14 17:13:15
  */
 
 /**
@@ -11,7 +11,7 @@
  * arr3 from table `TPN`,
  * arrEN from table `EN`,
  * arrLipids from table `TPN_LIPIDS` 
- * 
+ * arrMed from table `DRUG_INTERMITTENT`
  * 
  * unit is mL only, because
  * `select distinct INFUSION_RATE_UNITS from drug_diluents` is `mL/hr`
@@ -131,6 +131,19 @@ WHERE PERSON_ID = `;
 const SQL_GET_IN_OUT_DILUENTS_PART2 = ` 
 ORDER BY START_UNIX`;
 
+const SQL_GET_MED_VOL = `
+SELECT 
+  DT_UNIX,
+  DRUG,
+  INFUSED_VOLUME,
+  VOLUME_UNITS,
+  ADMIN_ROUTE
+FROM DRUG_INTERMITTENT
+WHERE PERSON_ID = :person_id 
+  AND (VOLUME_UNITS = 'mL' OR VOLUME_UNITS = 'L')
+  AND DT_UNIX BETWEEN :from_ AND :to_
+ORDER BY DT_UNIX`;
+
 // const SQL_GET_WEIGHT_PART1 = `
 // SELECT
 //   DT_UNIX,
@@ -238,6 +251,21 @@ async function inOutDiluentsTooltipQuerySQLExecutor(conn, query) {
   return rawRecord.rows;
 }
 
+async function medVolQuerySQLExecutor(conn, query) {
+  let binds = {
+    person_id: Number(query.person_id),
+    from_: Number(query[FROM]),
+    to_: Number(query[TO]),
+  }
+  console.log('binds :>> ', binds);
+  let timestampLable = timeLable++;
+  console.log("~~SQL for med volume all time: ", SQL_GET_MED_VOL);
+  console.time("getMedVol-sql" + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_MED_VOL, binds);
+  console.timeEnd("getMedVol-sql" + timestampLable);
+  return rawRecord.rows;
+}
+
 // async function weightQuerySQLExecutor(conn, query) {
 //   let timestampLable = timeLable++;
 //   let SQL_GET_WEIGHT =
@@ -254,7 +282,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   let type1Dict = {};
   let type2Dict = {};
 
-  let { arr1, arr2, arr3, arrEN, arrLipids } = rawRecords;
+  let { arr1, arr2, arr3, arrEN, arrLipids, arrMed } = rawRecords;
 
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
@@ -739,6 +767,42 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     }
   }
 
+  if (arrMed && arrMed.length) {
+    console.log("In-Out Intermittent record size :", arrMed.length);
+    let currentTime = startTime;
+
+    for (let row of arrMed) {
+      //example row = {"DT_UNIX": 1524700800, "DRUG": "dfdf", "INFUSED_VOLUME": "1111", "VOLUME_UNITS": "mL", "ADMIN_ROUTE": "aaa" }
+      // end when larger than endTime
+      if (currentTime > endTime) {
+        break;
+      }
+
+      if (currentTime + timeInterval <= row.DT_UNIX) {
+        // this row record has different time zone with currentTime, setting new currentTime
+        currentTime = Math.floor(row.DT_UNIX / timeInterval) * timeInterval;
+      }
+
+      let value = row.VOLUME_UNITS === "mL" ? Number(row.INFUSED_VOLUME) : row.INFUSED_VOLUME * 1000;
+
+      type1Dict[currentTime].value += value;
+      if (!type1Dict[currentTime].Medications) {
+        type1Dict[currentTime].Medications = {value:0};
+      }
+      type1Dict[currentTime].Medications.value += value;
+      if (!type1Dict[currentTime].Medications.items) {
+        type1Dict[currentTime].Medications.items = [];
+      }  
+      type1Dict[currentTime].Medications.items.push({
+          time: row.DT_UNIX,
+          name: row.DRUG,
+          value,
+          unit: row.VOLUME_UNITS,
+          route: row.ADMIN_ROUTE,
+      })     
+    }
+  }
+  
   let inDict = {};
   let outDict = {};
   Object.entries(type1Dict).forEach(([timestampKey, timestampValue]) => {
@@ -781,6 +845,20 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
                   items: element.items
                 };
                 // console.log("currentSlDict :", currentSlDict);
+                currentCatDict.items.push(currentSlDict);
+              });
+            }
+          });
+        } else if (catKey === "Medications") {
+          Object.entries(catValue).forEach(([slKey, slValue]) => {
+            if (slKey !== "value") {
+              slValue.forEach(element => {          
+                let currentSlDict = {
+                  name: element.name,
+                  value: element.value,
+                  unit: UNIT_ML,
+                  route: element.route
+                };
                 currentCatDict.items.push(currentSlDict);
               });
             }
@@ -1020,12 +1098,15 @@ async function parallelQuery(conn, query) {
   const task3 = await tpnQuerySQLExecutor(conn, query);
   const task4 = await enQuerySQLExecutor(conn, query);
   const task5 = await lipidsQuerySQLExecutor(conn, query);
+  const task6 = await medVolQuerySQLExecutor(conn, query);
+
   return {
     arr1: await task1,
     arr2: await task2,
     arr3: await task3,
     arrEN: await task4,
     arrLipids: await task5,
+    arrMed: await task6,
   };
 }
 

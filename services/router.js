@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-14 14:36:06
+ * @Last Modified time: 2020-09-14 14:37:41
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -1757,7 +1757,7 @@ router.get("/HeartRate", async (req, res) => {
  * @api {get} /person/id/:person_id Person Information From ID
  * @apiVersion 0.0.1
  * @apiName Get Person Information From ID
- * @apiGroup Person-Init
+ * @apiGroup Person Loading
  * @apiDescription person_id to mrn list
  * @apiParam {Number} person_id Patient unique ID.
  * @apiSuccessExample Success-Response:
@@ -1802,7 +1802,7 @@ router.get("/person/id/:person_id", async (req, res) => {
  * @api {get} /person/mrn/:mrn Person ID List From MRN
  * @apiVersion 0.0.1
  * @apiName Get Person ID From MRN
- * @apiGroup Person-Init
+ * @apiGroup Person Loading
  * @apiDescription mrn to person_id list
  * @apiParam {String} mrn Patient MRN.
  * @apiSuccessExample Success-Response:
@@ -1828,7 +1828,7 @@ router.get("/person/mrn/:mrn", async (req, res) => {
  * @api {get} /person/mrn-list/:mrn MRN List From MRN
  * @apiVersion 0.0.1
  * @apiName Get MRN List From MRN
- * @apiGroup Person-Init
+ * @apiGroup Person Loading
  * @apiDescription mrn to mrn list
  * @apiParam {String} mrn Patient MRN.
  * @apiSuccessExample Success-Response:
@@ -1859,7 +1859,7 @@ router.get("/person/mrn-list/:mrn", async (req, res) => {
  * @api {get} /person/rss-range/:person_id RSS Range
  * @apiVersion 0.0.1
  * @apiName rss-range
- * @apiGroup Person-Init
+ * @apiGroup Person Loading
  * @apiDescription Get RSS Range For Person ID
  * @apiParam {String} person_id Patient Person ID.
  * @apiSuccessExample Success-Response:
