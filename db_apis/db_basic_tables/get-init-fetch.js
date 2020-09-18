@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-04-07 15:40:54
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-17 15:38:09
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-09-15 10:28:44
  */
 
 /**
@@ -73,6 +73,7 @@ const getInitialFetch = async (mrn) => {
   console.log("~~arrLipids");
   const arrInOut = await initFetchToRedis(TWIST_SQL.SQL_GET_IN_OUT_EVENT, query, "sql-inout");
   const arrDiluents = await initFetchToRedis(TWIST_SQL.SQL_GET_DILUENTS, query, "sql-diluents");
+  const arrIOMed = await initFetchToRedis(TWIST_SQL.SQL_GET_IO_MED_VOL, query, "sql-io-med");
 
   const arrInfusions = await initFetchToRedis(TWIST_SQL.SQL_INFUSIONS, query, "sql-infusions");
   const arrInfusionsUnits = await initFetchToRedis(TWIST_SQL.SQL_INFUSIONS_UNIT, query, "sql-infusions-units");
@@ -83,7 +84,7 @@ const getInitialFetch = async (mrn) => {
   console.time("total-calculate" + consoleTimeCount);
   // calcEndpointToRedis(calc_function, redis_key, calc_input, redis_name)
   // using query as redisKey
-  let calcInput = {arrEN, arrTPN, arrLipids, arrInOut, arrDiluents, resolution, from, to};
+  let calcInput = {arrEN, arrTPN, arrLipids, arrInOut, arrDiluents, arrIOMed, resolution, from, to};
   const ioRes = await calcEndpointToRedis(calculateIO, query, calcInput, "interface-inout");
   console.log("ioRes finished");
   console.log('ioRes.length :', ioRes.length);

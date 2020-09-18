@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-14 17:13:15
+ * @Last Modified time: 2020-09-16 09:41:10
  */
 
 /**
@@ -99,7 +99,7 @@ const SQL_GET_IN_OUT_EVENT_PART1 = `
 SELECT  
   DT_UNIX,
   EVENT_CD,
-  VALUE
+  RESULT_VAL
 FROM INTAKE_OUTPUT
 WHERE PERSON_ID = `;
 const SQL_GET_IN_OUT_EVENT_PART2 = `
@@ -259,7 +259,7 @@ async function medVolQuerySQLExecutor(conn, query) {
   }
   console.log('binds :>> ', binds);
   let timestampLable = timeLable++;
-  console.log("~~SQL for med volume all time: ", SQL_GET_MED_VOL);
+  console.log("~~SQL for med volume in tooltip-v2: ", SQL_GET_MED_VOL);
   console.time("getMedVol-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_MED_VOL, binds);
   console.timeEnd("getMedVol-sql" + timestampLable);
@@ -844,15 +844,14 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
                   unit: UNIT_ML,
                   items: element.items
                 };
-                // console.log("currentSlDict :", currentSlDict);
                 currentCatDict.items.push(currentSlDict);
               });
             }
           });
         } else if (catKey === "Medications") {
-          Object.entries(catValue).forEach(([slKey, slValue]) => {
-            if (slKey !== "value") {
-              slValue.forEach(element => {          
+          Object.entries(catValue).forEach(([medKey, medValue]) => {
+            if (medKey !== "value") {
+              medValue.forEach(element => {          
                 let currentSlDict = {
                   name: element.name,
                   value: element.value,

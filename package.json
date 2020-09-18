@@ -6,7 +6,7 @@
   "scripts": {
     "start": "HTTP_PORT=3333 pm2 start ecosystem.config.js --env production",
     "stage": "HTTP_PORT=3300 pm2 start ecosystem.config.js --env stage",
-    "dev": "HTTP_PORT=3100 nodemon --watch db_apis index.js",
+    "dev": "HTTP_PORT=3100 NODE_ENV=development nodemon --watch db_apis index.js",
     "docs": "HTTP_PORT=3333 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
     "stadocs": "HTTP_PORT=3300 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
     "devdocs": "HTTP_PORT=3100 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",

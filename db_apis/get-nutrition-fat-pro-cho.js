@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-03-31 18:13:54
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-30 11:32:51
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-09-18 10:21:33
  */
 
 const { bisect_left } = require("bisect-js");
@@ -89,9 +89,9 @@ const SQL_GET_IN_OUT_EVENT = `
 SELECT  
   DT_UNIX,
   EVENT_CD,
-  VALUE
+  RESULT_VAL
 FROM INTAKE_OUTPUT
-WHERE PERSON_ID = :person_id AND VALUE != 0
+WHERE PERSON_ID = :person_id AND RESULT_VAL != 0
 ORDER BY DT_UNIX`;
 
 var timeLable = 0;
@@ -344,7 +344,7 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, arrIn
 const getWeight = (timestamp, weightArr) => {
   let index = bisect_left(weightArr, timestamp, (x) => x["DT_UNIX"]);
   if (index < 0) {
-    console.log("at timestamp has no weight:", timestamp);
+    // console.log("fpc: at timestamp has no weight:", timestamp);
     return weightArr[0]["WEIGHT_CALC"];
   } else {
     return weightArr[index]["WEIGHT_CALC"];

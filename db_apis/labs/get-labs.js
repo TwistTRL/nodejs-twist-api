@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-10 17:00:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-11 14:43:14
+ * @Last Modified time: 2020-09-18 08:24:27
  */
 
 const database = require("../../services/database");
@@ -22,8 +22,11 @@ SELECT
   NORMAL_LOW,
   NORMAL_HIGH,
   CRITICAL_LOW,
-  CRITICAL_HIGH
+  CRITICAL_HIGH,
+  CODE_VALUE.DISPLAY AS DISPLAY_NAME
 FROM LABS
+JOIN CODE_VALUE
+  ON LABS.EVENT_CD = CODE_VALUE.CODE_VALUE
 WHERE PERSON_ID = :person_id
 ORDER BY DT_UNIX
 `;
@@ -38,46 +41,48 @@ async function getLabSqlExecutor(conn, binds) {
 
   return resultArr;
 }
-//  "EVENT_CD_DEFINITION": "O2 Sat Venous",
-//     "TABLE": "BLOOD GAS",
-//     "SOURCE": "VENOUS",
-//     "DISPLAY_ABBREV": "SvO2",
-//     "DISPLAY_ORDER": 8
+
+// TABLE DISPLAY_ORDER TWIST_DISPLAY_NAME EVENT_CD EVENT_CD_DESCRIPTION SOURCE NOTE
 
 async function getLabDictSqlExecutor(conn, binds) {
   const labArray = await getLabSqlExecutor(conn, binds);
   let resultDict = {};
   labArray.forEach((element) => {
+
+    // LAB should be DISPLAY_NAME the same
+    if (element.LAB !== element.DISPLAY_NAME) {
+      console.log('element :>> ', element);
+    }
+
     if (!(element.TABLE in resultDict)) {
       resultDict[element.TABLE] = {};
     }
-    if (element.LAB in resultDict[element.TABLE]) {
-      resultDict[element.TABLE][element.LAB].DATA.push({
+
+    if (!(element.TWIST_DISPLAY_NAME in resultDict[element.TABLE])) {
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME] = {}
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME].DISPLAY_ORDER = element.DISPLAY_ORDER;   
+    }
+
+    if (!(element.LAB in resultDict[element.TABLE][element.TWIST_DISPLAY_NAME])) {
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME][element.LAB] = {}
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME][element.LAB].DISPLAY_NAME = element.DISPLAY_NAME
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME][element.LAB].NORMAL_LOW = element.NORMAL_LOW
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME][element.LAB].NORMAL_HIGH = element.NORMAL_HIGH
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME][element.LAB].CRITICAL_LOW = element.CRITICAL_LOW
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME][element.LAB].CRITICAL_HIGH = element.CRITICAL_HIGH
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME][element.LAB].UNITS = element.UNITS
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME][element.LAB].DATA = []
+    } else {
+      resultDict[element.TABLE][element.TWIST_DISPLAY_NAME][element.LAB].DATA.push({
         DT_UNIX: element.DT_UNIX,
+        EVENT_CD: element.EVENT_CD,
         VALUE: element.VALUE,
         EVENT_CD_DEFINITION: element.EVENT_CD_DEFINITION,
         SOURCE: element.SOURCE,
-        DISPLAY_ABBREV: element.DISPLAY_ABBREV,
-        DISPLAY_ORDER: element.DISPLAY_ORDER,
-      });
-    } else {
-      resultDict[element.TABLE][element.LAB] = {};
-      resultDict[element.TABLE][element.LAB].NORMAL_LOW = element.NORMAL_LOW;
-      resultDict[element.TABLE][element.LAB].NORMAL_HIGH = element.NORMAL_HIGH;
-      resultDict[element.TABLE][element.LAB].CRITICAL_LOW = element.CRITICAL_LOW;
-      resultDict[element.TABLE][element.LAB].CRITICAL_HIGH = element.CRITICAL_HIGH;
-      resultDict[element.TABLE][element.LAB].UNITS = element.UNITS;
-      resultDict[element.TABLE][element.LAB].DATA = [
-        {
-          DT_UNIX: element.DT_UNIX,
-          VALUE: element.VALUE,
-          EVENT_CD_DEFINITION: element.EVENT_CD_DEFINITION,
-          SOURCE: element.SOURCE,
-          DISPLAY_ABBREV: element.DISPLAY_ABBREV,
-          DISPLAY_ORDER: element.DISPLAY_ORDER,
-        },
-      ];
+        NOTE: element.NOTE,
+      })
     }
+    
   });
 
   return resultDict;

@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-04-29 21:48:09
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-30 10:02:57
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-09-18 10:19:50
  */
 
 const { bisect_left } = require("bisect-js");
@@ -67,16 +67,16 @@ const SQL_GET_IN_OUT_EVENT = `
 SELECT  
   DT_UNIX,
   EVENT_CD,
-  VALUE
+  RESULT_VAL
 FROM INTAKE_OUTPUT
-WHERE PERSON_ID = :person_id AND VALUE != 0
+WHERE PERSON_ID = :person_id AND RESULT_VAL != 0
 ORDER BY DT_UNIX`;
 
 var timeLable = 0;
 
 async function weightCalcQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
-  console.log("~~SQL getting weight for fat-pro-cho: ", SQL_GET_WEIGHT_CALC);
+  console.log("~~SQL getting weight for GIR: ", SQL_GET_WEIGHT_CALC);
   console.time("getWeightCalc-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_WEIGHT_CALC, binds);
   console.timeEnd("getWeightCalc-sql" + timestampLable);
@@ -241,7 +241,7 @@ function _calculateRawRecords(arrTpnNutr, arrDiluNutr, arrInout, weightArr) {
 const getWeight = (timestamp, weightArr) => {
   let index = bisect_left(weightArr, timestamp, (x) => x["DT_UNIX"]);
   if (index < 0) {
-    console.log("at timestamp has no weight:", timestamp);
+    console.log("gir: at timestamp has no weight:", timestamp);
     return weightArr[0]["WEIGHT_CALC"];
   } else {
     return weightArr[index]["WEIGHT_CALC"];

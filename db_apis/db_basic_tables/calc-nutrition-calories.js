@@ -254,7 +254,7 @@ const calculateNutriCalories = (rawRecords) => {
 const getWeight = (timestamp, arrWeight) => {
   let index = bisect_left(arrWeight, timestamp, (x) => x["DT_UNIX"]);
   if (index < 0) {
-    console.log("at timestamp has no weight:", timestamp);
+    console.log("calories: at timestamp has no weight:", timestamp);
     return arrWeight[0]["WEIGHT_CALC"];
   } else {
     return arrWeight[index]["WEIGHT_CALC"];

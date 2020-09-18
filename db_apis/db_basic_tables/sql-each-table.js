@@ -67,7 +67,7 @@ const SQL_GET_IN_OUT_EVENT = ({ person_id, from, to }) => `
 SELECT  
     DT_UNIX,
     EVENT_CD,
-    VALUE
+    RESULT_VAL
 FROM INTAKE_OUTPUT
 WHERE PERSON_ID = ${person_id}
 AND DT_UNIX <= ${to} AND DT_UNIX >= ${from}
@@ -92,6 +92,19 @@ WHERE PERSON_ID = ${person_id}
 AND START_UNIX < ${to}
 AND END_UNIX > ${from}
 ORDER BY START_UNIX`;
+
+const SQL_GET_IO_MED_VOL = ({ person_id, from, to }) => `
+SELECT 
+  DT_UNIX,
+  DRUG,
+  INFUSED_VOLUME,
+  VOLUME_UNITS,
+  ADMIN_ROUTE
+FROM DRUG_INTERMITTENT
+WHERE PERSON_ID = ${person_id} 
+  AND (VOLUME_UNITS = 'mL' OR VOLUME_UNITS = 'L')
+  AND DT_UNIX BETWEEN ${from} AND ${to}
+ORDER BY DT_UNIX`;
 
 // DRUG_INFUSIONS
 const SQL_INFUSIONS = ({ person_id }) => `

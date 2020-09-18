@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-04-01 17:31:22
- * @Last Modified by: Peng Zeng Zeng
- * @Last Modified time: 2020-08-27 12:47:34
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-09-18 10:49:19
  */
 
 const moment = require("moment");
@@ -281,7 +281,7 @@ console.log('arrEN.length :', arrEN.length);
 const getWeight = (timestamp, arrWeight) => {
   let index = bisect_left(arrWeight, timestamp, (x) => x["DT_UNIX"]);
   if (index < 0) {
-    console.log("at timestamp has no weight:", timestamp);
+    console.log("volume: at timestamp has no weight:", timestamp);
     return arrWeight[0]["WEIGHT_CALC"];
   } else {
     return arrWeight[index]["WEIGHT_CALC"];

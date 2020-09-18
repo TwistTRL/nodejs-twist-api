@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-14 14:37:41
+ * @Last Modified time: 2020-09-18 13:13:50
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -1061,10 +1061,10 @@ router.post("/inout-v2", async (req, res) => {
 
 router.post("/inout-tooltip-v2", async (req, res) => {
   let new_query = {
-    person_id: req.body.person_id,
-    from: req.body.from || 0,
+    person_id: Number(req.body.person_id),
+    from: Number(req.body.from) || 0,
     to: req.body.from + req.body.resolution - 1,
-    resolution: req.body.resolution || 3600,
+    resolution: Number(req.body.resolution) || 3600,
   };
   console.log("query = ", new_query);
   console.time("inout-tooltip-time");

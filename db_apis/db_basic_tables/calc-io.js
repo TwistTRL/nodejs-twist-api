@@ -1,19 +1,18 @@
 /*
- * @Author: Peng 
- * @Date: 2020-04-09 12:08:48 
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-17 15:20:50
+ * @Author: Peng
+ * @Date: 2020-04-09 12:08:48
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-09-15 10:28:42
  */
 
-
- /**
-  * arrInOut from table `INTAKE_OUTPUT`,
-  * arrDiluents from table `DRUG_DILUENTS`,
-  * arrTPN from table `TPN`,
-  * arrEN from table `EN`,
-  * arrLipids from table `TPN_LIPIDS` 
-  * 
-  */
+/**
+ * arrInOut from table `INTAKE_OUTPUT`,
+ * arrDiluents from table `DRUG_DILUENTS`,
+ * arrTPN from table `TPN`,
+ * arrEN from table `EN`,
+ * arrLipids from table `TPN_LIPIDS`
+ * arrMed from table `DRUG_INTERMITTENT`
+ */
 
 const {
   EVENT_CD_DICT,
@@ -22,14 +21,23 @@ const {
   SL_TO_CAT,
   SL_TO_CALCS,
   IN_OUT_COLOR_MAP,
-  CAT_CAP_TO_LOWER_MAP
+  CAT_CAP_TO_LOWER_MAP,
 } = require("../../db_relation/in-out-db-relation");
 
-
 const calculateIO = (rawRecords) => {
-  let { arrEN, arrTPN, arrLipids, arrInOut, arrDiluents, resolution, from, to } = rawRecords;
+  let {
+    arrEN,
+    arrTPN,
+    arrLipids,
+    arrInOut,
+    arrDiluents,
+    arrIOMed,
+    resolution,
+    from,
+    to,
+  } = rawRecords;
   let timeInterval = resolution;
-  console.log('--------------------------timeInterval :', timeInterval);
+  console.log("--------------------------timeInterval :", timeInterval);
   let startTime = from;
   let endTime = to;
 
@@ -137,8 +145,7 @@ const calculateIO = (rawRecords) => {
       //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
       let currentTime =
-        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
-        timeInterval;
+        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
 
       // console.log('row.START_UNIX :', row.START_UNIX);
       // console.log('startTime :', startTime);
@@ -149,9 +156,7 @@ const calculateIO = (rawRecords) => {
       }
 
       let zoneNumber =
-        Math.floor(
-          (Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval
-        ) + 1;
+        Math.floor((Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let singleResult = {};
         let value = 0;
@@ -181,10 +186,7 @@ const calculateIO = (rawRecords) => {
           // }
         } else if (i == zoneNumber - 1) {
           value =
-            (Math.min(
-              row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1),
-              timeInterval
-            ) *
+            (Math.min(row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
               row.INFUSION_RATE) /
             3600;
           // let value2 =
@@ -251,8 +253,7 @@ const calculateIO = (rawRecords) => {
       let rowEnd = row.END_UNIX + 1;
 
       let currentTime =
-        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
-        timeInterval;
+        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
 
       // console.log('row.START_UNIX :', row.START_UNIX);
       // console.log('startTime :', startTime);
@@ -262,9 +263,7 @@ const calculateIO = (rawRecords) => {
         break;
       }
 
-      let zoneNumber =
-        Math.floor((Math.min(rowEnd, endTime) - currentTime) / timeInterval) +
-        1;
+      let zoneNumber = Math.floor((Math.min(rowEnd, endTime) - currentTime) / timeInterval) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let singleResult = {};
         let value = 0;
@@ -272,29 +271,22 @@ const calculateIO = (rawRecords) => {
 
         if (i == 0) {
           value =
-            ((Math.min(currentTime + timeInterval, rowEnd) -
-              Math.max(startTime, row.START_UNIX)) *
+            ((Math.min(currentTime + timeInterval, rowEnd) - Math.max(startTime, row.START_UNIX)) *
               row.RESULT_VAL) /
             3600;
           let value1 =
-            ((Math.min(currentTime + timeInterval, rowEnd) - row.START_UNIX) *
-              row.RESULT_VAL) /
+            ((Math.min(currentTime + timeInterval, rowEnd) - row.START_UNIX) * row.RESULT_VAL) /
             3600;
           if (value1 != value) {
             console.log("value1 :", value1);
           }
         } else if (i == zoneNumber - 1) {
           value =
-            (Math.min(
-              rowEnd - currentTime - timeInterval * (zoneNumber - 1),
-              timeInterval
-            ) *
+            (Math.min(rowEnd - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
               row.RESULT_VAL) /
             3600;
           let value2 =
-            ((rowEnd - currentTime - timeInterval * (zoneNumber - 1)) *
-              row.RESULT_VAL) /
-            3600;
+            ((rowEnd - currentTime - timeInterval * (zoneNumber - 1)) * row.RESULT_VAL) / 3600;
           if (value2 != value) {
             console.log("value2 :", value2);
           }
@@ -324,15 +316,12 @@ const calculateIO = (rawRecords) => {
     }
   }
 
-
   let timeLipidsDict = {};
   if (arrLipids && arrLipids.length) {
     console.log("Lipids record size :", arrLipids.length);
     for (let row of arrLipids) {
       //example row = {"DT_UNIX": 1524700800, "RESULT_VAL": 2}
-      let currentTime =
-        Math.floor(Math.max(row.DT_UNIX, startTime) / timeInterval) *
-        timeInterval;
+      let currentTime = Math.floor(Math.max(row.DT_UNIX, startTime) / timeInterval) * timeInterval;
 
       let singleResult = {};
       let value = Number(row.RESULT_VAL);
@@ -359,8 +348,7 @@ const calculateIO = (rawRecords) => {
     for (let row of arrEN) {
       //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
       let currentTime =
-        Math.floor(Math.max(row.START_TIME_UNIX, startTime) / timeInterval) *
-        timeInterval;
+        Math.floor(Math.max(row.START_TIME_UNIX, startTime) / timeInterval) * timeInterval;
 
       let singleResult = {};
       let value = row.VOLUME;
@@ -377,6 +365,34 @@ const calculateIO = (rawRecords) => {
     }
   }
 
+  let resultMed = [];
+  if (arrIOMed && arrIOMed.length) {
+    console.log("Med record size :", arrIOMed.length);
+    let currentSameTimeArray = [];
+
+    for (let row of arrIOMed) {
+      //example row = {"DT_UNIX": "1524700800", "INFUSED_VOLUME": "mL", "INFUSED_VOLUME": 0.9}
+      let currentTime = Math.floor(arrIOMed[0].DT_UNIX / timeInterval) * timeInterval;
+
+      if (currentTime < startTime) {
+        continue;
+      }
+      if (currentTime > endTime) {
+        break;
+      }
+
+      let value =
+        row.VOLUME_UNITS === "mL" ? Number(row.INFUSED_VOLUME) : Number(row.INFUSED_VOLUME) * 1000;
+
+      resultMed.push({
+        value,
+        short_label: "Medications",
+        time: row.DT_UNIX,
+        type: "1",
+      });
+    }
+  }
+
   let resultFlush = Object.values(timeFlushDict);
   let resultDrips = Object.values(timeDripsDict);
   let resultTPN = Object.values(timeTPNDict);
@@ -384,8 +400,16 @@ const calculateIO = (rawRecords) => {
   let resultLipids = Object.values(timeLipidsDict);
 
   //unsorted array from Event, Flush, Drips, TPN
-  let arr = [...resultEvent, ...resultFlush, ...resultDrips, ...resultTPN, ...resultEN, ...resultLipids];
-  arr.sort(function(a, b) {
+  let arr = [
+    ...resultEvent,
+    ...resultFlush,
+    ...resultDrips,
+    ...resultTPN,
+    ...resultEN,
+    ...resultLipids,
+    ...resultMed,
+  ];
+  arr.sort(function (a, b) {
     let keyA = a.time;
     let keyB = b.time;
     if (keyA < keyB) return -1;
@@ -393,7 +417,7 @@ const calculateIO = (rawRecords) => {
     return 0;
   });
   return arr;
-}
+};
 
 /**
  *
@@ -449,5 +473,5 @@ function handelSameTimeArray(array, timeOfArray, timeInterval) {
 }
 
 module.exports = {
-  calculateIO
+  calculateIO,
 };

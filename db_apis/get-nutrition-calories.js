@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-06 11:14:32
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-08-27 12:48:37
+ * @Last Modified time: 2020-09-18 10:15:45
  */
 
 const moment = require("moment");
@@ -88,7 +88,7 @@ const SQL_GET_IN_OUT_VOL = `
 SELECT  
   DT_UNIX,
   EVENT_CD,
-  VALUE
+  RESULT_VAL
 FROM INTAKE_OUTPUT
 WHERE PERSON_ID = :person_id
 ORDER BY DT_UNIX`;
@@ -105,7 +105,7 @@ ORDER BY DT_UNIX`;
 
 async function weightCalcQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
-  console.log("~~SQL getting weight for fat-pro-cho: ", SQL_GET_WEIGHT_CALC);
+  console.log("~~SQL getting weight for calories: ", SQL_GET_WEIGHT_CALC);
   console.time("getWeightCalc-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_WEIGHT_CALC, binds);
   console.timeEnd("getWeightCalc-sql" + timestampLable);
@@ -164,7 +164,7 @@ async function diluNutrQuerySQLExecutor(conn, binds) {
 }
 async function medVolQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
-  console.log("~~SQL for med volume all time: ", SQL_GET_MED_VOL);
+  console.log("~~SQL for med volume in calories: ", SQL_GET_MED_VOL);
   console.time("getMedVol-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_MED_VOL, binds);
   console.timeEnd("getMedVol-sql" + timestampLable);
@@ -436,7 +436,7 @@ function _calculateRawRecords(
 const getWeight = (timestamp, weightArr) => {
   let index = bisect_left(weightArr, timestamp, (x) => x["DT_UNIX"]);
   if (index < 0) {
-    console.log("at timestamp has no weight:", timestamp);
+    console.log("calories: at timestamp has no weight:", timestamp);
     return weightArr[0]["WEIGHT_CALC"];
   } else {
     return weightArr[index]["WEIGHT_CALC"];

@@ -1,8 +1,8 @@
 /*
  * @Author: Peng 
  * @Date: 2020-04-09 12:35:29 
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-17 11:58:43
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-09-18 10:51:56
  */
 
 const { bisect_left } = require("bisect-js");
@@ -199,7 +199,7 @@ const calculateFPC = (rawRecords) => {
 const getWeight = (timestamp, arrWeight) => {
   let index = bisect_left(arrWeight, timestamp, (x) => x["DT_UNIX"]);
   if (index < 0) {
-    console.warn("at timestamp has no weight:", timestamp);
+    // console.warn("fpc: at timestamp has no weight:", timestamp);
     return arrWeight[0]["WEIGHT_CALC"];
   } else {
     return arrWeight[index]["WEIGHT_CALC"];

@@ -1,19 +1,19 @@
 /*
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-04 22:35:36
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-09-18 10:47:49
  */
 
-
- /**
-  * arr1 from table `INTAKE_OUTPUT`,
-  * arr2 from table `DRUG_DILUENTS`,
-  * arr3 from table `TPN`,
-  * arrEN from table `EN`,
-  * arrLipids from table `TPN_LIPIDS` 
-  * 
-  */
+/**
+ * arr1 from table `INTAKE_OUTPUT`,
+ * arr2 from table `DRUG_DILUENTS`,
+ * arr3 from table `TPN`,
+ * arrEN from table `EN`,
+ * arrLipids from table `TPN_LIPIDS`
+ * arrMed from table `DRUG_INTERMITTENT`
+ *
+ */
 
 const database = require("../services/database");
 const isValidJson = require("../utils/isJson");
@@ -25,7 +25,7 @@ const {
   SL_TO_CAT,
   SL_TO_CALCS,
   IN_OUT_COLOR_MAP,
-  CAT_CAP_TO_LOWER_MAP
+  CAT_CAP_TO_LOWER_MAP,
 } = require("../db_relation/in-out-db-relation");
 
 const PERSON_ID = "person_id";
@@ -84,7 +84,7 @@ const SQL_GET_IN_OUT_EVENT_PART1 = `
 SELECT  
   DT_UNIX,
   EVENT_CD,
-  VALUE
+  RESULT_VAL
 FROM INTAKE_OUTPUT
 WHERE PERSON_ID = `;
 const SQL_GET_IN_OUT_EVENT_PART2 = `
@@ -115,6 +115,17 @@ FROM DRUG_DILUENTS
 WHERE PERSON_ID = `;
 const SQL_GET_IN_OUT_DILUENTS_PART2 = ` 
 ORDER BY START_UNIX`;
+
+const SQL_GET_MED_VOL = `
+SELECT 
+  DT_UNIX,
+  INFUSED_VOLUME,
+  VOLUME_UNITS
+FROM DRUG_INTERMITTENT
+WHERE PERSON_ID = :person_id 
+  AND (VOLUME_UNITS = 'mL' OR VOLUME_UNITS = 'L')
+  AND DT_UNIX BETWEEN :from_ AND :to_
+ORDER BY DT_UNIX`;
 
 async function enQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
@@ -215,8 +226,23 @@ async function inOutDiluentsQuerySQLExecutor(conn, query) {
   return rawRecord.rows;
 }
 
+async function medVolQuerySQLExecutor(conn, query) {
+  let binds = {
+    person_id: Number(query.person_id),
+    from_: Number(query[FROM]),
+    to_: Number(query[TO]),
+  };
+  console.log("binds :>> ", binds);
+  let timestampLable = timeLable++;
+  console.log("~~SQL for med volume in out v2: ", SQL_GET_MED_VOL);
+  console.time("getMedVol-sql" + timestampLable);
+  let rawRecord = await conn.execute(SQL_GET_MED_VOL, binds);
+  console.timeEnd("getMedVol-sql" + timestampLable);
+  return rawRecord.rows;
+}
+
 function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
-  let { arr1, arr2, arr3, arrEN, arrLipids } = rawRecords;
+  let { arr1, arr2, arr3, arrEN, arrLipids, arrMed } = rawRecords;
 
   let resultEvent = [];
   if (arr1 && arr1.length) {
@@ -228,6 +254,12 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
     for (let row of arr1) {
       //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "VALUE": 0.9}
+      if (!EVENT_CD_DICT[row.EVENT_CD]) {
+        console.log("~~ error for row");
+        console.log('EVENT_CD_DICT[row.EVENT_CD] :>> ', EVENT_CD_DICT[row.EVENT_CD]);
+        console.log('row :>> ', row);
+        continue;
+      }
       let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
 
       // end when larger than endTime
@@ -322,8 +354,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //example row = {"START_UNIX": 1524700800, "END_UNIX": "1524736800", "DRUG": "drug", "DILUENT": "aaa", "INFUSION_RATE": 0.9 .... }
       //(DRUG = 'papavarine' OR DRUG = 'heparin flush') : FLUSHES
       let currentTime =
-        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
-        timeInterval;
+        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
 
       // console.log('row.START_UNIX :', row.START_UNIX);
       // console.log('startTime :', startTime);
@@ -334,9 +365,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
 
       let zoneNumber =
-        Math.floor(
-          (Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval
-        ) + 1;
+        Math.floor((Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let singleResult = {};
         let value = 0;
@@ -366,10 +395,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           // }
         } else if (i == zoneNumber - 1) {
           value =
-            (Math.min(
-              row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1),
-              timeInterval
-            ) *
+            (Math.min(row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
               row.INFUSION_RATE) /
             3600;
           // let value2 =
@@ -436,8 +462,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       let rowEnd = row.END_UNIX + 1;
 
       let currentTime =
-        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) *
-        timeInterval;
+        Math.floor(Math.max(row.START_UNIX, startTime) / timeInterval) * timeInterval;
 
       // console.log('row.START_UNIX :', row.START_UNIX);
       // console.log('startTime :', startTime);
@@ -447,9 +472,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         break;
       }
 
-      let zoneNumber =
-        Math.floor((Math.min(rowEnd, endTime) - currentTime) / timeInterval) +
-        1;
+      let zoneNumber = Math.floor((Math.min(rowEnd, endTime) - currentTime) / timeInterval) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let singleResult = {};
         let value = 0;
@@ -457,29 +480,22 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
         if (i == 0) {
           value =
-            ((Math.min(currentTime + timeInterval, rowEnd) -
-              Math.max(startTime, row.START_UNIX)) *
+            ((Math.min(currentTime + timeInterval, rowEnd) - Math.max(startTime, row.START_UNIX)) *
               row.RESULT_VAL) /
             3600;
           let value1 =
-            ((Math.min(currentTime + timeInterval, rowEnd) - row.START_UNIX) *
-              row.RESULT_VAL) /
+            ((Math.min(currentTime + timeInterval, rowEnd) - row.START_UNIX) * row.RESULT_VAL) /
             3600;
           if (value1 != value) {
             console.log("value1 :", value1);
           }
         } else if (i == zoneNumber - 1) {
           value =
-            (Math.min(
-              rowEnd - currentTime - timeInterval * (zoneNumber - 1),
-              timeInterval
-            ) *
+            (Math.min(rowEnd - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
               row.RESULT_VAL) /
             3600;
           let value2 =
-            ((rowEnd - currentTime - timeInterval * (zoneNumber - 1)) *
-              row.RESULT_VAL) /
-            3600;
+            ((rowEnd - currentTime - timeInterval * (zoneNumber - 1)) * row.RESULT_VAL) / 3600;
           if (value2 != value) {
             console.log("value2 :", value2);
           }
@@ -509,15 +525,12 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     }
   }
 
-
   let timeLipidsDict = {};
   if (arrLipids && arrLipids.length) {
     console.log("Lipids record size :", arrLipids.length);
     for (let row of arrLipids) {
       //example row = {"DT_UNIX": 1524700800, "RESULT_VAL": 2}
-      let currentTime =
-        Math.floor(Math.max(row.DT_UNIX, startTime) / timeInterval) *
-        timeInterval;
+      let currentTime = Math.floor(Math.max(row.DT_UNIX, startTime) / timeInterval) * timeInterval;
 
       let singleResult = {};
       let value = Number(row.RESULT_VAL);
@@ -544,8 +557,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     for (let row of arrEN) {
       //example row = {"START_TIME_UNIX": 1524700800, "VOLUME": 2}
       let currentTime =
-        Math.floor(Math.max(row.START_TIME_UNIX, startTime) / timeInterval) *
-        timeInterval;
+        Math.floor(Math.max(row.START_TIME_UNIX, startTime) / timeInterval) * timeInterval;
 
       let singleResult = {};
       let value = row.VOLUME;
@@ -562,6 +574,34 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     }
   }
 
+  let resultMed = [];
+  if (arrMed && arrMed.length) {
+    console.log("Med record size :", arrMed.length);
+    let currentSameTimeArray = [];
+
+    for (let row of arrMed) {
+      //example row = {"DT_UNIX": "1524700800", "INFUSED_VOLUME": 0.9}
+      let currentTime = Math.floor(arrMed[0].DT_UNIX / timeInterval) * timeInterval;
+
+      if (currentTime < startTime) {
+        continue;
+      }
+      if (currentTime > endTime) {
+        break;
+      }
+
+      let value =
+        row.VOLUME_UNITS === "mL" ? Number(row.INFUSED_VOLUME) : Number(row.INFUSED_VOLUME) * 1000;
+
+      resultMed.push({
+        value,
+        short_label: "Medications",
+        time: row.DT_UNIX,
+        type: "1",
+      });
+    }
+  }
+
   let resultFlush = Object.values(timeFlushDict);
   let resultDrips = Object.values(timeDripsDict);
   let resultTPN = Object.values(timeTPNDict);
@@ -569,8 +609,16 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   let resultLipids = Object.values(timeLipidsDict);
 
   //unsorted array from Event, Flush, Drips, TPN
-  let arr = [...resultEvent, ...resultFlush, ...resultDrips, ...resultTPN, ...resultEN, ...resultLipids];
-  arr.sort(function(a, b) {
+  let arr = [
+    ...resultEvent,
+    ...resultFlush,
+    ...resultDrips,
+    ...resultTPN,
+    ...resultEN,
+    ...resultLipids,
+    ...resultMed,
+  ];
+  arr.sort(function (a, b) {
     let keyA = a.time;
     let keyB = b.time;
     if (keyA < keyB) return -1;
@@ -641,12 +689,15 @@ async function parallelQuery(conn, query) {
   const task3 = await tpnQuerySQLExecutor(conn, query);
   const task4 = await enQuerySQLExecutor(conn, query);
   const task5 = await lipidsQuerySQLExecutor(conn, query);
+  const task6 = await medVolQuerySQLExecutor(conn, query);
+
   return {
     arr1: await task1,
     arr2: await task2,
     arr3: await task3,
     arrEN: await task4,
     arrLipids: await task5,
+    arrMed: await task6,
   };
 }
 
@@ -662,18 +713,11 @@ async function parallelQuery(conn, query) {
  * @param {*} conn 
  * @param {*} query 
  */
-const getInOutQueryV2 = database.withConnection(async function(conn, query) {
-
-
+const getInOutQueryV2 = database.withConnection(async function (conn, query) {
   let consoleTimeCount = timeLable++;
   console.time("getInOut" + consoleTimeCount);
   let rawResults = await parallelQuery(conn, query);
-  let result = _calculateRawRecords(
-    rawResults,
-    query[RESOLUTION],
-    query[FROM],
-    query[TO]
-  );
+  let result = _calculateRawRecords(rawResults, query[RESOLUTION], query[FROM], query[TO]);
   console.timeEnd("getInOut" + consoleTimeCount);
 
   // let count = 0;
@@ -689,5 +733,5 @@ const getInOutQueryV2 = database.withConnection(async function(conn, query) {
 });
 
 module.exports = {
-  getInOutQueryV2
+  getInOutQueryV2,
 };
