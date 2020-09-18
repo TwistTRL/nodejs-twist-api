@@ -61,8 +61,8 @@ async function getPersonSqlExecutor(conn, binds) {
   let person = { ...person_basics };
   person["MRNS"] = person_mrns;
   person["RSS"] = {
-    RSS_START: person_rss && person_rss[0] ? person_rss[0].VALID_FROM_DT_TM : 0,
-    RSS_END: person_rss && person_rss.length > 1 ? person_rss[1].VALID_FROM_DT_TM: 0,
+    rss_start: person_rss && person_rss[0] ? person_rss[0].VALID_FROM_DT_TM : 0,
+    rss_end: person_rss && person_rss.length > 1 ? person_rss[1].VALID_FROM_DT_TM: 0,
   }
   return person;
 }

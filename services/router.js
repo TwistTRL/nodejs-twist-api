@@ -1778,8 +1778,8 @@ router.get("/HeartRate", async (req, res) => {
           }
       ],
       "RSS": {
-        "RSS_START": 1524000000,
-        "RSS_END": 1550000000
+        "rss_start": 1524000000,
+        "rss_end": 1550000000
       }
   }
  *
@@ -1865,8 +1865,8 @@ router.get("/person/mrn-list/:mrn", async (req, res) => {
  * @apiSuccessExample Success-Response:
  *                  
       {
-        RSS_START: 122222,
-        RSS_END: 122222,
+        rss_start: 122222,
+        rss_end: 122222,
       }
  *
  */
