@@ -3,6 +3,7 @@
 dump.rdb
 apidoc/
 temp/
+recycle/
 config/ipList.txt
 docs/apidoc
 docs/apidoc2
