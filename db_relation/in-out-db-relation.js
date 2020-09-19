@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-01-21 10:33:57
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-29 16:15:32
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-09-18 21:21:19
  */
 
 const {
@@ -24,6 +24,7 @@ const CAT_ORDER_ARRAY = [
   "UOP",
   "STOOL",
   "BLOOD PRODUCT",
+  "Medications",
   "Nutrition",
   "Infusions",
   "Flushes",
@@ -72,7 +73,8 @@ const CAT_COLOR_DICT = {
   TPN: "#a989d2",
   Lipids: "#f48fb1",
   EN: "purple",
-  Nutrition: "green",      
+  Nutrition: "green",
+  Medications: "#00897b",
 };
 
 let SL_COLOR_DICT = {};
@@ -180,6 +182,7 @@ const SECOND_SL_COLOR_DICT = {
   Lipids: "#f48fb1",
   EN: "purple",
   Nutrition: "green",
+  Medications: "#00897b",
 };
 
 SL_COLOR_DICT = {...SECOND_SL_COLOR_DICT, ...SL_COLOR_DICT};

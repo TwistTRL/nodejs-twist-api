@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-13 17:23:49
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-08 00:12:33
+ * @Last Modified time: 2020-09-18 16:44:02
  */
 
 const isEmpty = require("lodash.isempty");
@@ -62,7 +62,7 @@ async function micbioSensQuerySQLExecutor(conn, binds) {
 const _calculateRawRecords = ({ arrMicbio, arrMicbioSens }) => {
   if (!arrMicbio || !arrMicbio.length) {
     console.log("no arrMicbio");
-    return null;
+    return {};
   }
 
   let sensDict = {};

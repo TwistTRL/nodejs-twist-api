@@ -66,7 +66,7 @@ async function getLabSqlExecutorV2(conn, binds) {
   console.log('lab size of current person', arr.length);
 
   if (arr.length < 1) {
-    return null;
+    return {};
   }
 
   let currentTime = 0;

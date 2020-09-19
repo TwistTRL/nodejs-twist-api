@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 11:53:31
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-18 13:13:51
+ * @Last Modified time: 2020-09-18 17:57:23
  */
 
 const database = require("../services/database");
@@ -510,7 +510,7 @@ function _calculateBinnedRecords(
     let count2nd = 0;
     let currentStartTM = 0;
     var singleResult;
-    let records_start_time = Math.min(arr1[0].START_TM, arr2[0].START_TM);
+    let records_start_time = Math.min(arr1[0] ? arr1[0].START_TM : 0, arr2[0] ? arr2[0].START_TM : 0);
     //example one record = {"START_TM": "1524657600", "END_TM": "1524700800", "BIN_ID": "9", "VAL": 9}
 
     let h1 = 0; // index of arr1

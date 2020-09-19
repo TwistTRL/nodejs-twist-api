@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 10:54:55
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-08-27 11:07:04
+ * @Last Modified time: 2020-09-18 17:26:05
  */
 
 const database = require("../../services/database");
@@ -28,7 +28,7 @@ async function diagnosisQuerySQLExecutor(conn, binds) {
   console.log("~~SQL_GET_DIAGNOSIS: ", SQL_GET_DIAGNOSIS);
   let rawRecord = await conn.execute(SQL_GET_DIAGNOSIS, binds);
   if (!rawRecord.rows[0]) {
-    return "Error: no ANATOMY";
+    return "no anatomy";
   }
   const curAnatomy = rawRecord.rows[0].ANATOMY;
   console.log("curAnatomy :>> ", curAnatomy);

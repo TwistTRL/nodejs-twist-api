@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-16 09:41:10
+ * @Last Modified time: 2020-09-18 19:57:46
  */
 
 /**
@@ -290,7 +290,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     let currentTime = startTime;
 
     for (let row of arr1) {
-      //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "VALUE": 0.9}
+      //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "RESULT_VAL": 0.9}
       let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
 
       // end when larger than endTime
@@ -303,7 +303,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         continue;
       }
 
-      if (row.VALUE == null) {
+      if (row.RESULT_VAL == null) {
         countNull++;
       }
 
@@ -785,6 +785,12 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
       let value = row.VOLUME_UNITS === "mL" ? Number(row.INFUSED_VOLUME) : row.INFUSED_VOLUME * 1000;
 
+      if (!type1Dict[currentTime]) {
+        type1Dict[currentTime] = {
+          value: 0,          
+        };
+      }
+
       type1Dict[currentTime].value += value;
       if (!type1Dict[currentTime].Medications) {
         type1Dict[currentTime].Medications = {value:0};
@@ -824,13 +830,13 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             if (currentIvfNameArray.includes(currentIvfName)) {
               for (const ivfItem of currentCatDict.items) {
                 if (ivfItem.name === currentIvfName) {
-                  ivfItem.value += element.VALUE;
+                  ivfItem.value += element.RESULT_VAL;
                   break;
                 }
               }
             } else {
               currentIvfNameArray.push(currentIvfName);
-              let newSingleIvfObj = {"name": currentIvfName, "value": element.VALUE, "unit": UNIT_ML, "sub_cat": "IVF", "label": "IVF"};
+              let newSingleIvfObj = {"name": currentIvfName, "value": element.RESULT_VAL, "unit": UNIT_ML, "sub_cat": "IVF", "label": "IVF"};
               currentCatDict.items.push(newSingleIvfObj);
             }
           });          
@@ -976,7 +982,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
 function _updateRowToDict(currentTime, row, dict) {
   let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
-  let newValue = io_calcs == "2" ? -1 * row.VALUE : row.VALUE;
+  let newValue = io_calcs == "2" ? -1 * row.RESULT_VAL : row.RESULT_VAL;
   let newCat = EVENT_CD_DICT[row.EVENT_CD].IO_CAT;
   let newShortLabel = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
 

@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-18 10:47:49
+ * @Last Modified time: 2020-09-18 17:12:49
  */
 
 /**
@@ -77,7 +77,7 @@ ORDER BY DT_UNIX`;
 //   DT_UNIX,
 //   EVENT_CD,
 //   IO_CALCS,
-//   VALUE
+//   RESULT_VAL
 // FROM INTAKE_OUTPUT
 // WHERE PERSON_ID = `
 const SQL_GET_IN_OUT_EVENT_PART1 = `
@@ -253,7 +253,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     let currentTime = Math.floor(arr1[0].DT_UNIX / timeInterval) * timeInterval;
 
     for (let row of arr1) {
-      //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "VALUE": 0.9}
+      //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "RESULT_VAL": 0.9}
       if (!EVENT_CD_DICT[row.EVENT_CD]) {
         console.log("~~ error for row");
         console.log('EVENT_CD_DICT[row.EVENT_CD] :>> ', EVENT_CD_DICT[row.EVENT_CD]);
@@ -272,7 +272,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         continue;
       }
 
-      if (!row.VALUE) {
+      if (!row.RESULT_VAL) {
         countValue0++;
         continue;
       }
@@ -284,9 +284,9 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
       //if current SHORT_LABEL == '', and if timeInterval == 3600 (seconds in 1 hour), push it directly to resultEvent
       row.SHORT_LABEL = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
-      if (row.SHORT_LABEL == "" && timeInterval == 3600 && row.VALUE) {
+      if (row.SHORT_LABEL == "" && timeInterval == 3600 && row.RESULT_VAL) {
         let singleType0Result = {};
-        singleType0Result.value = row.VALUE;
+        singleType0Result.value = row.RESULT_VAL;
         singleType0Result.short_label = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
         singleType0Result.time = currentTime;
         singleType0Result.type = io_calcs;
@@ -642,7 +642,7 @@ function handelSameTimeArray(array, timeOfArray, timeInterval) {
   let resultSameTime = [];
 
   for (let row of array) {
-    //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "VALUE": 0.9, "SHORT_LABEL": "VAC"}
+    //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "RESULT_VAL": 0.9, "SHORT_LABEL": "VAC"}
     let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
 
     // todo, now combined with event cd
@@ -651,16 +651,16 @@ function handelSameTimeArray(array, timeOfArray, timeInterval) {
     let value;
     if (row.SHORT_LABEL in dict) {
       if (io_calcs == 2) {
-        value = Math.abs(row.VALUE) * -1;
+        value = Math.abs(row.RESULT_VAL) * -1;
       } else {
-        value = Math.abs(row.VALUE) * 1;
+        value = Math.abs(row.RESULT_VAL) * 1;
       }
       dict[row.SHORT_LABEL] += value;
     } else {
       if (io_calcs == 2) {
-        value = Math.abs(row.VALUE) * -1;
+        value = Math.abs(row.RESULT_VAL) * -1;
       } else {
-        value = Math.abs(row.VALUE) * 1;
+        value = Math.abs(row.RESULT_VAL) * 1;
       }
       dict[row.SHORT_LABEL] = value;
     }
