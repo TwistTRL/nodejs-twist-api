@@ -1,8 +1,8 @@
 /*
  * @Author: Lingyu
  * @Date: unknown
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-21 22:52:30
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-09-19 22:10:57
  */
 const express = require("express");
 const timeout = require("connect-timeout");
@@ -48,7 +48,7 @@ function initialize() {
 
     // Middleware
     app.use(cors());
-    app.use(timeout("45s"));
+    // app.use(timeout("100s"));
     app.use(express.json());
     // note the use of haltOnTimedout after every middleware;
     // it will stop the request flow on a timeout

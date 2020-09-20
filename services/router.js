@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-18 13:13:50
+ * @Last Modified time: 2020-09-19 17:16:51
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -52,6 +52,7 @@ const { getMed } = require("../db_apis/get-med");
 
 const { getInOutTooltipQueryV2 } = require("../db_apis/get-in-out-tooltip-v2");
 const { getInOutTooltipQueryV1 } = require("../db_apis/get-in-out-tooltip-v1"); // Deprecated
+const { getInOutTooltipQueryV3 } = require("../db_apis/get-in-out-tooltip-v3");
 
 const { getInOutQuery } = require("../db_apis/get-in-out");
 
@@ -96,6 +97,10 @@ const { getDiagnosisDisplay } = require("../db_apis/diagnosis_display/get-diseas
 
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
+
+// --- write to database
+const { insertInoutCache } = require("../db_apis/cache/inout-cache");
+
 
 // >>------------------------------------------------------------------------>>
 // apidoc folder is a static files folder
@@ -3644,5 +3649,158 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
   };
   res.send(await getLinesTooltips(binds));
 });
+
+
+
+// --------- dev
+
+
+/**
+ * @api {post} /inout-tooltip-v3 In-Out Tooltip (dev)
+ * @apiVersion 0.0.1
+ * @apiName in-out-tooltip-v3
+ * @apiGroup DEV
+ * @apiDescription 
+ * Get in-out fluid data based on `person_id`, start time `from`, end time `from + resolution - 1`, from table `DRUG_DILUENTS`
+ * 
+ * Method: 
+ * 
+ * data from `DRUG_DILUENTS`, if drug is 'papavarine' or 'heparin flush', then cat = "Flushes", value accumulated in each binned time box;
+ * other drug , then cat = "Infusions", value accumulated in each binned time box;
+
+ * 
+ * Input notes: 
+ * 
+ *   ├──`resolution` should be divisible by 3600 (seconds in one hour).
+ * 
+ *   ├──`to` is set to `from + resolution - 1`. 
+ * 
+ *   └──`from` need be validated by front end.
+ * 
+ * Output notes:
+ * 
+ *    ├── the output binned start from the timestamp `from`
+ *  
+ *    ├── for `Flushes` in the same timestamp, combined same `drug` and `diluent` and `location` (`location` for `Flushes` only, current not ready)
+ *    
+ *    ├── for `Infusions` in the same timestamp, combined same `drug` and `diluent`
+ * 
+ *    └── if combined, return the most recent `rate`, `unit`, `conc`, `strength_unit`, and `vol_unit`
+ * 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {Number} [from=0] Start timestamp.
+ * @apiParam {Number} [resolution=3600] Binned time resolution.
+ * @apiParamExample {json} Example of request in-out data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "from":1539568800,
+          "resolution":3600
+        }
+
+ * @apiSuccessExample Success-Response: *    
+ * 
+    [
+        {
+            "1500000000": [
+                {
+                    "name": "Nutrition",
+                    "value": 17.4,
+                    "unit": "ml",
+                    "items": [
+                        {
+                            "name": "TPN",
+                            "value": 17,
+                            "unit": "ml",
+                            "items": [
+                                {
+                                    "name": "DEXTROSE_PN",
+                                    "value": 165,
+                                    "unit": "g/L"
+                                },
+                                // ...                            
+                            ]
+                        },
+                        {
+                            "name": "Lipids",
+                            "value": 0.4,
+                            "unit": "ml"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "1500000000": [
+                {
+                    "name": "UOP",
+                    "value": -10,
+                    "unit": "ml",
+                    "items": [
+                        {
+                            "name": "UOP",
+                            "value": -10,
+                            "unit": "ml",
+                            "sub_cat": "Void",
+                            "label": "UOP"
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+
+ *
+ */
+
+router.post("/inout-tooltip-v3", async (req, res) => {
+  let new_query = {
+    person_id: Number(req.body.person_id),
+    from: Number(req.body.from) || 0,
+    to: req.body.from + req.body.resolution - 1,
+    resolution: Number(req.body.resolution) || 3600,
+  };
+  console.log("query = ", new_query);
+  console.time("inout-tooltip-time");
+
+  if (!Number.isInteger(new_query.person_id)) {
+    res.send("Invalid person_id, should be integer.");
+    return;
+  }
+  if (new_query.from > new_query.to) {
+    res.send("start time must > end time");
+    return;
+  }
+  if (new_query.resolution <= 0 || new_query.resolution % 3600 != 0) {
+    res.send('"resolution" must be 3600 * n (n ∈ N)');
+    return;
+  }
+  if (new_query.from % 3600 != 0) {
+    res.send('"start" time must be divisible by 3600');
+    return;
+  }
+
+  getApiFromRedis(res, getInOutTooltipQueryV3, new_query, "interface-inout-tooltip");
+});
+
+
+
+/**
+ * @api {get} /cache/inout Cache In-Out (dev)
+ * @apiVersion 0.0.1
+ * @apiName cache-in-out
+ * @apiGroup DEV
+ * @apiDescription Cache in-out API to API_CACHE_INOUT table 
+ * @apiSuccessExample Success-Response: 
+ *  {}
+ */
+
+router.get("/cache/inout", async (req, res) => {
+ 
+  res.send(await insertInoutCache());
+
+});
+
+
+
 
 module.exports = router;

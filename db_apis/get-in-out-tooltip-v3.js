@@ -1,18 +1,20 @@
 /*
- * @Author: Peng
- * @Date: 2020-02-05 16:33:06
+ * @Author: Peng Zeng
+ * @Date: 2020-09-19 12:00:21
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-19 17:38:15
+ * @Last Modified time: 2020-09-19 14:55:21
  */
+
+// `INTAKE_OUTPUT` updated to including inoutcodes.xlsx
 
 /**
  * arr1 from table `INTAKE_OUTPUT`,
  * arr2 from table `DRUG_DILUENTS`,
  * arr3 from table `TPN`,
  * arrEN from table `EN`,
- * arrLipids from table `TPN_LIPIDS` 
+ * arrLipids from table `TPN_LIPIDS`
  * arrMed from table `DRUG_INTERMITTENT`
- * 
+ *
  * unit is mL only, because
  * `select distinct INFUSION_RATE_UNITS from drug_diluents` is `mL/hr`
  *
@@ -37,6 +39,9 @@ const RESOLUTION = "resolution";
 var timeLable = 0;
 const UNIT_ML = "ml";
 
+console.log("SL_ORDER_ARRAY :>> ", SL_ORDER_ARRAY);
+console.log("CAT_ORDER_ARRAY :>> ", CAT_ORDER_ARRAY);
+console.log("IVF_TO_DEXTROSE :>> ", IVF_TO_DEXTROSE);
 
 const SQL_GET_TPN_LIPID_PART1 = `
 SELECT
@@ -99,7 +104,19 @@ const SQL_GET_IN_OUT_EVENT_PART1 = `
 SELECT  
   DT_UNIX,
   EVENT_CD,
-  RESULT_VAL
+  RESULT_VAL,
+  EVENT_TAG,
+  RESULT_UNITS_CD,
+  UNIT,
+  DESC_EVENT,
+  EVENT_CD_DEFINITION,
+  DISPLAY_IO,
+  IO_CALCS,
+  IO_CAT,
+  SUBCAT,
+  LABEL_TWIST,
+  SHORT_LABEL,
+  DEXTROSE  
 FROM INTAKE_OUTPUT
 WHERE PERSON_ID = `;
 const SQL_GET_IN_OUT_EVENT_PART2 = `
@@ -204,7 +221,6 @@ async function lipidsQuerySQLExecutor(conn, query) {
   return rawRecord.rows;
 }
 
-
 async function inOutEventTooltipQuerySQLExecutor(conn, query) {
   let timestampLable = timeLable++;
   let SQL_GET_IN_OUT_EVENT =
@@ -256,8 +272,8 @@ async function medVolQuerySQLExecutor(conn, query) {
     person_id: Number(query.person_id),
     from_: Number(query[FROM]),
     to_: Number(query[TO]),
-  }
-  console.log('binds :>> ', binds);
+  };
+  console.log("binds :>> ", binds);
   let timestampLable = timeLable++;
   console.log("~~SQL for med volume in tooltip-v2: ", SQL_GET_MED_VOL);
   console.time("getMedVol-sql" + timestampLable);
@@ -286,16 +302,13 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
   if (arr1 && arr1.length) {
     console.log("In-Out Event record size :", arr1.length);
+    console.log("arr1 :>> ", arr1);
+
     let countNull = 0;
     let currentTime = startTime;
 
     for (let row of arr1) {
       //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "RESULT_VAL": 0.9}
-      if (!EVENT_CD_DICT[row.EVENT_CD]) {
-        console.log('~~~Error EVENT_CD_DICT[row.EVENT_CD] :>> ', EVENT_CD_DICT[row.EVENT_CD]);
-        console.log('row :>> ', row);
-        continue;
-      }
       let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
 
       // end when larger than endTime
@@ -321,13 +334,15 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         type1Dict = _updateRowToDict(currentTime, row, type1Dict);
       } else if (io_calcs == "2") {
         type2Dict = _updateRowToDict(currentTime, row, type2Dict);
-
       } else {
         console.log("Error IO_CALCS");
       }
     }
     console.log("null value number for In-Out Event records: ", countNull);
   }
+
+  console.log("type1Dict :>> ", type1Dict);
+  console.log("type2Dict :>> ", type2Dict);
 
   //example arr2 = {
   // START_UNIX,
@@ -356,9 +371,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
 
       let zoneNumber =
-        Math.floor(
-          (Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval
-        ) + 1;
+        Math.floor((Math.min(row.END_UNIX, endTime) - currentTime) / timeInterval) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let value = 0;
         let calTime = currentTime + i * timeInterval;
@@ -371,10 +384,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             3600;
         } else if (i == zoneNumber - 1) {
           value =
-            (Math.min(
-              row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1),
-              timeInterval
-            ) *
+            (Math.min(row.END_UNIX - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
               row.INFUSION_RATE) /
             3600;
         } else {
@@ -395,10 +405,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             "Math.min(currentTime + timeInterval, row.END_UNIX) :",
             Math.min(currentTime + timeInterval, row.END_UNIX)
           );
-          console.log(
-            "Math.max(startTime, row.START_UNIX) :",
-            Math.max(startTime, row.START_UNIX)
-          );
+          console.log("Math.max(startTime, row.START_UNIX) :", Math.max(startTime, row.START_UNIX));
         }
 
         let singleResult = {};
@@ -410,10 +417,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         singleResult.conc = row.CONC;
         singleResult.strength_unit = row.STRENGTH_UNIT;
         singleResult.vol_unit = row.VOL_UNIT;
-        singleResult.end_time = Math.min(
-          row.END_UNIX,
-          currentTime + timeInterval
-        );
+        singleResult.end_time = Math.min(row.END_UNIX, currentTime + timeInterval);
 
         if (!row.DRUG) {
           console.log("row :", row);
@@ -422,8 +426,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
 
         // singleResult.location = "not ready";
 
-        let typeFlush =
-          row.DRUG == "papavarine" || row.DRUG == "heparin flush" ? 1 : 0;
+        let typeFlush = row.DRUG == "papavarine" || row.DRUG == "heparin flush" ? 1 : 0;
         if (!(calTime in type1Dict)) {
           type1Dict[calTime] = { value: 0 };
         }
@@ -445,20 +448,14 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
                 drugsArray[i].location == singleResult.location
               ) {
                 type1Dict[calTime].Flushes.drugs[i].value += singleResult.value;
-                if (
-                  singleResult.end_time >=
-                  type1Dict[calTime].Flushes.drugs[i].end_time
-                ) {
+                if (singleResult.end_time >= type1Dict[calTime].Flushes.drugs[i].end_time) {
                   // updated to most recent rate
-                  type1Dict[calTime].Flushes.drugs[i].end_time =
-                    singleResult.end_time;
+                  type1Dict[calTime].Flushes.drugs[i].end_time = singleResult.end_time;
                   type1Dict[calTime].Flushes.drugs[i].rate = singleResult.rate;
                   type1Dict[calTime].Flushes.drugs[i].unit = singleResult.unit;
                   type1Dict[calTime].Flushes.drugs[i].conc = singleResult.conc;
-                  type1Dict[calTime].Flushes.drugs[i].strength_unit =
-                    singleResult.strength_unit;
-                  type1Dict[calTime].Flushes.drugs[i].vol_unit =
-                    singleResult.vol_unit;
+                  type1Dict[calTime].Flushes.drugs[i].strength_unit = singleResult.strength_unit;
+                  type1Dict[calTime].Flushes.drugs[i].vol_unit = singleResult.vol_unit;
                 }
                 isMerged = true;
                 break;
@@ -485,25 +482,15 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
                 drugsArray[i].drug == singleResult.drug &&
                 drugsArray[i].diluent == singleResult.diluent
               ) {
-                type1Dict[calTime].Infusions.drugs[i].value +=
-                  singleResult.value;
-                if (
-                  singleResult.end_time >=
-                  type1Dict[calTime].Infusions.drugs[i].end_time
-                ) {
+                type1Dict[calTime].Infusions.drugs[i].value += singleResult.value;
+                if (singleResult.end_time >= type1Dict[calTime].Infusions.drugs[i].end_time) {
                   // updated to most recent rate
-                  type1Dict[calTime].Infusions.drugs[i].end_time =
-                    singleResult.end_time;
-                  type1Dict[calTime].Infusions.drugs[i].rate =
-                    singleResult.rate;
-                  type1Dict[calTime].Infusions.drugs[i].unit =
-                    singleResult.unit;
-                  type1Dict[calTime].Infusions.drugs[i].conc =
-                    singleResult.conc;
-                  type1Dict[calTime].Infusions.drugs[i].strength_unit =
-                    singleResult.strength_unit;
-                  type1Dict[calTime].Infusions.drugs[i].vol_unit =
-                    singleResult.vol_unit;
+                  type1Dict[calTime].Infusions.drugs[i].end_time = singleResult.end_time;
+                  type1Dict[calTime].Infusions.drugs[i].rate = singleResult.rate;
+                  type1Dict[calTime].Infusions.drugs[i].unit = singleResult.unit;
+                  type1Dict[calTime].Infusions.drugs[i].conc = singleResult.conc;
+                  type1Dict[calTime].Infusions.drugs[i].strength_unit = singleResult.strength_unit;
+                  type1Dict[calTime].Infusions.drugs[i].vol_unit = singleResult.vol_unit;
                 }
                 isMerged = true;
                 break;
@@ -520,11 +507,11 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       }
     }
 
-    Object.values(type1Dict).forEach(elementTimestamp => {
+    Object.values(type1Dict).forEach((elementTimestamp) => {
       for (let [key, value] of Object.entries(elementTimestamp)) {
         if (key == "Infusions" || key == "Flushes") {
           if (value && value.drugs) {
-            value.drugs.forEach(element => {
+            value.drugs.forEach((element) => {
               delete element.end_time;
             });
             value.drugs.sort((a, b) => b.rate - a.rate); // sorted by rate from high to low
@@ -551,25 +538,19 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       let rowStart = row.START_UNIX;
       let rowEnd = row.END_UNIX + 1;
 
-      let zoneNumber =
-        Math.floor((Math.min(rowEnd, endTime) - currentTime) / timeInterval) +
-        1;
+      let zoneNumber = Math.floor((Math.min(rowEnd, endTime) - currentTime) / timeInterval) + 1;
       for (let i = 0; i < zoneNumber; i++) {
         let value = 0;
         let calTime = currentTime + i * timeInterval;
 
         if (i == 0) {
           value =
-            ((Math.min(currentTime + timeInterval, rowEnd) -
-              Math.max(startTime, rowStart)) *
+            ((Math.min(currentTime + timeInterval, rowEnd) - Math.max(startTime, rowStart)) *
               row.RESULT_VAL) /
             3600;
         } else if (i == zoneNumber - 1) {
           value =
-            (Math.min(
-              rowEnd - currentTime - timeInterval * (zoneNumber - 1),
-              timeInterval
-            ) *
+            (Math.min(rowEnd - currentTime - timeInterval * (zoneNumber - 1), timeInterval) *
               row.RESULT_VAL) /
             3600;
         } else {
@@ -589,10 +570,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             "Math.min(currentTime + timeInterval, rowEnd) :",
             Math.min(currentTime + timeInterval, rowEnd)
           );
-          console.log(
-            "Math.max(startTime, rowStart) :",
-            Math.max(startTime, rowStart)
-          );
+          console.log("Math.max(startTime, rowStart) :", Math.max(startTime, rowStart));
         }
 
         let tpnResultArr = [];
@@ -608,25 +586,25 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           "RANITIDINE_PN",
           "EXTRA_PHYTONADIONE_PN",
           "SODIUM_PN",
-          "CARNITINE_PN"
+          "CARNITINE_PN",
         ];
 
         const TPN_UNIT_DICT = {
-          "DEXTROSE_PN": "g/L",
-          "AMINO_ACID_PN": "g/L",
-          "SELENIUM_PN": "mcg/L",
-          "POTASSIUM_PN": "mEq/L",
-          "CALCIUM_PN": "mEq/L",
-          "MAGNESIUM_MEQ": "mEq/L",
-          "PHOSPHORUS_PN": "mmol/L",
-          "HEPARIN_PN": "unit/L",
-          "RANITIDINE_PN": "mg/L",
-          "EXTRA_PHYTONADIONE_PN": "mg/L",
-          "SODIUM_PN": "mEq/L",
-          "CARNITINE_PN": "mg/L"
+          DEXTROSE_PN: "g/L",
+          AMINO_ACID_PN: "g/L",
+          SELENIUM_PN: "mcg/L",
+          POTASSIUM_PN: "mEq/L",
+          CALCIUM_PN: "mEq/L",
+          MAGNESIUM_MEQ: "mEq/L",
+          PHOSPHORUS_PN: "mmol/L",
+          HEPARIN_PN: "unit/L",
+          RANITIDINE_PN: "mg/L",
+          EXTRA_PHYTONADIONE_PN: "mg/L",
+          SODIUM_PN: "mEq/L",
+          CARNITINE_PN: "mg/L",
         };
 
-        tpnList.forEach(element => {
+        tpnList.forEach((element) => {
           let singleResult = {};
           singleResult.name = element;
           singleResult.value = row[element];
@@ -634,7 +612,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           // if value is 0, won't be pushed
           if (singleResult.value) {
             tpnResultArr.push(singleResult);
-          }          
+          }
         });
 
         if (!type1Dict[calTime]) {
@@ -642,13 +620,13 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
             value: 0,
             Nutrition: {
               value: 0,
-              items: [{ value: 0, name: "TPN", items: tpnResultArr }]
-            }
+              items: [{ value: 0, name: "TPN", items: tpnResultArr }],
+            },
           };
         } else if (!type1Dict[calTime].Nutrition) {
           type1Dict[calTime].Nutrition = {
             value: 0,
-            items: [{ value: 0, name: "TPN", items: tpnResultArr }]
+            items: [{ value: 0, name: "TPN", items: tpnResultArr }],
           };
         } else {
           type1Dict[calTime].Nutrition.items[0].items = tpnResultArr;
@@ -678,22 +656,25 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           value: 0,
           Nutrition: {
             value: 0,
-            items: [{ value, name, unit }]
-          }
+            items: [{ value, name, unit }],
+          },
         };
       } else if (!type1Dict[currentTime].Nutrition) {
         type1Dict[currentTime].Nutrition = {
           value: 0,
-          items: [{ value: 0, name, unit }]
+          items: [{ value: 0, name, unit }],
         };
-      } else if (!type1Dict[currentTime].Nutrition.items.map(x => x.name).includes("Lipids")){
+      } else if (!type1Dict[currentTime].Nutrition.items.map((x) => x.name).includes("Lipids")) {
         type1Dict[currentTime].Nutrition.items.push({ value, name, unit });
       } else {
-        let lipidsItem = type1Dict[currentTime].Nutrition.items[type1Dict[currentTime].Nutrition.items.map(x => x.name).indexOf("Lipids")];
-        lipidsItem.value += value;        
+        let lipidsItem =
+          type1Dict[currentTime].Nutrition.items[
+            type1Dict[currentTime].Nutrition.items.map((x) => x.name).indexOf("Lipids")
+          ];
+        lipidsItem.value += value;
       }
       type1Dict[currentTime].value += value;
-      type1Dict[currentTime].Nutrition.value += value;      
+      type1Dict[currentTime].Nutrition.value += value;
     }
   }
 
@@ -714,8 +695,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       singleResult.den = row["CAL_DEN"];
       singleResult.cho = row["G_CHO_ROW"];
 
-
-      // for EN, will combine same name records, for example: 
+      // for EN, will combine same name records, for example:
       // {
       //   DISPLAY_LINE: "a",
       //   value: 1,
@@ -732,7 +712,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //   ptn: 3,
       //   CAL_DEN: 200
       // }
-      // => will added to 
+      // => will added to
       // {
       //   DISPLAY_LINE: "b",
       //   value: 4,
@@ -747,28 +727,33 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           value: 0,
           Nutrition: {
             value: 0,
-            items: [{ value: 0, name: "EN", items: [singleResult] }]
-          }
+            items: [{ value: 0, name: "EN", items: [singleResult] }],
+          },
         };
       } else if (!type1Dict[calTime].Nutrition) {
         type1Dict[calTime].Nutrition = {
           value: 0,
-          items: [{ value: 0, name: "EN", items: [singleResult] }]
+          items: [{ value: 0, name: "EN", items: [singleResult] }],
         };
-      } else if (!type1Dict[calTime].Nutrition.items.map(x => x.name).includes("EN")){
+      } else if (!type1Dict[calTime].Nutrition.items.map((x) => x.name).includes("EN")) {
         type1Dict[calTime].Nutrition.items.push({ value: 0, name: "EN", items: [singleResult] });
       } else {
-        let enItem = type1Dict[calTime].Nutrition.items[type1Dict[calTime].Nutrition.items.map(x => x.name).indexOf("EN")].items[0];
+        let enItem =
+          type1Dict[calTime].Nutrition.items[
+            type1Dict[calTime].Nutrition.items.map((x) => x.name).indexOf("EN")
+          ].items[0];
         enItem.value += singleResult.value;
         enItem.fat += singleResult.fat;
         enItem.ptn += singleResult.ptn;
         enItem.cho += singleResult.cho;
         enItem.name = singleResult.name;
-        enItem.den = singleResult.den;        
+        enItem.den = singleResult.den;
       }
       type1Dict[calTime].value += value;
-      type1Dict[calTime].Nutrition.value += value;      
-      type1Dict[calTime].Nutrition.items[type1Dict[calTime].Nutrition.items.map(x => x.name).indexOf("EN")].value += value;
+      type1Dict[calTime].Nutrition.value += value;
+      type1Dict[calTime].Nutrition.items[
+        type1Dict[calTime].Nutrition.items.map((x) => x.name).indexOf("EN")
+      ].value += value;
     }
   }
 
@@ -788,49 +773,49 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         currentTime = Math.floor(row.DT_UNIX / timeInterval) * timeInterval;
       }
 
-      let value = row.VOLUME_UNITS === "mL" ? Number(row.INFUSED_VOLUME) : row.INFUSED_VOLUME * 1000;
+      let value =
+        row.VOLUME_UNITS === "mL" ? Number(row.INFUSED_VOLUME) : row.INFUSED_VOLUME * 1000;
 
       if (!type1Dict[currentTime]) {
         type1Dict[currentTime] = {
-          value: 0,          
+          value: 0,
         };
       }
 
       type1Dict[currentTime].value += value;
       if (!type1Dict[currentTime].Medications) {
-        type1Dict[currentTime].Medications = {value:0};
+        type1Dict[currentTime].Medications = { value: 0 };
       }
       type1Dict[currentTime].Medications.value += value;
       if (!type1Dict[currentTime].Medications.items) {
         type1Dict[currentTime].Medications.items = [];
-      }  
+      }
       type1Dict[currentTime].Medications.items.push({
-          time: row.DT_UNIX,
-          name: row.DRUG,
-          value,
-          unit: row.VOLUME_UNITS,
-          route: row.ADMIN_ROUTE,
-      })     
+        time: row.DT_UNIX,
+        name: row.DRUG,
+        value,
+        unit: row.VOLUME_UNITS,
+        route: row.ADMIN_ROUTE,
+      });
     }
   }
-  
+
   let inDict = {};
   let outDict = {};
   Object.entries(type1Dict).forEach(([timestampKey, timestampValue]) => {
     inDict[timestampKey] = [];
     Object.entries(timestampValue).forEach(([catKey, catValue]) => {
-
       if (catKey !== "value") {
         let currentCatDict = {
           name: catKey,
           value: catValue.value,
           unit: UNIT_ML,
-          items: []
+          items: [],
         };
 
         if (catKey === "IVF") {
           let currentIvfNameArray = [];
-          catValue.items.forEach(element => {
+          catValue.items.forEach((element) => {
             let currentIvfName = EVENT_CD_DICT[element.EVENT_CD].EVENT_CD_DEFINITION;
             if (currentIvfNameArray.includes(currentIvfName)) {
               for (const ivfItem of currentCatDict.items) {
@@ -841,19 +826,25 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
               }
             } else {
               currentIvfNameArray.push(currentIvfName);
-              let newSingleIvfObj = {"name": currentIvfName, "value": element.RESULT_VAL, "unit": UNIT_ML, "sub_cat": "IVF", "label": "IVF"};
+              let newSingleIvfObj = {
+                name: currentIvfName,
+                value: element.RESULT_VAL,
+                unit: UNIT_ML,
+                sub_cat: "IVF",
+                label: "IVF",
+              };
               currentCatDict.items.push(newSingleIvfObj);
             }
-          });          
+          });
         } else if (catKey === "Nutrition") {
           Object.entries(catValue).forEach(([slKey, slValue]) => {
             if (slKey !== "value") {
-              slValue.forEach(element => {
+              slValue.forEach((element) => {
                 let currentSlDict = {
                   name: element.name,
                   value: element.value,
                   unit: UNIT_ML,
-                  items: element.items
+                  items: element.items,
                 };
                 currentCatDict.items.push(currentSlDict);
               });
@@ -862,12 +853,12 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
         } else if (catKey === "Medications") {
           Object.entries(catValue).forEach(([medKey, medValue]) => {
             if (medKey !== "value") {
-              medValue.forEach(element => {          
+              medValue.forEach((element) => {
                 let currentSlDict = {
                   name: element.name,
                   value: element.value,
                   unit: UNIT_ML,
-                  route: element.route
+                  route: element.route,
                 };
                 currentCatDict.items.push(currentSlDict);
               });
@@ -875,7 +866,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           });
         } else if (catKey === "Infusions" || catKey === "Flushes") {
           currentCatDict.unit = "mL";
-          catValue.drugs.forEach(drugDict => {
+          catValue.drugs.forEach((drugDict) => {
             let newDrugDict = {
               name: drugDict.drug,
               value: drugDict.value,
@@ -884,14 +875,13 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
               rate: drugDict.rate,
               conc: drugDict.conc,
               strength_unit: drugDict.strength_unit,
-              vol_unit: drugDict.vol_unit
+              vol_unit: drugDict.vol_unit,
             };
             currentCatDict.items.push(newDrugDict);
           });
           currentCatDict.items.sort((a, b) => b.rate - a.rate);
         } else {
-          catValue.short_labels.forEach(slDict => {
-
+          catValue.short_labels.forEach((slDict) => {
             let newSlDict;
             // item name is short label ,if no short label then label, then cat
             if (slDict.short_label) {
@@ -900,7 +890,7 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
                 value: slDict.value,
                 unit: UNIT_ML,
                 sub_cat: slDict.sub_cat,
-                label: slDict.label
+                label: slDict.label,
               };
             } else if (slDict.label) {
               newSlDict = {
@@ -908,17 +898,17 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
                 value: slDict.value,
                 unit: UNIT_ML,
                 sub_cat: slDict.sub_cat,
-                label: slDict.label
+                label: slDict.label,
               };
             } else {
               newSlDict = {
                 name: catKey,
                 value: slDict.value,
                 unit: UNIT_ML,
-                sub_cat: slDict.sub_cat
+                sub_cat: slDict.sub_cat,
               };
             }
-            
+
             currentCatDict.items.push(newSlDict);
           });
         }
@@ -928,7 +918,6 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
   });
 
   Object.entries(type2Dict).forEach(([timestampKey, timestampValue]) => {
-
     outDict[timestampKey] = [];
     Object.entries(timestampValue).forEach(([catKey, catValue]) => {
       if (catKey !== "value") {
@@ -936,37 +925,37 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
           name: catKey,
           value: catValue.value,
           unit: UNIT_ML, // see talbe intake_output
-          items: []
+          items: [],
         };
 
-        catValue.short_labels.forEach(slDict => {
+        catValue.short_labels.forEach((slDict) => {
           let newSlDict;
-            // item name is short label ,if no short label then label, then cat
-            if (slDict.short_label) {
-              newSlDict = {
-                name: slDict.short_label,
-                value: slDict.value,
-                unit: UNIT_ML,
-                sub_cat: slDict.sub_cat,
-                label: slDict.label
-              };
-            } else if (slDict.label) {
-              newSlDict = {
-                name: slDict.label,
-                value: slDict.value,
-                unit: UNIT_ML,
-                sub_cat: slDict.sub_cat,
-                label: slDict.label
-              };
-            } else {
-              newSlDict = {
-                name: catKey,
-                value: slDict.value,
-                unit: UNIT_ML,
-                sub_cat: slDict.sub_cat
-              };
-            }
-            
+          // item name is short label ,if no short label then label, then cat
+          if (slDict.short_label) {
+            newSlDict = {
+              name: slDict.short_label,
+              value: slDict.value,
+              unit: UNIT_ML,
+              sub_cat: slDict.sub_cat,
+              label: slDict.label,
+            };
+          } else if (slDict.label) {
+            newSlDict = {
+              name: slDict.label,
+              value: slDict.value,
+              unit: UNIT_ML,
+              sub_cat: slDict.sub_cat,
+              label: slDict.label,
+            };
+          } else {
+            newSlDict = {
+              name: catKey,
+              value: slDict.value,
+              unit: UNIT_ML,
+              sub_cat: slDict.sub_cat,
+            };
+          }
+
           currentCatDict.items.push(newSlDict);
         });
         outDict[timestampKey].push(currentCatDict);
@@ -974,26 +963,23 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
     });
   });
 
-// Order api/inout-tooltip-v2 by CAT_ORDER_ARRAY #15
+  // Order api/inout-tooltip-v2 by CAT_ORDER_ARRAY #15
   for (const ts in inDict) {
-    inDict[ts].sort((a,b) => CAT_ORDER_ARRAY.indexOf(a.name) - CAT_ORDER_ARRAY.indexOf(b.name));
+    inDict[ts].sort((a, b) => CAT_ORDER_ARRAY.indexOf(a.name) - CAT_ORDER_ARRAY.indexOf(b.name));
   }
   for (const ts in outDict) {
-    outDict[ts].sort((a,b) => CAT_ORDER_ARRAY.indexOf(a.name) - CAT_ORDER_ARRAY.indexOf(b.name));
+    outDict[ts].sort((a, b) => CAT_ORDER_ARRAY.indexOf(a.name) - CAT_ORDER_ARRAY.indexOf(b.name));
   }
 
   return [inDict, outDict];
 }
 
 function _updateRowToDict(currentTime, row, dict) {
-  if (!EVENT_CD_DICT[row.EVENT_CD]) {
-    console.log('row EVENT_CD error:>> ', row);
-    return dict;
-  }
   let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
   let newValue = io_calcs == "2" ? -1 * row.RESULT_VAL : row.RESULT_VAL;
   let newCat = EVENT_CD_DICT[row.EVENT_CD].IO_CAT;
   let newShortLabel = EVENT_CD_DICT[row.EVENT_CD].SHORT_LABEL;
+
 
   if (!(currentTime in dict)) {
     dict[currentTime] = { value: 0 };
@@ -1012,9 +998,7 @@ function _updateRowToDict(currentTime, row, dict) {
   } else {
     let isNewSlInDict = false;
     for (let i = 0; i < dict[currentTime][newCat].short_labels.length; i++) {
-      if (
-        dict[currentTime][newCat].short_labels[i].short_label == newShortLabel
-      ) {
+      if (dict[currentTime][newCat].short_labels[i].short_label == newShortLabel) {
         dict[currentTime][newCat].short_labels[i].value += newValue;
         isNewSlInDict = true;
         break;
@@ -1031,18 +1015,13 @@ function _updateRowToDict(currentTime, row, dict) {
         dict[currentTime][newCat].short_labels.push(singleResult);
       } else {
         dict[currentTime][newCat].short_labels.splice(
-          binarySearch(
-            dict[currentTime][newCat].short_labels,
-            singleResult,
-            comp
-          ),
+          binarySearch(dict[currentTime][newCat].short_labels, singleResult, comp),
           0,
           singleResult
         );
       }
     }
-  }
-
+  } 
   return dict;
 }
 
@@ -1105,23 +1084,15 @@ async function parallelQuery(conn, query) {
  * @param {*} conn 
  * @param {*} query 
  */
-const getInOutTooltipQueryV2 = database.withConnection(async function(
-  conn,
-  query
-) { 
+const getInOutTooltipQueryV3 = database.withConnection(async function (conn, query) {
   let consoleTimeCount = timeLable++;
   console.time("getInOutTooltip" + consoleTimeCount);
   let rawResult = await parallelQuery(conn, query);
-  let result = _calculateRawRecords(
-    rawResult,
-    query[RESOLUTION],
-    query[FROM],
-    query[TO]
-  );
+  let result = _calculateRawRecords(rawResult, query[RESOLUTION], query[FROM], query[TO]);
   console.timeEnd("getInOutTooltip" + consoleTimeCount);
   return result;
 });
 
 module.exports = {
-  getInOutTooltipQueryV2
+  getInOutTooltipQueryV3,
 };
