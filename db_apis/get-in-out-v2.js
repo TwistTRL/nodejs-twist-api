@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-18 17:12:49
+ * @Last Modified time: 2020-09-21 16:07:45
  */
 
 /**
@@ -33,6 +33,17 @@ const FROM = "from";
 const TO = "to";
 const RESOLUTION = "resolution";
 var timeLable = 0;
+
+// cache table API_CACHE_INOUT
+const GET_INOUT_CACHE_SQL = `
+SELECT
+  INOUT_VALUE, 
+  SHORT_LABEL, 
+  DT_UNIX, 
+  INOUT_TYPE
+FROM API_CACHE_INOUT
+WHERE PERSON_ID = :person_id
+`;
 
 const SQL_GET_EN_PART1 = `
 SELECT  
@@ -256,8 +267,8 @@ function _calculateRawRecords(rawRecords, timeInterval, startTime, endTime) {
       //example row = {"DT_UNIX": "1524700800", "EVENT_CD": "2798974", "RESULT_VAL": 0.9}
       if (!EVENT_CD_DICT[row.EVENT_CD]) {
         console.log("~~ error for row");
-        console.log('EVENT_CD_DICT[row.EVENT_CD] :>> ', EVENT_CD_DICT[row.EVENT_CD]);
-        console.log('row :>> ', row);
+        console.log("EVENT_CD_DICT[row.EVENT_CD] :>> ", EVENT_CD_DICT[row.EVENT_CD]);
+        console.log("row :>> ", row);
         continue;
       }
       let io_calcs = EVENT_CD_DICT[row.EVENT_CD].IO_CALCS;
@@ -714,21 +725,27 @@ async function parallelQuery(conn, query) {
  * @param {*} query 
  */
 const getInOutQueryV2 = database.withConnection(async function (conn, query) {
+  let result = [];
   let consoleTimeCount = timeLable++;
-  console.time("getInOut" + consoleTimeCount);
+  console.time("getInOut " + consoleTimeCount);
+
+  if (Number(query.resolution) === 3600) {
+    // try cache
+    const binds = {
+      person_id: query.person_id,
+    };
+    result = await conn.execute(GET_INOUT_CACHE_SQL, binds).then( ret=>ret.rows ); 
+    if (result && result[0]) {
+      console.timeEnd("getInOut " + consoleTimeCount);
+      console.log("~~> from cache table");
+      return result;
+    }
+  }
+
+  // while no cache
   let rawResults = await parallelQuery(conn, query);
-  let result = _calculateRawRecords(rawResults, query[RESOLUTION], query[FROM], query[TO]);
+  result = _calculateRawRecords(rawResults, query[RESOLUTION], query[FROM], query[TO]);
   console.timeEnd("getInOut" + consoleTimeCount);
-
-  // let count = 0;
-  // result.forEach(item => {
-  //   count ++;
-  //   if ((item.type != '1' && item.type != '2') || item.value == 0){
-  //     console.log('item :', item);
-  //   }
-  // });
-  // console.log('count :', count);
-
   return result;
 });
 

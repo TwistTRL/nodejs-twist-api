@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-20 20:43:24
+ * @Last Modified time: 2020-09-21 16:15:02
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -99,16 +99,15 @@ const { getDisplayLine } = require("../db_apis/diagnosis_display/get-display-lin
 const { getVerticalBarDisplay } = require("../db_apis/diagnosis_display/get-verticalbar-timeline");
 const { getProceduralNote } = require("../db_apis/diagnosis_display/get-procedural-note");
 
-
-
-
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
 
 // --- write to database
 const { insertInoutCache } = require("../db_apis/cache/inout-cache");
 const { insertDiagnosisCache } = require("../db_apis/cache/diagnosis-cache");
+const { insertNoteCache } = require("../db_apis/cache/procedural-note-cache");
 
+const { getPatientsByLocation } = require("../db_apis/adt/get-patients-by-location");
 
 // >>------------------------------------------------------------------------>>
 // apidoc folder is a static files folder
@@ -454,27 +453,34 @@ router.get("/person/:person_id/labsv3", async (req, res) => {
  *
  * @apiSuccessExample Success-Response:
  *     
-  {
-   "BLOOD GAS":{
-      "O2 Sat Venous":{
-        "NORMAL_LOW":"60",
-        "NORMAL_HIGH":"80",
-        "CRITICAL_LOW":" ",
-        "CRITICAL_HIGH":" ",
-        "UNITS":"%",
-        "DATA":[
-          {
-            "DT_UNIX": 1524725340,
-            "VALUE": "69",
-            "EVENT_CD_DEFINITION": "O2 Sat Venous",
-            "SOURCE": "VENOUS",
-            "DISPLAY_ABBREV": "SvO2",
-            "DISPLAY_ORDER": 8
-          },
-        ]
-      }
+    "BLOOD GAS": {
+        "PCO2": {
+            "DISPLAY_ORDER": 2,
+            "pCO2 Venous": {
+                "DISPLAY_NAME": "pCO2 Venous",
+                "NORMAL_LOW": "35.0",
+                "NORMAL_HIGH": "45.0",
+                "CRITICAL_LOW": "15.1",
+                "CRITICAL_HIGH": "79.9",
+                "UNITS": "mmHg",
+                "DATA": [
+                    {
+                        "DT_UNIX": 1524732420,
+                        "EVENT_CD": 3775577,
+                        "VALUE": "64.0",
+                        "SOURCE": "VENOUS"
+                    },
+                    {
+                        "DT_UNIX": 1528709220,
+                        "EVENT_CD": 3775577,
+                        "VALUE": "45.0",
+                        "SOURCE": "VENOUS"
+                    },
+                ]
+            }
+          
+        }
     }
-  }
  *
  */
 
@@ -945,11 +951,11 @@ router.post("/inout-v2", async (req, res) => {
   let query = {
     person_id: req.body.person_id,
     from: req.body.from || 0,
-    to: req.body.to || new Date().getTime() / 1000,
+    // round to next day. for keep the same redisKey
+    to: req.body.to || Math.round(new Date().getTime() / 1000 / 3600) * 3600 + 3600,
     resolution: req.body.resolution || 3600,
   };
   console.log("query = ", query);
-  console.time("inout-time");
 
   if (!Number.isInteger(query.person_id)) {
     res.send("Invalid person_id, should be integer.");
@@ -1866,7 +1872,6 @@ router.get("/person/mrn-list/:mrn", async (req, res) => {
   };
   res.send(await getMrnListFromMrn(binds));
 });
-
 
 /**
  * @api {get} /person/rss-range/:person_id RSS Range
@@ -3737,10 +3742,7 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
   res.send(await getLinesTooltips(binds));
 });
 
-
-
 // --------- dev
-
 
 /**
  * @api {post} /inout-tooltip-v3 In-Out Tooltip (dev)
@@ -3869,22 +3871,20 @@ router.post("/inout-tooltip-v3", async (req, res) => {
   getApiFromRedis(res, getInOutTooltipQueryV3, new_query, "interface-inout-tooltip");
 });
 
-
-
 /**
  * @api {get} /cache/inout Cache In-Out (dev)
  * @apiVersion 0.0.1
  * @apiName cache-in-out
  * @apiGroup DEV
- * @apiDescription Cache in-out API to API_CACHE_INOUT table 
- * @apiSuccessExample Success-Response: 
- *  {}
+ * @apiDescription Cache in-out API to API_CACHE_INOUT table
+ * @apiSuccessExample Success-Response:
+ *  {
+      "rowsAffected": 95
+    }
  */
 
 router.get("/cache/inout", async (req, res) => {
- 
   res.send(await insertInoutCache());
-
 });
 
 /**
@@ -3892,19 +3892,85 @@ router.get("/cache/inout", async (req, res) => {
  * @apiVersion 0.0.1
  * @apiName cache-diagnosis
  * @apiGroup DEV
- * @apiDescription Cache Diagnosis Display API to API_CACHE_DIAGNOSIS table 
- * @apiSuccessExample Success-Response: 
- *  {}
+ * @apiDescription Cache Diagnosis Display API to API_CACHE_DIAGNOSIS table
+ * @apiSuccessExample Success-Response:
+ *  {
+      "rowsAffected": 95
+    }
  */
 
 router.get("/cache/diagnosis", async (req, res) => {
- 
   res.send(await insertDiagnosisCache());
-
 });
 
+/**
+ * @api {get} /cache/procedural-note Cache Procedural Note (dev)
+ * @apiVersion 0.0.1
+ * @apiName cache-procedural-note
+ * @apiGroup DEV
+ * @apiDescription Cache Procedural Note API to API_CACHE_PROCEDURAL_NOTE table
+ * @apiSuccessExample Success-Response:
+ *  {}
+ */
 
+router.get("/cache/procedural-note", async (req, res) => {
+  res.send(await insertNoteCache());
+});
 
+/**
+ * @api {get} /patients/location/:location Patients in Location (dev)
+ * @apiVersion 0.0.1
+ * @apiName patients-in-location
+ * @apiGroup DEV
+ * @apiDescription Get Patients person_id and MRN in Location
+ * @apiParam {String="03 MANDELL",
+"04 Waltham CBAT",
+"05 Bader",
+"06 East",
+"06 NE HEME/ONC/RESEARCH",
+"06 North",
+"06 West",
+"06S CATH Lab Recovery",
+"07 East",
+"07 North",
+"07 South",
+"07 West",
+"08 East",
+"08 South",
+"08 West",
+"09 East",
+"09 NorthWest",
+"09 South",
+"09 South ICP",
+"09E Cardiology/CardSurg",
+"10 East",
+"10 NorthWest",
+"10 South",
+"10GM GENERAL MEDICINE",
+"10T Transplant",
+"11 MICU",
+"11 South ICP",
+"3W Waltham Inpatient",
+"9E-P",
+"CTSU - CLINICAL TRANS STUDY",
+"Emergency Department"} location Nurse unit for Patients.
+ * @apiSuccessExample Success-Response:
+ *  [
+      PERSON_ID,
+      MRN,
+      ENCNTR_ID,
+      START_UNIX,
+      NURSE_UNIT_DISP,
+      BED_DISP,
+      ROOM_DISP
+    ]
+ */
 
+router.get("/patients/location/:location", async (req, res) => {
+  const nurse_unit_disp = req.params.location;
+  let binds = { nurse_unit_disp };
+
+  res.send(await getPatientsByLocation(binds));
+});
 
 module.exports = router;

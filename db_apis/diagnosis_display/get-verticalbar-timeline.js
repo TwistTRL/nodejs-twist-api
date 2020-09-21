@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-20 18:03:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-20 18:21:49
+ * @Last Modified time: 2020-09-21 08:41:56
  */
 
 const database = require("../../services/database");
@@ -25,7 +25,8 @@ async function verticalBarQuerySQLExecutor(conn, binds) {
   const rawRecord = await conn.execute(SQL_GET_OPERATIVE, binds);
 
   if (!rawRecord.rows[0]) {
-    return "no OPERATIVE";
+    console.log("Warning: no OPERATIVE");
+    return [];
   }
 
   const timeline_array = [];

@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-19 15:58:46
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-20 19:19:38
+ * @Last Modified time: 2020-09-21 15:28:02
  */
 
 const oracledb = require("oracledb");
@@ -17,9 +17,9 @@ DELETE FROM API_CACHE_INOUT`;
 
 const INSERT_INOUT_CACHE_SQL = `
 INSERT INTO API_CACHE_INOUT
-  (PERSON_ID, INOUT_VALUE, SHORT_LABEL, DT_UNIX, INOUT_TYPE)
+  (PERSON_ID, INOUT_VALUE, SHORT_LABEL, DT_UNIX, INOUT_TYPE, UPDT_TM)
 VALUES
-  (:person_id, :inout_value, :short_label, :dt_unix, :inout_type)
+  (:person_id, :inout_value, :short_label, :dt_unix, :inout_type, TO_DATE(:update_time, 'YYYY-MM-DD HH24:MI:SS'))
 `;
 
 const insertInoutCache = async () => {
@@ -42,6 +42,7 @@ const insertInoutCache = async () => {
         short_label: inoutRecord.short_label,
         dt_unix: inoutRecord.time,
         inout_type: Number(inoutRecord.type),
+        update_time: moment().format("YYYY-MM-DD HH:mm:ss"),
       };
       binds.push(bind);
     }
@@ -58,6 +59,8 @@ const insertInoutCache = async () => {
 
   return insertTable;
 };
+
+
 
 module.exports = {
   insertInoutCache,

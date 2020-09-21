@@ -2,11 +2,11 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-20 19:20:03
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-20 22:08:15
+ * @Last Modified time: 2020-09-21 15:24:23
  */
 
 const oracledb = require("oracledb");
-// const database = require("../../services/database");
+const database = require("../../services/database");
 const moment = require("moment");
 
 const { getPatientsByLocation } = require("../adt/get-patients-by-location");
@@ -19,9 +19,24 @@ DELETE FROM API_CACHE_DIAGNOSIS`;
 
 const INSERT_DIAGNOSIS_CACHE_SQL = `
 INSERT INTO API_CACHE_DIAGNOSIS
-  (PERSON_ID, AGE_DISPLAY, SEX_DISPLAY, HETEROTAXY_DISPLAY, SDD_DISPLAY, DISEASE_DISPLAY, EVENT_ID, DT_UNIX, DIAGNOSES, OPERATIVE_DISPLAY)
+  (PERSON_ID, AGE_DISPLAY, SEX_DISPLAY, HETEROTAXY_DISPLAY, SDD_DISPLAY, DISEASE_DISPLAY, EVENT_ID, DT_UNIX, DIAGNOSES, OPERATIVE_DISPLAY, UPDT_TM)
 VALUES
-  (:person_id, :age_display, :sex_display, :heterotaxy_display, :sdd_display, :disease_display, :event_id, :unix_time, :diagnoses, :operative_display)
+  (:person_id, :age_display, :sex_display, :heterotaxy_display, :sdd_display, :disease_display, :event_id, :unix_time, :diagnoses, :operative_display, TO_DATE(:update_time, 'YYYY-MM-DD HH24:MI:SS'))
+`;
+
+const GET_DIAGNOSIS_CACHE_SQL = `
+SELECT
+  AGE_DISPLAY,
+  SEX_DISPLAY,
+  HETEROTAXY_DISPLAY,
+  SDD_DISPLAY,
+  DISEASE_DISPLAY,
+  EVENT_ID, 
+  DT_UNIX, 
+  DIAGNOSES, 
+  OPERATIVE_DISPLAY
+FROM API_CACHE_DIAGNOSIS
+WHERE PERSON_ID = :person_id
 `;
 
 const insertDiagnosisCache = async () => {
@@ -46,7 +61,7 @@ const insertDiagnosisCache = async () => {
       let diagnoses = verticalBar.diagnoses;
       let study_type = verticalBar.study_type;
       let operative_display = verticalBar.operative_display;
-
+      let update_time = moment().format("YYYY-MM-DD HH:mm:ss");
       binds.push({
         person_id,
         age_display,
@@ -58,6 +73,7 @@ const insertDiagnosisCache = async () => {
         unix_time,
         diagnoses,
         operative_display,
+        update_time,
       });
     }
   }
@@ -74,6 +90,13 @@ const insertDiagnosisCache = async () => {
   return insertTable;
 };
 
+const getDiagnosisCache =  database.withConnection(async (conn,binds) => {
+  const arr = await conn.execute(GET_DIAGNOSIS_CACHE_SQL, binds).then( ret=>ret.rows );  
+  return arr;
+});
+
+
 module.exports = {
   insertDiagnosisCache,
+  getDiagnosisCache,
 };
