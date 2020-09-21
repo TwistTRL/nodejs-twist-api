@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 11:53:31
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-18 17:57:23
+ * @Last Modified time: 2020-09-21 16:32:02
  */
 
 const database = require("../services/database");
@@ -782,7 +782,18 @@ function combine2CalcResults(vitalsRecords, vitalType, vitalsRecords2nd, vitalTy
   let arr2 = vitalsRecords2nd.rows;
   console.log("vitals calc record size :", arr1.length);
   console.log("vitals calc2 record size :", arr2.length);
-  let records_start_time = Math.min(arr1[0].START_TM, arr2[0].START_TM);
+
+  let records_start_time;
+
+  if (!arr1.length && !arr2.length) {
+    return [];
+  } else if (!arr1.length) {
+    records_start_time = arr2[0].START_TM;
+  } else if (!arr2.length) {
+    records_start_time = arr1[0].START_TM;
+  } else {
+    records_start_time = Math.min(arr1[0].START_TM, arr2[0].START_TM);
+  } 
 
   let h1 = 0; // index of arr1
   let h2 = 0; // index of arr2
