@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-21 16:15:02
+ * @Last Modified time: 2020-09-21 17:32:20
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -3629,9 +3629,9 @@ router.get("/diagnosis/verticalbar-display/:mrn", async (req, res) => {
 });
 
 /**
- * @api {get} /diagnosis/procedural-note/:mrn Procedural Note for Patient
+ * @api {get} /diagnosis/procedural-notes/:mrn Procedural Note for Patient
  * @apiVersion 0.0.1
- * @apiName procedural-note
+ * @apiName procedural-notes
  * @apiGroup Diagnosis
  * @apiParam {String} mrn Patient MRN.
  * @apiSuccess {String} string_note Procedural Note
@@ -3639,7 +3639,7 @@ router.get("/diagnosis/verticalbar-display/:mrn", async (req, res) => {
  * []
  */
 
-router.get("/diagnosis/procedural-note/:mrn", async (req, res) => {
+router.get("/diagnosis/procedural-notes/:mrn", async (req, res) => {
   const mrn = req.params.mrn;
   const binds = {
     mrn,
