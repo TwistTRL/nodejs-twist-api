@@ -2,10 +2,15 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 11:07:25
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-08-27 11:13:10
+ * @Last Modified time: 2020-09-20 21:59:28
  */
+ 
+const database = require("../../services/database");
 
 const moment = require("moment");
+const {
+  DIAGNOSES_TO_DISPLAY,
+} = require("twist-xlsx");
 
 const SQL_GET_OPERATIVE = `
 SELECT 
@@ -32,16 +37,16 @@ async function operativeQuerySQLExecutor(conn, binds) {
   console.log("~~SQL_GET_OPERATIVE: ", SQL_GET_OPERATIVE);
   let rawRecord = await conn.execute(SQL_GET_OPERATIVE, binds);
   if (!rawRecord.rows[0]) {
-    return "Error: no OPERATIVE";
+    console.log("Warning: no OPERATIVE");
+    return [];
   }
 
-  const DIAGNOSES_TO_DISPLAY = ctx.service.xlsx.operativeDisplayNames.findOperativeDisplay();
   const rawDisplayArr = rawRecord.rows.map((item) => {
     return {
-      event_id: item[1],
-      event_time: item[2],
-      diagnoses: item[3],
-      operative_display: DIAGNOSES_TO_DISPLAY[item[3]],
+      event_id: item.EVENT_ID,
+      event_time: item.EVENT_DT_TM,
+      diagnoses: item.DIAGNOSES,
+      operative_display: DIAGNOSES_TO_DISPLAY[item.DIAGNOSES],
     };
   });
 
@@ -108,10 +113,11 @@ async function operativeQuerySQLExecutor(conn, binds) {
 
         const ecmo_arr = rawRecordECMO.rows;
         let ecmo_days;
-        if (!ecmo_arr || moment.unix(ecmo_arr[0][0]) > moment(endTime)) {
+        if (!ecmo_arr || !ecmo_arr[0] || moment.unix(ecmo_arr[0].VALID_FROM_DT_TM) > moment(endTime)) {
+          console.log('ecmo_arr :>> ', ecmo_arr);
           ecmo_days = "error ";
         } else {
-          let ecmo_start = ecmo_arr[0][0];
+          let ecmo_start = ecmo_arr[0].VALID_FROM_DT_TM;
           let pre_ecmo = ecmo_start;
           let found_ecmo_start = false;
           for (let time of ecmo_arr.map((x) => x[0])) {

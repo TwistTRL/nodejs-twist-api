@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-19 15:58:46
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-19 22:35:06
+ * @Last Modified time: 2020-09-20 19:19:38
  */
 
 const oracledb = require("oracledb");
@@ -17,9 +17,9 @@ DELETE FROM API_CACHE_INOUT`;
 
 const INSERT_INOUT_CACHE_SQL = `
 INSERT INTO API_CACHE_INOUT
-(PERSON_ID, INOUT_VALUE, SHORT_LABEL, DT_UNIX, INOUT_TYPE)
+  (PERSON_ID, INOUT_VALUE, SHORT_LABEL, DT_UNIX, INOUT_TYPE)
 VALUES
-(:person_id, :inout_value, :short_label, :dt_unix, :inout_type)
+  (:person_id, :inout_value, :short_label, :dt_unix, :inout_type)
 `;
 
 const insertInoutCache = async () => {

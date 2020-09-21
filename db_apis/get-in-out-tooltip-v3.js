@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-19 12:00:21
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-19 14:55:21
+ * @Last Modified time: 2020-09-20 15:26:07
  */
 
 // `INTAKE_OUTPUT` updated to including inoutcodes.xlsx
@@ -39,9 +39,6 @@ const RESOLUTION = "resolution";
 var timeLable = 0;
 const UNIT_ML = "ml";
 
-console.log("SL_ORDER_ARRAY :>> ", SL_ORDER_ARRAY);
-console.log("CAT_ORDER_ARRAY :>> ", CAT_ORDER_ARRAY);
-console.log("IVF_TO_DEXTROSE :>> ", IVF_TO_DEXTROSE);
 
 const SQL_GET_TPN_LIPID_PART1 = `
 SELECT

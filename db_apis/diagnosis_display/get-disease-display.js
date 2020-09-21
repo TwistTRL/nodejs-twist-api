@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 10:54:55
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-18 17:26:05
+ * @Last Modified time: 2020-09-20 21:14:37
  */
 
 const database = require("../../services/database");
@@ -27,7 +27,7 @@ WHERE MRN = :mrn`;
 async function diagnosisQuerySQLExecutor(conn, binds) {
   console.log("~~SQL_GET_DIAGNOSIS: ", SQL_GET_DIAGNOSIS);
   let rawRecord = await conn.execute(SQL_GET_DIAGNOSIS, binds);
-  if (!rawRecord.rows[0]) {
+  if (!rawRecord.rows[0] || !rawRecord.rows[0].ANATOMY) {
     return "no anatomy";
   }
   const curAnatomy = rawRecord.rows[0].ANATOMY;
@@ -36,23 +36,23 @@ async function diagnosisQuerySQLExecutor(conn, binds) {
 
   let diagnosisDict = {};
     arr.forEach((element) => {
-      if (element[1]) {
-        if (element[1] in diagnosisDict) {
-          diagnosisDict[element[1]][element[2]] = element[3];
+      if (element.SUBCAT_ANAT) {
+        if (element.SUBCAT_ANAT in diagnosisDict) {
+          diagnosisDict[element.SUBCAT_ANAT][element.SUBCAT_NAME] = element.SUBCAT_VALUE;
         } else {
-          diagnosisDict[element[1]] = {};
-          diagnosisDict[element[1]][element[2]] = element[3];
+          diagnosisDict[element.SUBCAT_ANAT] = {};
+          diagnosisDict[element.SUBCAT_ANAT][element.SUBCAT_NAME] = element.SUBCAT_VALUE;
         }
-      } else if (element[4]) {
+      } else if (element.COVARIATE) {
         if (diagnosisDict[curAnatomy]) {
           if (diagnosisDict[curAnatomy].COVARIATE) {
-            diagnosisDict[curAnatomy].COVARIATE.push(element[4]);
+            diagnosisDict[curAnatomy].COVARIATE.push(element.COVARIATE);
           } else {
-            diagnosisDict[curAnatomy].COVARIATE = [element[4]];
+            diagnosisDict[curAnatomy].COVARIATE = [element.COVARIATE];
           }
         } else {
           diagnosisDict[curAnatomy] = {};
-          diagnosisDict[curAnatomy].COVARIATE = [element[4]];
+          diagnosisDict[curAnatomy].COVARIATE = [element.COVARIATE];
         }
       }
     });
@@ -65,7 +65,7 @@ async function diagnosisQuerySQLExecutor(conn, binds) {
     console.log("curOutputOrder :>> ", curOutputOrder);
 
     if (!["AVC", "TAPVC"].includes(curAnatomy)) {
-      return getSubcatDisplay(curAnatomy, diagnosisDict, DIAGNOSIS_SUBCAT_ORDER)
+      return getSubcatDisplay(curAnatomy, diagnosisDict[curAnatomy], DIAGNOSIS_SUBCAT_ORDER, diagnosisDict)
         .replace(" n/a ", " ")
         .replace(/unmentioned /gi, "");
       // return curOutputOrder
@@ -88,7 +88,7 @@ async function diagnosisQuerySQLExecutor(conn, binds) {
     return ret;
   }
 
-const get_AVC_or_TAPVC = (anat, DIAGNOSIS_SUBCAT_ORDER, diagnosisDict) => {
+const get_AVC_or_TAPVC = (anat, DIAGNOSIS_SUBCAT_ORDER, diagDict) => {
   let eachAnat = [];
   DIAGNOSIS_SUBCAT_ORDER[anat].forEach((item) => {
     let curItemDisp;
@@ -98,11 +98,11 @@ const get_AVC_or_TAPVC = (anat, DIAGNOSIS_SUBCAT_ORDER, diagnosisDict) => {
       if (
         DIAGNOSIS_RULES_DICT[anat] &&
         DIAGNOSIS_RULES_DICT[anat][item] &&
-        diagnosisDict[anat][item] in DIAGNOSIS_RULES_DICT[anat][item]
+        diagDict[anat][item] in DIAGNOSIS_RULES_DICT[anat][item]
       ) {
-        curItemDisp = DIAGNOSIS_RULES_DICT[anat][item][diagnosisDict[anat][item]];
+        curItemDisp = DIAGNOSIS_RULES_DICT[anat][item][diagDict[anat][item]];
       } else {
-        curItemDisp = diagnosisDict[anat][item].toLowerCase();
+        curItemDisp = diagDict[anat][item].toLowerCase();
       }
     }
     if (curItemDisp) {
@@ -186,9 +186,8 @@ const getOutputOrder = (DISEASE_TO_COVARIATE_DICT) => {
   return output_order;
 };
 
-const getSubcatDisplay = (subcatName, diagnosisDict, DIAGNOSIS_SUBCAT_ORDER) => {
-  let subcatObj = diagnosisDict[subcatName];
-  console.log("subcatName :>> ", subcatName);
+const getSubcatDisplay = (subcatName, subcatObj, DIAGNOSIS_SUBCAT_ORDER, diagDict) => {
+//   console.log("subcatName :>> ", subcatName);
   console.log("subcatObj :>> ", subcatObj);
   let ret;
   switch (subcatName) {
@@ -645,7 +644,7 @@ const getSubcatDisplay = (subcatName, diagnosisDict, DIAGNOSIS_SUBCAT_ORDER) => 
       if (subcatObj && subcatObj["COVARIATE"]) {
         subcatObj["COVARIATE"].forEach((element) => {
           if (element === "TAPVC" || element === "AVC") {
-            ret += `/${get_AVC_or_TAPVC(element, DIAGNOSIS_SUBCAT_ORDER, diagnosisDict)}`;
+            ret += `/${get_AVC_or_TAPVC(element, DIAGNOSIS_SUBCAT_ORDER, diagDict)}`;
           } else {
             ret += `/${DORV_COVARIATE_DICT[element]}`;
           }
@@ -694,10 +693,9 @@ const getSubcatDisplay = (subcatName, diagnosisDict, DIAGNOSIS_SUBCAT_ORDER) => 
       break;
 
     case "Aorta - CoA - Moderate to severe":
-      // TODO
       // Aorta - CoA - Moderate to severe is different
       ret = "";
-      let subcat_av = diagnosisDict["Aortic valve - AS"];
+      let subcat_av = subcatObj["Aortic valve - AS"];
       if (subcat_av) {
         if (subcat_av["Severity"] === "Moderate") {
           ret += "moderate AS/";
@@ -742,10 +740,10 @@ const getSubcatDisplay = (subcatName, diagnosisDict, DIAGNOSIS_SUBCAT_ORDER) => 
 
     default:
       console.log(`not in dict: ${subcatName}`);
+      ret = subcatName;
   }
-  if (!ret) {
-    console.log("ret :>> ", ret);
-  }
+  console.log("ret :>> ", ret);
+
   return ret;
 };
 

@@ -2,11 +2,14 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 11:19:09
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-08-27 11:54:49
+ * @Last Modified time: 2020-09-20 21:25:14
  */
+
+const database = require("../../services/database");
 
 const moment = require("moment");
 const { getDiagnosisDisplay } = require("./get-disease-display");
+const { getOperativeDisplay } = require("./get-operative-display");
 
 const SQL_GET_PATIENT = `
 SELECT 
@@ -59,9 +62,11 @@ async function finalDisplay(conn, binds) {
   // 18 month [age at death or current age] [sex] with [native disease - HLHS (MS/AS) with IAS] s/p [for procedures - for complications of procedures write c/b] [abbreviation for SURG_FYLER_PRI_PRO - jk to send table] s/p for each procedure
   // 18 month old boy with HLHS (MS/AS) with IAS s/p B PAB s/p S1P/Sano
 
-  let birth_time = rawRecord.rows[0][1];
-  let deceased_time = rawRecord.rows[0][2];
-  let sex = rawRecord.rows[0][3];
+//CHB_MRN.MRN,   PERSON.BIRTH_UNIX_TS,   PERSON.DECEASED_UNIX_TS,  SEX_CODE.VALUE 
+
+  let birth_time = rawRecord.rows[0].BIRTH_UNIX_TS;
+  let deceased_time = rawRecord.rows[0].DECEASED_UNIX_TS;
+  let sex = rawRecord.rows[0].VALUE;
   let age;
   let age_display;
   let sex_display = sex.toLowerCase();
@@ -91,11 +96,11 @@ async function finalDisplay(conn, binds) {
 
   let disease_display = await getDiagnosisDisplay(binds);
   let heterotaxy_display = heterotaxyRecord.rows[0] ? "heterotaxy " : "";
-  let sdd_display = sddRecord.rows[0] ? `${getSdd(sddRecord.rows[0][0])} ` : "";
+  let sdd_display = sddRecord.rows[0] ? `${getSdd(sddRecord.rows[0].DIAGNOSES)} ` : "";
 
   display_line =
     age_display + sex_display + " with " + heterotaxy_display + sdd_display + disease_display;
-  let operativeArray = await ctx.service.twist.getOperativeDisplay.find(mrn);
+  let operativeArray = await getOperativeDisplay(binds);
   console.log("operativeArray :>> ", operativeArray);
   if (Array.isArray(operativeArray)) {
     for (let item of operativeArray) {
@@ -127,5 +132,5 @@ const getDisplayLine = database.withConnection(async function (conn, binds) {
 });
 
 module.exports = {
-  getOperativeDisplay,
+  getDisplayLine,
 };

@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-19 17:16:51
+ * @Last Modified time: 2020-09-20 20:43:24
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -94,12 +94,20 @@ const settingsRadio = require("../db_relation/radiology-db-relation");
 const { getAccessToken, getPDFUrl } = require("../cerner_apis/get-FHIR-api");
 
 const { getDiagnosisDisplay } = require("../db_apis/diagnosis_display/get-disease-display");
+const { getOperativeDisplay } = require("../db_apis/diagnosis_display/get-operative-display");
+const { getDisplayLine } = require("../db_apis/diagnosis_display/get-display-line");
+const { getVerticalBarDisplay } = require("../db_apis/diagnosis_display/get-verticalbar-timeline");
+const { getProceduralNote } = require("../db_apis/diagnosis_display/get-procedural-note");
+
+
+
 
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
 
 // --- write to database
 const { insertInoutCache } = require("../db_apis/cache/inout-cache");
+const { insertDiagnosisCache } = require("../db_apis/cache/diagnosis-cache");
 
 
 // >>------------------------------------------------------------------------>>
@@ -3540,22 +3548,101 @@ router.post("/vitals", async (req, res) => {
 });
 
 /**
- * @api {get} /diagnosis/:mrn Diagnosis for Patient
+ * @api {get} /diagnosis/anatomy-display/:mrn Anatomy Display for Patient
  * @apiVersion 0.0.1
- * @apiName Get Diagnosis
+ * @apiName anatomy-display
  * @apiGroup Diagnosis
  * @apiParam {String} mrn Patient MRN.
- * @apiSuccess {String} string_diagnosis Diagnosis display
+ * @apiSuccess {String} string_anatomy Anatomy display
  * @apiSuccessExample Success-Response:
  * DORV/subpulmonary VSD/Rdom
  */
 
-router.get("/diagnosis/:mrn", async (req, res) => {
+router.get("/diagnosis/anatomy-display/:mrn", async (req, res) => {
   const mrn = req.params.mrn;
   const binds = {
     mrn,
   };
   res.send(await getDiagnosisDisplay(binds));
+});
+
+/**
+ * @api {get} /diagnosis/operative-display/:mrn Operative Display for Patient
+ * @apiVersion 0.0.1
+ * @apiName operative-display
+ * @apiGroup Diagnosis
+ * @apiParam {String} mrn Patient MRN.
+ * @apiSuccess {String} string_operative Operative display
+ * @apiSuccessExample Success-Response:
+ * []
+ */
+
+router.get("/diagnosis/operative-display/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  const binds = {
+    mrn,
+  };
+  res.send(await getOperativeDisplay(binds));
+});
+
+/**
+ * @api {get} /diagnosis/diagnosis-display/:mrn Diagnosis Display for Patient
+ * @apiVersion 0.0.1
+ * @apiName diagnosis-display
+ * @apiGroup Diagnosis
+ * @apiParam {String} mrn Patient MRN.
+ * @apiSuccess {String} string_diagnosis Diagnosis display
+ * @apiSuccessExample Success-Response:
+ * []
+ */
+
+router.get("/diagnosis/diagnosis-display/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  const binds = {
+    mrn,
+  };
+  res.send(await getDisplayLine(binds));
+});
+
+/**
+ * @api {get} /diagnosis/verticalbar-display/:mrn VerticalBar Display for Patient
+ * @apiVersion 0.0.1
+ * @apiName verticalbar-display
+ * @apiGroup Diagnosis
+ * @apiParam {String} mrn Patient MRN.
+ * @apiSuccess {String} string_verticalbar VerticalBar display
+ * @apiSuccessExample Success-Response:
+ * []
+ */
+
+router.get("/diagnosis/verticalbar-display/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  const binds = {
+    mrn,
+  };
+  res.send(await getVerticalBarDisplay(binds));
+});
+
+/**
+ * @api {get} /diagnosis/procedural-note/:mrn Procedural Note for Patient
+ * @apiVersion 0.0.1
+ * @apiName procedural-note
+ * @apiGroup Diagnosis
+ * @apiParam {String} mrn Patient MRN.
+ * @apiSuccess {String} string_note Procedural Note
+ * @apiSuccessExample Success-Response:
+ * []
+ */
+
+router.get("/diagnosis/procedural-note/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  const binds = {
+    mrn,
+  };
+
+  // do getVerticalBarDisplay first to get event_id array
+  const event_id_arr = await getVerticalBarDisplay(binds);
+  res.send(await getProceduralNote(event_id_arr));
 });
 
 /**
@@ -3799,6 +3886,23 @@ router.get("/cache/inout", async (req, res) => {
   res.send(await insertInoutCache());
 
 });
+
+/**
+ * @api {get} /cache/diagnosis Cache Diagnosis (dev)
+ * @apiVersion 0.0.1
+ * @apiName cache-diagnosis
+ * @apiGroup DEV
+ * @apiDescription Cache Diagnosis Display API to API_CACHE_DIAGNOSIS table 
+ * @apiSuccessExample Success-Response: 
+ *  {}
+ */
+
+router.get("/cache/diagnosis", async (req, res) => {
+ 
+  res.send(await insertDiagnosisCache());
+
+});
+
 
 
 
