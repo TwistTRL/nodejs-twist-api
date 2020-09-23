@@ -1,3 +1,10 @@
+console.log("~~~~~~~~~~~~~~~~~~~~");
+console.log("~~~   TWIST API  ~~~");
+console.log("~~~~~~~~~~~~~~~~~~~~");
+console.log("starting time: ", new Date().toString());
+console.log("NODE_ENV :", process.env.NODE_ENV);
+console.log("HTTP_PORT :", process.env.HTTP_PORT);
+
 const webServer = require("./services/web-server.js");
 const database = require("./services/database.js");
 const dbConfig = require("./config/database-config.js");
@@ -7,14 +14,6 @@ const defaultThreadPoolSize = 4;
 process.env.UV_THREADPOOL_SIZE = dbConfig.poolMax + defaultThreadPoolSize;
 
 async function startup() {
-  console.log("~~~~~~~~~~~~~~~~~~~~");
-  console.log("~~~   TWIST API  ~~~");
-  console.log("~~~~~~~~~~~~~~~~~~~~");
-  console.log("Starting application...");
-  console.log("starting time: ", new Date().toString());
-  console.log("NODE_ENV :", process.env.NODE_ENV);
-  console.log("HTTP_PORT :", process.env.HTTP_PORT);
-
   try {
     console.log("  Initializing database module");
 
@@ -69,6 +68,7 @@ async function shutdown(e) {
   }
 }
 
+// START AT HERE 
 startup();
 
 process.on("SIGTERM", () => {
