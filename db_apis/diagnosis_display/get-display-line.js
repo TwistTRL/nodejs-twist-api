@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 11:19:09
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-20 21:25:14
+ * @Last Modified time: 2020-09-25 09:18:31
  */
 
 const database = require("../../services/database");
@@ -10,6 +10,7 @@ const database = require("../../services/database");
 const moment = require("moment");
 const { getDiagnosisDisplay } = require("./get-disease-display");
 const { getOperativeDisplay } = require("./get-operative-display");
+const {  getPersonFromMrn } = require("../person/get-person-info"); // new
 
 const SQL_GET_PATIENT = `
 SELECT 
@@ -39,6 +40,23 @@ FROM FYLER_RAW
 WHERE DIAGNOSES LIKE '%{%' 
   AND MRN = :MRN`;
 
+// For Cache
+const GET_DIAGNOSIS_CACHE_SQL = `
+SELECT
+  AGE_DISPLAY,
+  SEX_DISPLAY,
+  HETEROTAXY_DISPLAY,
+  SDD_DISPLAY,
+  DISEASE_DISPLAY,
+  EVENT_ID, 
+  DT_UNIX, 
+  DIAGNOSES, 
+  STUDY_TYPE,
+  OPERATIVE_DISPLAY
+FROM API_CACHE_DIAGNOSIS
+WHERE PERSON_ID = :person_id
+`;
+
 const getSdd = (str) => {
   // match any string with '{' and '}' inside,
   // like 'something{something}something'
@@ -49,6 +67,25 @@ const getSdd = (str) => {
     return null;
   }
 };
+
+const combineDisplayLine = (age_display, sex_display, heterotaxy_display, sdd_display, disease_display, operativeArray) => {
+  let display_line = age_display + sex_display + " with " + heterotaxy_display + sdd_display + disease_display;
+  if (Array.isArray(operativeArray)) {
+    for (let item of operativeArray) {
+      if (item.operative_display) {
+        if (item.operative_display.includes("ECMO")) {
+          display_line += ` c/b ${item.operative_display}`;
+        } else {
+          display_line += ` s/p ${item.operative_display}`;
+        }
+      } else {
+        console.log("item.operative_display null :>> ", item);
+      }
+    }
+  }
+  return display_line;
+
+}
 
 async function finalDisplay(conn, binds) {
   const rawRecord = await conn.execute(SQL_GET_PATIENT, binds);
@@ -70,7 +107,6 @@ async function finalDisplay(conn, binds) {
   let age;
   let age_display;
   let sex_display = sex.toLowerCase();
-  let display_line;
 
   if (deceased_time) {
     age = moment.unix(deceased_time).diff(moment.unix(birth_time), "days");
@@ -97,24 +133,8 @@ async function finalDisplay(conn, binds) {
   let disease_display = await getDiagnosisDisplay(binds);
   let heterotaxy_display = heterotaxyRecord.rows[0] ? "heterotaxy " : "";
   let sdd_display = sddRecord.rows[0] ? `${getSdd(sddRecord.rows[0].DIAGNOSES)} ` : "";
-
-  display_line =
-    age_display + sex_display + " with " + heterotaxy_display + sdd_display + disease_display;
   let operativeArray = await getOperativeDisplay(binds);
-  console.log("operativeArray :>> ", operativeArray);
-  if (Array.isArray(operativeArray)) {
-    for (let item of operativeArray) {
-      if (item.operative_display) {
-        if (item.operative_display.includes("ECMO")) {
-          display_line += ` c/b ${item.operative_display}`;
-        } else {
-          display_line += ` s/p ${item.operative_display}`;
-        }
-      } else {
-        console.log("item.operative_display null :>> ", item);
-      }
-    }
-  }
+  let display_line = combineDisplayLine(age_display, sex_display, heterotaxy_display, sdd_display, disease_display, operativeArray);
 
   return {
     display_line,
@@ -128,7 +148,48 @@ async function finalDisplay(conn, binds) {
 }
 
 const getDisplayLine = database.withConnection(async function (conn, binds) {
+
+  // try cache first
+  const person_id_arr = await getPersonFromMrn(binds);
+  if (person_id_arr.length > 1) {
+    console.warn('person_id_arr :>> ', person_id_arr);
+  } 
+  const person_id = person_id_arr[0].PERSON_ID;
+  const arr = await conn.execute(GET_DIAGNOSIS_CACHE_SQL, {person_id}).then( ret=>ret.rows ); 
+  if (arr && arr.length) {
+    const age_display = arr[0].AGE_DISPLAY;
+    const sex_display = arr[0].SEX_DISPLAY;
+    const heterotaxy_display = arr[0].HETEROTAXY_DISPLAY;
+    const sdd_display = arr[0].SDD_DISPLAY;
+    const disease_display = arr[0].DISEASE_DISPLAY;
+    const operative_display = []
+    arr.forEach(element => {
+      if (element.STUDY_TYPE === "SURG_FYLER_PRI_PRO") {
+        operative_display.push({
+          event_id: element.EVENT_ID,
+          event_time: moment(element.DT_UNIX).format(),
+          diagnoses: element.DIAGNOSES,
+          operative_display: element.OPERATIVE_DISPLAY,
+        })
+      }
+    });
+    const display_line = combineDisplayLine(age_display, sex_display, heterotaxy_display, sdd_display, disease_display, operative_display);
+
+    return {
+      display_line,
+      age_display,
+      sex_display,
+      heterotaxy_display,
+      sdd_display,
+      disease_display,
+      operative_display,
+    };   
+  }
+  
+  console.log("no cache. calculating");
+
   return await finalDisplay(conn, binds);
+
 });
 
 module.exports = {

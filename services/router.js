@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-21 17:32:20
+ * @Last Modified time: 2020-09-25 08:14:30
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -103,9 +103,6 @@ const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
 
 // --- write to database
-const { insertInoutCache } = require("../db_apis/cache/inout-cache");
-const { insertDiagnosisCache } = require("../db_apis/cache/diagnosis-cache");
-const { insertNoteCache } = require("../db_apis/cache/procedural-note-cache");
 
 const { getPatientsByLocation } = require("../db_apis/adt/get-patients-by-location");
 
@@ -3871,51 +3868,6 @@ router.post("/inout-tooltip-v3", async (req, res) => {
   getApiFromRedis(res, getInOutTooltipQueryV3, new_query, "interface-inout-tooltip");
 });
 
-/**
- * @api {get} /cache/inout Cache In-Out (dev)
- * @apiVersion 0.0.1
- * @apiName cache-in-out
- * @apiGroup DEV
- * @apiDescription Cache in-out API to API_CACHE_INOUT table
- * @apiSuccessExample Success-Response:
- *  {
-      "rowsAffected": 95
-    }
- */
-
-router.get("/cache/inout", async (req, res) => {
-  res.send(await insertInoutCache());
-});
-
-/**
- * @api {get} /cache/diagnosis Cache Diagnosis (dev)
- * @apiVersion 0.0.1
- * @apiName cache-diagnosis
- * @apiGroup DEV
- * @apiDescription Cache Diagnosis Display API to API_CACHE_DIAGNOSIS table
- * @apiSuccessExample Success-Response:
- *  {
-      "rowsAffected": 95
-    }
- */
-
-router.get("/cache/diagnosis", async (req, res) => {
-  res.send(await insertDiagnosisCache());
-});
-
-/**
- * @api {get} /cache/procedural-note Cache Procedural Note (dev)
- * @apiVersion 0.0.1
- * @apiName cache-procedural-note
- * @apiGroup DEV
- * @apiDescription Cache Procedural Note API to API_CACHE_PROCEDURAL_NOTE table
- * @apiSuccessExample Success-Response:
- *  {}
- */
-
-router.get("/cache/procedural-note", async (req, res) => {
-  res.send(await insertNoteCache());
-});
 
 /**
  * @api {get} /patients/location/:location Patients in Location (dev)

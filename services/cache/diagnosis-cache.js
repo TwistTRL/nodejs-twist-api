@@ -2,49 +2,31 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-20 19:20:03
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-21 15:24:23
+ * @Last Modified time: 2020-09-25 10:45:27
  */
 
 const oracledb = require("oracledb");
-const database = require("../../services/database");
 const moment = require("moment");
 
-const { getPatientsByLocation } = require("../adt/get-patients-by-location");
-
-const { getDisplayLine } = require("../diagnosis_display/get-display-line");
-const { getVerticalBarDisplay } = require("../diagnosis_display/get-verticalbar-timeline");
+const { getDisplayLine } = require("../../db_apis/diagnosis_display/get-display-line");
+const { getVerticalBarDisplay } = require("../../db_apis/diagnosis_display/get-verticalbar-timeline");
 
 const DELETE_DIAGNOSIS_CACHE_SQL = `
 DELETE FROM API_CACHE_DIAGNOSIS`;
 
 const INSERT_DIAGNOSIS_CACHE_SQL = `
 INSERT INTO API_CACHE_DIAGNOSIS
-  (PERSON_ID, AGE_DISPLAY, SEX_DISPLAY, HETEROTAXY_DISPLAY, SDD_DISPLAY, DISEASE_DISPLAY, EVENT_ID, DT_UNIX, DIAGNOSES, OPERATIVE_DISPLAY, UPDT_TM)
+  (PERSON_ID, AGE_DISPLAY, SEX_DISPLAY, HETEROTAXY_DISPLAY, SDD_DISPLAY, DISEASE_DISPLAY, EVENT_ID, DT_UNIX, DIAGNOSES, STUDY_TYPE, OPERATIVE_DISPLAY, UPDT_TM)
 VALUES
-  (:person_id, :age_display, :sex_display, :heterotaxy_display, :sdd_display, :disease_display, :event_id, :unix_time, :diagnoses, :operative_display, TO_DATE(:update_time, 'YYYY-MM-DD HH24:MI:SS'))
+  (:person_id, :age_display, :sex_display, :heterotaxy_display, :sdd_display, :disease_display, :event_id, :unix_time, :diagnoses, :study_type, :operative_display, TO_DATE(:update_time, 'YYYY-MM-DD HH24:MI:SS'))
 `;
 
-const GET_DIAGNOSIS_CACHE_SQL = `
-SELECT
-  AGE_DISPLAY,
-  SEX_DISPLAY,
-  HETEROTAXY_DISPLAY,
-  SDD_DISPLAY,
-  DISEASE_DISPLAY,
-  EVENT_ID, 
-  DT_UNIX, 
-  DIAGNOSES, 
-  OPERATIVE_DISPLAY
-FROM API_CACHE_DIAGNOSIS
-WHERE PERSON_ID = :person_id
-`;
-
-const insertDiagnosisCache = async () => {
-  const patients = await getPatientsByLocation();
+const insertDiagnosisCache = async (patients) => {
   let binds = [];
   for (let patient of patients) {
     let person_id = Number(patient.PERSON_ID);
     let mrn = patient.MRN;
+    console.log("insertDiagnosisCache mrn :>> ", mrn);
 
     let displayLine = await getDisplayLine({mrn});
     let age_display = displayLine.age_display;
@@ -72,6 +54,7 @@ const insertDiagnosisCache = async () => {
         event_id,
         unix_time,
         diagnoses,
+        study_type,
         operative_display,
         update_time,
       });
@@ -90,13 +73,7 @@ const insertDiagnosisCache = async () => {
   return insertTable;
 };
 
-const getDiagnosisCache =  database.withConnection(async (conn,binds) => {
-  const arr = await conn.execute(GET_DIAGNOSIS_CACHE_SQL, binds).then( ret=>ret.rows );  
-  return arr;
-});
-
 
 module.exports = {
   insertDiagnosisCache,
-  getDiagnosisCache,
 };

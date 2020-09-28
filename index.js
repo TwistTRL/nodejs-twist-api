@@ -33,6 +33,11 @@ async function startup() {
 
     process.exit(1); // Non-zero failure code
   }
+
+  console.log(" Initializing interval update");
+
+  const intervalUpdate = require("./services/interval-update.js");
+
 }
 
 async function shutdown(e) {

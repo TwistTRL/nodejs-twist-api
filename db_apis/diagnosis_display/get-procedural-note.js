@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 11:37:31
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-21 18:18:52
+ * @Last Modified time: 2020-09-25 10:29:23
  */
 
 const moment = require("moment");
@@ -18,7 +18,7 @@ WHERE COLUMN_VALUE != '0'
 async function proceduralNoteSQLExecutor(conn, event_id_arr) {
   if (!event_id_arr || !event_id_arr[0]) {
     console.log("Warning: no notes");
-    return "";
+    return {};
   }
   console.time("note-time");
 

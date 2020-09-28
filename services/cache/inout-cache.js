@@ -2,18 +2,17 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-19 15:58:46
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-21 15:28:02
+ * @Last Modified time: 2020-09-25 08:57:16
  */
 
 const oracledb = require("oracledb");
-// const database = require("../../services/database");
 const moment = require("moment");
 
-const { getPatientsByLocation } = require("../adt/get-patients-by-location");
-const { getInOutQueryV2 } = require("../get-in-out-v2");
+const { getInOutQueryV2 } = require("../../db_apis/get-in-out-v2");
 
 const DELETE_INOUT_CACHE_SQL = `
-DELETE FROM API_CACHE_INOUT`;
+DELETE FROM API_CACHE_INOUT
+`;
 
 const INSERT_INOUT_CACHE_SQL = `
 INSERT INTO API_CACHE_INOUT
@@ -22,8 +21,7 @@ VALUES
   (:person_id, :inout_value, :short_label, :dt_unix, :inout_type, TO_DATE(:update_time, 'YYYY-MM-DD HH24:MI:SS'))
 `;
 
-const insertInoutCache = async () => {
-  const patients = await getPatientsByLocation();
+const insertInoutCache = async (patients) => {
   let binds = [];
   for (let patient of patients) {
     let person_id = Number(patient.PERSON_ID);
