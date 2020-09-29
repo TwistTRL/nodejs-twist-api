@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-25 08:14:30
+ * @Last Modified time: 2020-09-29 11:40:14
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -44,7 +44,7 @@ const { getHr12Hv2, getHr5Hv2, getHr1Dv2, getHr5Mv2 } = require("../db_apis/get_
 const { getHrCalc12H, getHrCalc5H, getHrCalc1D, getHrCalc5M } = require("../db_apis/get_hr_calc");
 const { getRawHr } = require("../db_apis/get_raw_hr");
 const { getLabsQuery } = require("../db_apis/get-labs-all");
-const { getLabsArray, getLabsDictionary } = require("../db_apis/labs/get-labs"); // new
+const { getLabsArray } = require("../db_apis/labs/get-labs"); // new
 const { getLab, getLabV2, getABG } = require("../db_apis/get_labs");
 const { getDrugInfusions, getOrangeDrug, getDrugIntermittent } = require("../db_apis/get_drug");
 
@@ -439,62 +439,6 @@ router.get("/person/:person_id/labsv3", async (req, res) => {
     person_id,
   };
   res.send(await getLabsArray(binds));
-});
-
-/**
- * @api {get} /person/:person_id/labsv4 Labs for Patient (new4)
- * @apiVersion 0.0.1
- * @apiName get-labs-v4
- * @apiGroup Person
- * @apiParam {Number} person_id patient unique ID.
- *
- * @apiSuccessExample Success-Response:
- *     
-    "BLOOD GAS": {
-        "PCO2": {
-            "DISPLAY_ORDER": 2,
-            "pCO2 Venous": {
-                "DISPLAY_NAME": "pCO2 Venous",
-                "NORMAL_LOW": "35.0",
-                "NORMAL_HIGH": "45.0",
-                "CRITICAL_LOW": "15.1",
-                "CRITICAL_HIGH": "79.9",
-                "UNITS": "mmHg",
-                "DATA": [
-                    {
-                        "DT_UNIX": 1524732420,
-                        "EVENT_CD": 3775577,
-                        "VALUE": "64.0",
-                        "SOURCE": "VENOUS"
-                    },
-                    {
-                        "DT_UNIX": 1528709220,
-                        "EVENT_CD": 3775577,
-                        "VALUE": "45.0",
-                        "SOURCE": "VENOUS"
-                    },
-                ]
-            }
-          
-        }
-    }
- *
- */
-
-router.get("/person/:person_id/labsv4", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-
-  if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id, should be integer.");
-    return;
-  }
-
-  console.log("getting labsv4 for %s ...", person_id);
-
-  const binds = {
-    person_id,
-  };
-  res.send(await getLabsDictionary(binds));
 });
 
 /**
