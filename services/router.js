@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-29 11:40:14
+ * @Last Modified time: 2020-10-05 15:08:49
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -101,6 +101,9 @@ const { getProceduralNote } = require("../db_apis/diagnosis_display/get-procedur
 
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
+
+// -- cache
+const { getRssCache } = require("../db_apis/cache/get-rss-cache");
 
 // --- write to database
 
@@ -404,24 +407,42 @@ router.post("/labs", async (req, res) => {
  * @apiParam {Number} person_id patient unique ID.
  *
  * @apiSuccessExample Success-Response:
- *     
-    {
-        "DT_UNIX": 1524725340,
-        "ORDER_ID": 2451959503,
-        "EVENT_CD": 3775110,
-        "LAB": "O2 Sat Venous",
-        "VALUE": "69",
-        "UNITS": "%",
-        "NORMAL_LOW": "60",
-        "NORMAL_HIGH": "80",
-        "CRITICAL_LOW": " ",
-        "CRITICAL_HIGH": " ",
-        "EVENT_CD_DEFINITION": "O2 Sat Venous",
-        "TABLE": "BLOOD GAS",
-        "SOURCE": "VENOUS",
-        "DISPLAY_ABBREV": "SvO2",
-        "DISPLAY_ORDER": 8
-    },
+ * [
+      {
+          "DT_UNIX": 1524725340,
+          "ORDER_ID": 2451959503,
+          "EVENT_CD": 3775577,
+          "LAB": "pCO2 Venous",
+          "VALUE": "48.8",
+          "UNITS": "mmHg",
+          "NORMAL_LOW": "35.0",
+          "NORMAL_HIGH": "45.0",
+          "CRITICAL_LOW": "15.1",
+          "CRITICAL_HIGH": "79.9",
+          "SOURCE": "VENOUS",
+          "ORIG_ORDER_DT_TM_UTC": "2018-04-26T10:24:30.000Z",
+          "ORDER_PERSON": "GRAFF MD, CLAIRE LEE",
+          "SCHEDULED_DT_TM_UTC": null,
+          "SCHEDULED_PERSON": null,
+          "DISPATCHED_DT_TM_UTC": "2018-04-26T10:24:51.000Z",
+          "DISPATCHED_PERSON": "HOSKINS RN, KATHERINE HAYWA",
+          "COLLECTED_DT_TM_UTC": "2018-04-26T10:49:28.000Z",
+          "COLLECTED_PERSON": "HUGHES RN, BREANNA",
+          "IN_TRANSIT_DT_TM_UTC": null,
+          "IN_TRANSIT_PERSON": null,
+          "IN_LAB_DT_TM_UTC": "2018-04-26T10:53:38.000Z",
+          "IN_LAB_PERSON": "Gemeda , Binyam S\u0000",
+          "IN_PROCESS_DT_TM_UTC": null,
+          "IN_PROCESS_PERSON": null,
+          "COMPLETED_DT_TM_UTC": "2018-04-26T11:02:09.000Z",
+          "COMPLETED_PERSON": "Gemeda , Binyam S\u0000",
+          "DISPLAY_NAME": "pCO2 Venous",
+          "TABLE": "BLOOD GAS",
+          "DISPLAY_ORDER": 2,
+          "TWIST_DISPLAY_NAME": "PCO2",
+          "EVENT_CD_DESCRIPTION": "pCO2 Venous"
+      },
+    ]
  *
  */
 
@@ -1678,7 +1699,22 @@ router.get("/person/:person_id/RSS", async (req, res) => {
     from_: from,
     to_: to,
   };
-  res.send(await getRespiratorySupportVariable(binds));
+
+  console.time("rss-time");
+
+  const rssCache = await getRssCache(binds);
+  if (rssCache.length) {
+    console.log("rss from cache");
+    console.timeEnd("rss-time");
+
+    res.send(rssCache);
+
+  } else {
+    console.timeEnd("rss-time");
+
+    res.send(await getRespiratorySupportVariable(binds));
+
+  }
 });
 
 router.get("/person/:person_id/HR", async (req, res) => {
@@ -3811,7 +3847,6 @@ router.post("/inout-tooltip-v3", async (req, res) => {
 
   getApiFromRedis(res, getInOutTooltipQueryV3, new_query, "interface-inout-tooltip");
 });
-
 
 /**
  * @api {get} /patients/location/:location Patients in Location (dev)

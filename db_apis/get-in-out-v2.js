@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-21 17:31:08
+ * @Last Modified time: 2020-10-05 13:57:12
  */
 
 /**
@@ -737,7 +737,7 @@ const getInOutQueryV2 = database.withConnection(async function (conn, query) {
     result = await conn.execute(GET_INOUT_CACHE_SQL, binds).then( ret=>ret.rows ); 
     if (result && result[0]) {
       console.timeEnd("getInOut " + consoleTimeCount);
-      console.log("~~> from cache table");
+      console.log("~~> from cache table: ", query.person_id);
       return result.map( item => {
         return {
           value: item.INOUT_VALUE,

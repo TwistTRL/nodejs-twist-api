@@ -1,0 +1,33 @@
+@startuml
+
+title TWIST API CACHE
+
+[*] --> CachedPatients : most frequently used patients
+
+
+
+state CachedPatients {
+    CachedPatients : patients in locations
+    CachedPatients : patients by manually input
+
+    state "Patients in location" as locationPatients
+    state "Patients in cache" as patients
+    state "Manually input" as manuallyInput
+
+    [*] -> locationPatients : Query loop
+    locationPatients --> patients
+    manuallyInput --> patients
+    patients -> [*] : save to database
+}
+
+state UpdatePatientsDetails {
+    state RSS
+    state InOut
+    state DisplayLine
+    state Notes
+}
+
+CachedPatients --> UpdatePatientsDetails
+
+
+@enduml

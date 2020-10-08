@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-10 17:00:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-29 13:23:31
+ * @Last Modified time: 2020-10-05 21:38:48
  */
 
 const database = require("../../services/database");
@@ -52,11 +52,28 @@ async function getLabSqlExecutor(conn, binds) {
   const lab = await conn.execute(GET_LABS_BY_PERSONID_SQL, binds);
   let arr = lab.rows;
   console.log("lab size of current person", arr.length);
-  let resultArr = arr.map((x) => {
-    return { ...x, ...LABS_EVENT_CD_DICT[x.EVENT_CD] };
-  });
-  console.log('resultArr.length :>> ', resultArr.length);
 
+  // based on results of GET_LABS_BY_PERSONID_SQL,
+  // adding TABLE, DISPLAY_ORDER, TWIST_DISPLAY_NAME, EVENT_CD, EVENT_CD_DESCRIPTION, SOURCE for this event_cd
+  // if event_cd not in the file, then it's TABLE: "MISC"
+
+  // example item for LABS_EVENT_CD_DICT from WORKING_LABS.xlsx:
+  // '911993469': {
+  //   TABLE: 'BLOOD GAS',
+  //   DISPLAY_ORDER: 7,
+  //   TWIST_DISPLAY_NAME: 'SO2',
+  //   EVENT_CD: 911993469,
+  //   EVENT_CD_DESCRIPTION: 'OR SO2 CPB',
+  //   SOURCE: 'CPB'
+  // },
+
+  let resultArr = arr.map((x) => {
+    let working_labs_obj =
+      x.EVENT_CD in LABS_EVENT_CD_DICT ? LABS_EVENT_CD_DICT[x.EVENT_CD] : { TABLE: "MISC" };
+
+    return { ...x, ...working_labs_obj };
+  });
+  console.log("resultArr.length :>> ", resultArr.length);
   return resultArr;
 }
 

@@ -1,12 +1,17 @@
-#!/usr/bin/env node
+/*
+ * @Author: Peng Zeng 
+ * @Date: 2020-10-05 13:22:37 
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-10-05 13:27:57
+ */
 
-const database = require("../services/database");
 
-const GET_RESPIRATORY_SUPPORT_VARIABLE_SQL =
-`
-SELECT  ROWNUM AS ID,
+const database = require("../../services/database");
+
+const GET_RESPIRATORY_SUPPORT_VARIABLE_CACHE_SQL = `
+SELECT  ID,
         PERSON_ID,
-        VALID_FROM_DT_TM AS TIME,
+        TIME,
         AIRWAY_ASSESSMENT,
         APRV_PHIGH,
         APRV_PLOW,
@@ -57,16 +62,14 @@ SELECT  ROWNUM AS ID,
         AGE_IN_SECOND,
         RST,
         RSS
-FROM RSS
+FROM API_CACHE_RSS
 WHERE PERSON_ID = :person_id
-  AND VALID_FROM_DT_TM BETWEEN :from_ AND :to_
-ORDER BY VALID_FROM_DT_TM ASC
-`
+  AND TIME BETWEEN :from_ AND :to_
+ORDER BY TIME ASC
+`;
 
-async function getRespiratorySupportVariableSqlExecutor(conn,binds){
-  let arr = await conn.execute(GET_RESPIRATORY_SUPPORT_VARIABLE_SQL,binds).then( ret=>ret.rows );
-
-  // console.log("arr size: ", arr.length);
+async function getRssCacheSqlExecutor(conn,binds){
+  let arr = await conn.execute(GET_RESPIRATORY_SUPPORT_VARIABLE_CACHE_SQL,binds).then( ret=>ret.rows );
 
   let result = [];
   for (let row of arr) {
@@ -87,16 +90,8 @@ async function getRespiratorySupportVariableSqlExecutor(conn,binds){
   return result;
 }
 
-function precision(a) {
-  if (!isFinite(a)) return 0;
-  var e = 1, p = 0;
-  while (Math.round(a * e) / e !== a) { e *= 10; p++; }
-  return p;
-}
-
-const getRespiratorySupportVariable =  database.withConnection(getRespiratorySupportVariableSqlExecutor);
+const getRssCache =  database.withConnection(getRssCacheSqlExecutor);
 
 module.exports = {
-  getRespiratorySupportVariableSqlExecutor,
-  getRespiratorySupportVariable
+  getRssCache,
 };

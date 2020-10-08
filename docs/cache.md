@@ -60,3 +60,13 @@ INSERT INTO API_CACHE_PROCEDURAL_NOTE
 VALUES
   (:event_id, :procedural_note, TO_DATE(:update_time, 'YYYY-MM-DD HH24:MI:SS'), :note_order);
 ```
+
+
+Create a copy of an Oracle table without copying the data
+
+https://stackoverflow.com/questions/233870/how-can-i-create-a-copy-of-an-oracle-table-without-copying-the-data
+
+```sql
+CREATE TABLE API_CACHE_RSS AS SELECT * FROM RSS WHERE 1=0;
+```
+
