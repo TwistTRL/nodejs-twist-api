@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 11:19:09
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-25 09:18:31
+ * @Last Modified time: 2020-10-08 20:01:11
  */
 
 const database = require("../../services/database");
@@ -149,44 +149,43 @@ async function finalDisplay(conn, binds) {
 
 const getDisplayLine = database.withConnection(async function (conn, binds) {
 
-  // try cache first
-  const person_id_arr = await getPersonFromMrn(binds);
-  if (person_id_arr.length > 1) {
-    console.warn('person_id_arr :>> ', person_id_arr);
-  } 
-  const person_id = person_id_arr[0].PERSON_ID;
-  const arr = await conn.execute(GET_DIAGNOSIS_CACHE_SQL, {person_id}).then( ret=>ret.rows ); 
-  if (arr && arr.length) {
-    const age_display = arr[0].AGE_DISPLAY;
-    const sex_display = arr[0].SEX_DISPLAY;
-    const heterotaxy_display = arr[0].HETEROTAXY_DISPLAY;
-    const sdd_display = arr[0].SDD_DISPLAY;
-    const disease_display = arr[0].DISEASE_DISPLAY;
-    const operative_display = []
-    arr.forEach(element => {
-      if (element.STUDY_TYPE === "SURG_FYLER_PRI_PRO") {
-        operative_display.push({
-          event_id: element.EVENT_ID,
-          event_time: moment(element.DT_UNIX).format(),
-          diagnoses: element.DIAGNOSES,
-          operative_display: element.OPERATIVE_DISPLAY,
-        })
-      }
-    });
-    const display_line = combineDisplayLine(age_display, sex_display, heterotaxy_display, sdd_display, disease_display, operative_display);
+  // TODO ==> USE CACHE
+  // const person_id_arr = await getPersonFromMrn(binds);
+  // if (person_id_arr.length > 1) {
+  //   console.warn('person_id_arr :>> ', person_id_arr);
+  // } 
+  // const person_id = person_id_arr[0].PERSON_ID;
+  // const arr = await conn.execute(GET_DIAGNOSIS_CACHE_SQL, {person_id}).then( ret=>ret.rows ); 
+  // if (arr && arr.length) {
+  //   const age_display = arr[0].AGE_DISPLAY;
+  //   const sex_display = arr[0].SEX_DISPLAY;
+  //   const heterotaxy_display = arr[0].HETEROTAXY_DISPLAY;
+  //   const sdd_display = arr[0].SDD_DISPLAY;
+  //   const disease_display = arr[0].DISEASE_DISPLAY;
+  //   const operative_display = []
+  //   arr.forEach(element => {
+  //     if (element.STUDY_TYPE === "SURG_FYLER_PRI_PRO") {
+  //       operative_display.push({
+  //         event_id: element.EVENT_ID,
+  //         event_time: moment(element.DT_UNIX).format(),
+  //         diagnoses: element.DIAGNOSES,
+  //         operative_display: element.OPERATIVE_DISPLAY,
+  //       })
+  //     }
+  //   });
+  //   const display_line = combineDisplayLine(age_display, sex_display, heterotaxy_display, sdd_display, disease_display, operative_display);
 
-    return {
-      display_line,
-      age_display,
-      sex_display,
-      heterotaxy_display,
-      sdd_display,
-      disease_display,
-      operative_display,
-    };   
-  }
-  
-  console.log("no cache. calculating");
+  //   return {
+  //     display_line,
+  //     age_display,
+  //     sex_display,
+  //     heterotaxy_display,
+  //     sdd_display,
+  //     disease_display,
+  //     operative_display,
+  //   };   
+  // }  
+  // console.log("no cache. calculating");
 
   return await finalDisplay(conn, binds);
 
