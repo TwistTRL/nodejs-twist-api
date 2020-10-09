@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-08 20:01:28
+ * @Last Modified time: 2020-10-08 20:39:30
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -407,40 +407,52 @@ router.post("/labs", async (req, res) => {
  * @apiParam {Number} person_id patient unique ID.
  *
  * @apiSuccessExample Success-Response:
- * [
+ *  [
       {
-          "DT_UNIX": 1524725340,
+          "EVENT_ID": 4538898610,
+          "ENCNTR_ID": 77334246,
           "ORDER_ID": 2451959503,
-          "EVENT_CD": 3775577,
-          "LAB": "pCO2 Venous",
-          "VALUE": "48.8",
+          "DT_UTC": "2018-04-26T10:49:00.000Z",
+          "EVENT_CD": 598376695,
+          "SOURCE": "WB Venous",
+          "LAB": "Oxygen dissociation p50, Venous",
+          "VALUE": "25.4",
           "UNITS": "mmHg",
-          "NORMAL_LOW": "35.0",
-          "NORMAL_HIGH": "45.0",
-          "CRITICAL_LOW": "15.1",
-          "CRITICAL_HIGH": "79.9",
-          "SOURCE": "VENOUS",
+          "NORMAL_LOW": " ",
+          "NORMAL_HIGH": " ",
+          "CRITICAL_LOW": " ",
+          "CRITICAL_HIGH": " ",
+          "NORMALCY": "NA",
+          "DT_UNIX": 1524725340,
+          "CREATED_DT_TM_EST": "2020-10-06T19:30:11.000Z",
           "ORIG_ORDER_DT_TM_UTC": "2018-04-26T10:24:30.000Z",
           "ORDER_PERSON": "GRAFF MD, CLAIRE LEE",
-          "SCHEDULED_DT_TM_UTC": null,
-          "SCHEDULED_PERSON": null,
-          "DISPATCHED_DT_TM_UTC": "2018-04-26T10:24:51.000Z",
-          "DISPATCHED_PERSON": "HOSKINS RN, KATHERINE HAYWA",
-          "COLLECTED_DT_TM_UTC": "2018-04-26T10:49:28.000Z",
-          "COLLECTED_PERSON": "HUGHES RN, BREANNA",
-          "IN_TRANSIT_DT_TM_UTC": null,
-          "IN_TRANSIT_PERSON": null,
-          "IN_LAB_DT_TM_UTC": "2018-04-26T10:53:38.000Z",
-          "IN_LAB_PERSON": "Gemeda , Binyam S\u0000",
-          "IN_PROCESS_DT_TM_UTC": null,
-          "IN_PROCESS_PERSON": null,
-          "COMPLETED_DT_TM_UTC": "2018-04-26T11:02:09.000Z",
-          "COMPLETED_PERSON": "Gemeda , Binyam S\u0000",
-          "DISPLAY_NAME": "pCO2 Venous",
-          "TABLE": "BLOOD GAS",
-          "DISPLAY_ORDER": 2,
-          "TWIST_DISPLAY_NAME": "PCO2",
-          "EVENT_CD_DESCRIPTION": "pCO2 Venous"
+          "DT_TM_UTC_SCHEDULED": null,
+          "PERSONNEL_ID_SCHEDULED": null,
+          "PERSON_SCHEDULED": null,
+          "DT_TM_UTC_DISPATCHED": "2018-04-26T10:24:51.000Z",
+          "PERSONNEL_ID_DISPATCHED": 16762046,
+          "PERSON_DISPATCHED": "HOSKINS RN, KATHERINE HAYWA",
+          "DT_TM_UTC_COLLECTED": "2018-04-26T10:49:28.000Z",
+          "PERSONNEL_ID_COLLECTED": 21534119,
+          "PERSON_COLLECTED": "HUGHES RN, BREANNA",
+          "DT_TM_UTC_IN_TRANSIT": null,
+          "PERSONNEL_ID_IN_TRANSIT": null,
+          "PERSON_IN_TRANSIT": null,
+          "DT_TM_UTC_IN_LAB": "2018-04-26T10:53:38.000Z",
+          "PERSONNEL_ID_IN_LAB": 9003102,
+          "PERSON_IN_LAB": "Gemeda , Binyam S\u0000",
+          "DT_TM_UTC_IN_PROCESS": null,
+          "PERSONNEL_ID_IN_PROCESS": null,
+          "PERSON_IN_PROCESS": null,
+          "DT_TM_UTC_COMPLETED": "2018-04-26T11:02:09.000Z",
+          "PERSONNEL_ID_COMPLETED": 9003102,
+          "PERSON_COMPLETED": "Gemeda , Binyam S\u0000",
+          "DT_TM_UTC_PERFORMED": "2018-04-26T10:57:56.000Z",
+          "PERSONNEL_ID_PERFORMED": 9003102,
+          "PERSON_PERFORMED": "Gemeda , Binyam S\u0000",
+          "UPDT_DT_TM_UTC": "2018-04-26T11:02:10.000Z",
+          "TABLE": "MISC"
       },
     ]
  *
