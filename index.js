@@ -8,6 +8,10 @@ console.log("HTTP_PORT :", process.env.HTTP_PORT);
 const webServer = require("./services/web-server.js");
 const database = require("./services/database.js");
 const dbConfig = require("./config/database-config.js");
+const intervalUpdate = require("./services/interval-update.js");
+
+let checkPatientsInterval;
+
 const defaultThreadPoolSize = 4;
 
 // Increase thread pool size by poolMax
@@ -34,9 +38,16 @@ async function startup() {
     process.exit(1); // Non-zero failure code
   }
 
-  console.log(" Initializing interval update");
+  // try {
+  //   console.log("  Initializing cache-updating module");
 
-  const intervalUpdate = require("./services/interval-update.js");
+  //   await intervalUpdate.initialize();
+  //   checkPatientsInterval = intervalUpdate.startInterval()
+  // } catch (err) {
+  //   console.error(err);
+
+  //   process.exit(1); // Non-zero failure code
+  // }
 
 }
 
@@ -64,6 +75,17 @@ async function shutdown(e) {
     err = err || e;
   }
 
+  // FIXME => stop intervalUpdate
+  // try {
+  //   console.log("Closing cache-updating module");
+
+  //   intervalUpdate.close();
+  // } catch (e) {
+  //   console.error(e);
+
+  //   err = err || e;
+  // }
+
   console.log("Exiting process");
 
   if (err) {
@@ -77,17 +99,20 @@ async function shutdown(e) {
 startup();
 
 process.on("SIGTERM", () => {
-  console.log("Received SIGTERM");
+  console.log(`
+  🔚 Received SIGTERM`);
   shutdown();
 });
 
 process.on("SIGINT", () => {
-  console.log("Received SIGINT");
+  console.log(`
+  🔚 Received SIGINT`);
   shutdown();
 });
 
 process.on("uncaughtException", (err) => {
-  console.log("Uncaught exception");
+  console.log(`
+  🔚 Uncaught exception`);
   console.error(err);
   shutdown(err);
 });

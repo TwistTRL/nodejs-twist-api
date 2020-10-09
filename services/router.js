@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-29 11:40:14
+ * @Last Modified time: 2020-10-08 20:39:30
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -101,6 +101,9 @@ const { getProceduralNote } = require("../db_apis/diagnosis_display/get-procedur
 
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
+
+// -- cache
+const { getRssCache } = require("../db_apis/cache/get-rss-cache");
 
 // --- write to database
 
@@ -404,24 +407,54 @@ router.post("/labs", async (req, res) => {
  * @apiParam {Number} person_id patient unique ID.
  *
  * @apiSuccessExample Success-Response:
- *     
-    {
-        "DT_UNIX": 1524725340,
-        "ORDER_ID": 2451959503,
-        "EVENT_CD": 3775110,
-        "LAB": "O2 Sat Venous",
-        "VALUE": "69",
-        "UNITS": "%",
-        "NORMAL_LOW": "60",
-        "NORMAL_HIGH": "80",
-        "CRITICAL_LOW": " ",
-        "CRITICAL_HIGH": " ",
-        "EVENT_CD_DEFINITION": "O2 Sat Venous",
-        "TABLE": "BLOOD GAS",
-        "SOURCE": "VENOUS",
-        "DISPLAY_ABBREV": "SvO2",
-        "DISPLAY_ORDER": 8
-    },
+ *  [
+      {
+          "EVENT_ID": 4538898610,
+          "ENCNTR_ID": 77334246,
+          "ORDER_ID": 2451959503,
+          "DT_UTC": "2018-04-26T10:49:00.000Z",
+          "EVENT_CD": 598376695,
+          "SOURCE": "WB Venous",
+          "LAB": "Oxygen dissociation p50, Venous",
+          "VALUE": "25.4",
+          "UNITS": "mmHg",
+          "NORMAL_LOW": " ",
+          "NORMAL_HIGH": " ",
+          "CRITICAL_LOW": " ",
+          "CRITICAL_HIGH": " ",
+          "NORMALCY": "NA",
+          "DT_UNIX": 1524725340,
+          "CREATED_DT_TM_EST": "2020-10-06T19:30:11.000Z",
+          "ORIG_ORDER_DT_TM_UTC": "2018-04-26T10:24:30.000Z",
+          "ORDER_PERSON": "GRAFF MD, CLAIRE LEE",
+          "DT_TM_UTC_SCHEDULED": null,
+          "PERSONNEL_ID_SCHEDULED": null,
+          "PERSON_SCHEDULED": null,
+          "DT_TM_UTC_DISPATCHED": "2018-04-26T10:24:51.000Z",
+          "PERSONNEL_ID_DISPATCHED": 16762046,
+          "PERSON_DISPATCHED": "HOSKINS RN, KATHERINE HAYWA",
+          "DT_TM_UTC_COLLECTED": "2018-04-26T10:49:28.000Z",
+          "PERSONNEL_ID_COLLECTED": 21534119,
+          "PERSON_COLLECTED": "HUGHES RN, BREANNA",
+          "DT_TM_UTC_IN_TRANSIT": null,
+          "PERSONNEL_ID_IN_TRANSIT": null,
+          "PERSON_IN_TRANSIT": null,
+          "DT_TM_UTC_IN_LAB": "2018-04-26T10:53:38.000Z",
+          "PERSONNEL_ID_IN_LAB": 9003102,
+          "PERSON_IN_LAB": "Gemeda , Binyam S\u0000",
+          "DT_TM_UTC_IN_PROCESS": null,
+          "PERSONNEL_ID_IN_PROCESS": null,
+          "PERSON_IN_PROCESS": null,
+          "DT_TM_UTC_COMPLETED": "2018-04-26T11:02:09.000Z",
+          "PERSONNEL_ID_COMPLETED": 9003102,
+          "PERSON_COMPLETED": "Gemeda , Binyam S\u0000",
+          "DT_TM_UTC_PERFORMED": "2018-04-26T10:57:56.000Z",
+          "PERSONNEL_ID_PERFORMED": 9003102,
+          "PERSON_PERFORMED": "Gemeda , Binyam S\u0000",
+          "UPDT_DT_TM_UTC": "2018-04-26T11:02:10.000Z",
+          "TABLE": "MISC"
+      },
+    ]
  *
  */
 
@@ -1678,7 +1711,21 @@ router.get("/person/:person_id/RSS", async (req, res) => {
     from_: from,
     to_: to,
   };
-  res.send(await getRespiratorySupportVariable(binds));
+
+  // console.time("rss-time");
+  // const rssCache = await getRssCache(binds);
+  // if (rssCache.length) {
+  //   console.log("rss from cache");
+  //   console.timeEnd("rss-time");
+  //   res.send(rssCache);
+  // } else {
+  //   console.timeEnd("rss-time");
+  //   res.send(await getRespiratorySupportVariable(binds));
+  // }
+
+  // TODO ==> USE CACHE
+    res.send(await getRespiratorySupportVariable(binds));
+
 });
 
 router.get("/person/:person_id/HR", async (req, res) => {
@@ -3811,7 +3858,6 @@ router.post("/inout-tooltip-v3", async (req, res) => {
 
   getApiFromRedis(res, getInOutTooltipQueryV3, new_query, "interface-inout-tooltip");
 });
-
 
 /**
  * @api {get} /patients/location/:location Patients in Location (dev)

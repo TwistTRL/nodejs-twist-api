@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-21 07:55:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-24 17:08:27
+ * @Last Modified time: 2020-09-30 07:14:59
  */
 
 const database = require("../../services/database");
@@ -11,7 +11,8 @@ const GET_NOTE_CACHE_SQL = `
 SELECT
   EVENT_ID, 
   PROCEDURAL_NOTE, 
-  NOTE_ORDER
+  NOTE_ORDER,
+  UPDT_TM
 FROM API_CACHE_PROCEDURAL_NOTE
 WHERE EVENT_ID = :event_id
 `;

@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-21 07:55:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-25 08:54:32
+ * @Last Modified time: 2020-10-05 13:38:14
  */
 
 const oracledb = require("oracledb");
@@ -46,6 +46,8 @@ const insertNoteCache = async (patients) => {
     }
   }
   console.log("insert records length :>> ", binds.length);
+
+  console.log('binds :>> ', binds);
 
   // write into database table API_CACHE_PROCEDURAL_NOTE
   console.time("insert-database-note");

@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-19 15:58:46
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-25 08:57:16
+ * @Last Modified time: 2020-10-05 14:40:55
  */
 
 const oracledb = require("oracledb");
@@ -31,6 +31,7 @@ const insertInoutCache = async (patients) => {
       to: moment().unix(),
       resolution: 3600,
     };
+    console.log('getting inout record for person_id = ', person_id);
     let inoutResult = await getInOutQueryV2(query);
 
     for (let inoutRecord of inoutResult) {
