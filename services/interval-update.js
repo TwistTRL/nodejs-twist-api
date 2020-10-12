@@ -10,6 +10,18 @@ const { getPatientsCache } = require("../db_apis/cache/get-patients-cache");
 
 const moment = require("moment");
 const INTERVAL_MINUTE = 10; // every 10 min
+const MANUALLY_INPUT_PATITENTS = [
+  {
+    PERSON_ID: 25796315,
+    MRN: 5184229,
+  },
+  { 
+    PERSON_ID: 24407610, 
+    MRN: 5080159, 
+  },
+];
+
+const getPatientsByManuallyInput = async () => MANUALLY_INPUT_PATITENTS;
 
 // start checking
 // strategy:
@@ -19,8 +31,12 @@ const INTERVAL_MINUTE = 10; // every 10 min
 const updatePatients = async () => {
   let currentPatientsCache = await getPatientsCache();
   let currentPatientsByLocation = await getPatientsByLocation();
+  let manuallyInputPatients = await getPatientsByManuallyInput();
+
   console.log("currentPatientsByLocation.length :>> ", currentPatientsByLocation.length);
   let prePatientsMap = new Map(currentPatientsCache.map((x) => [x.PERSON_ID, x.UPDT_TM]));
+
+  let newInputPatients = manuallyInputPatients.filter(element => !prePatientsMap.has(element.PERSON_ID));
 
   if (!currentPatientsCache.length) {
     console.log("no cache, will insert all current patients");
@@ -29,11 +45,11 @@ const updatePatients = async () => {
         "current person_id list for location :>> ",
         currentPatientsByLocation.map((x) => x.PERSON_ID)
       );
-      await insertPatientsCache(currentPatientsByLocation);
+      await insertPatientsCache([...newInputPatients, ...currentPatientsByLocation]);
     } else {
       console.warn("No records for currentPatientsByLocation");
     }
-    return currentPatientsByLocation;
+    return [...newInputPatients, ...currentPatientsByLocation];
   } else {
     // for current patients who are not old or their cache is before 2 hours ago
     // let willUpdatePatients = currentPatientsByLocation.filter(
@@ -69,7 +85,7 @@ const updatePatients = async () => {
       );
     }
 
-    let willUpdatePatients = [...changedPatients, ...expiredPatients];
+    let willUpdatePatients = [...newInputPatients, ...changedPatients, ...expiredPatients];
     if (willUpdatePatients.length) {
       await insertPatientsCache(willUpdatePatients);
     } else {
