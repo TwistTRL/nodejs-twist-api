@@ -2,7 +2,7 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-19 22:10:57
+ * @Last Modified time: 2020-10-12 21:37:03
  */
 const express = require("express");
 const timeout = require("connect-timeout");
@@ -109,8 +109,9 @@ function initialize() {
       console.log("currentAddress :", currentAddress);
 
       if (!ipWhiteList.includes(req.connection.remoteAddress)) {
-        console.log("to login");
-        res.redirect("/login");
+        console.log("redirect to login");
+        res.sendFile(path.join(__dirname, "/login.html"));
+        return;
       }
       next();
     });
