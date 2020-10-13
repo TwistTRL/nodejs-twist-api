@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-10 17:00:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-08 20:39:43
+ * @Last Modified time: 2020-10-13 15:45:24
  */
 
 const database = require("../../services/database");
@@ -62,6 +62,8 @@ ORDER BY DT_UNIX
 `;
 
 async function getLabSqlExecutor(conn, binds) {
+  // set nls_date_format for oracledb.fetchAsString
+  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`)
   const lab = await conn.execute(GET_LABS_BY_PERSONID_SQL, binds);
   let arr = lab.rows;
   console.log("lab size of current person", arr.length);

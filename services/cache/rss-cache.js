@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-10-01 16:19:44
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-05 14:43:08
+ * @Last Modified time: 2020-10-13 15:07:11
  */
 
 const oracledb = require("oracledb");
@@ -75,7 +75,7 @@ INSERT INTO API_CACHE_RSS
   AGE_IN_SECOND,
   RST,
   RSS,
-  UPDT_TM)
+  UPDT_UNIX)
 VALUES
   (:id,
   :person_id,
@@ -130,11 +130,10 @@ VALUES
   :age_in_second,
   :rst,
   :rss,
-  TO_DATE(:update_time, 'YYYY-MM-DD HH24:MI:SS'))
+  :updt_unix)
 `;
 
 const insertRssCache = async (patients) => {
-  console.log("patients for insert rss :>> ", patients);
   let binds = [];
   for (let patient of patients) {
     let person_id = Number(patient.PERSON_ID);
@@ -201,7 +200,7 @@ const insertRssCache = async (patients) => {
         age_in_second: curRss.AGE_IN_SECOND,
         rst: curRss.RST,
         rss: curRss.RSS,
-        update_time: moment().format("YYYY-MM-DD HH:mm:ss"),
+        updt_unix: moment().unix(),
       });
     });
   }
@@ -211,11 +210,11 @@ const insertRssCache = async (patients) => {
   console.time("insert-database-rss");
   const conn = await oracledb.getConnection();
 
-  // const deletePatientRSS = await conn.execute(
-  //   DELETE_RSS_CACHE_SQL(binds.length),
-  //   binds.map((x) => x.person_id)
-  // );
-  // console.log("deletePatientRSS :>> ", deletePatientRSS);
+  const deletePatientRSS = await conn.execute(
+    DELETE_RSS_CACHE_SQL(patients.length),
+    patients.map((x) => Number(x.PERSON_ID))
+  );
+  console.log("deletePatientRSS :>> ", deletePatientRSS);
   const insertTable = await conn.executeMany(INSERT_RSS_CACHE_SQL, binds);
   await conn.commit();
   await conn.close();

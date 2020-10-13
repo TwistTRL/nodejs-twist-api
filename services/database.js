@@ -2,6 +2,11 @@ const oracledb = require("oracledb");
 const dbConfig = require("../config/database-config.js");
 const DatabaseError = require("../utils/errors").DatabaseError;
 
+// https://github.com/oracle/node-oracledb/blob/master/doc/api.md#-16173-fetching-dates-and-timestamps
+// in our database, some date is UTC and some is EST
+// so fetch the date as String to avoid auto convertion
+oracledb.fetchAsString = [ oracledb.DATE ];
+
 async function initialize() {
   if (dbConfig.user && dbConfig.password) {
     await oracledb.createPool(dbConfig);

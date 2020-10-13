@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 11:07:25
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-21 18:11:42
+ * @Last Modified time: 2020-10-13 15:39:27
  */
  
 const database = require("../../services/database");
@@ -34,12 +34,16 @@ WHERE MRN = :mrn
 ORDER BY VALID_FROM_DT_TM`;
 
 async function operativeQuerySQLExecutor(conn, binds) {
+  // set nls_date_format for oracledb.fetchAsString
+  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS'`)
+  
   console.log("~~SQL_GET_OPERATIVE: ", SQL_GET_OPERATIVE);
   let rawRecord = await conn.execute(SQL_GET_OPERATIVE, binds);
   if (!rawRecord.rows[0]) {
     console.log("Warning: no OPERATIVE");
     return null;
   }
+  console.log('==> rawRecord.rows[0] :>> ', rawRecord.rows[0]);
 
   const rawDisplayArr = rawRecord.rows.map((item) => {
     return {

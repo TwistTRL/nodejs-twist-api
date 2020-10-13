@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-20 19:20:03
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-30 07:14:25
+ * @Last Modified time: 2020-10-13 09:30:53
  */
 
 const database = require("../../services/database");
@@ -18,7 +18,7 @@ SELECT
   DT_UNIX, 
   DIAGNOSES, 
   OPERATIVE_DISPLAY,
-  UPDT_TM
+  UPDT_UNIX
 FROM API_CACHE_DIAGNOSIS
 WHERE PERSON_ID = :person_id
 `;
