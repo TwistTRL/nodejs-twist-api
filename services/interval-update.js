@@ -9,15 +9,15 @@ const { insertRssCache } = require("./cache/rss-cache");
 const { getPatientsCache } = require("../db_apis/cache/get-patients-cache");
 
 const moment = require("moment");
-const INTERVAL_MINUTE = 10; // every 10 min
+const INTERVAL_MINUTE = 30; // every 30 min
 const MANUALLY_INPUT_PATITENTS = [
   {
     PERSON_ID: 25796315,
-    MRN: 5184229,
+    MRN: '5184229',
   },
   { 
     PERSON_ID: 24407610, 
-    MRN: 5080159, 
+    MRN: '5080159', 
   },
 ];
 
@@ -25,18 +25,22 @@ const getPatientsByManuallyInput = async () => MANUALLY_INPUT_PATITENTS;
 
 // start checking
 // strategy:
+// 0. manually input patients (right now hard coded)
 // 1. get new patients, compare with old
 // 2. if one new patient is not in old array, update that one
 // 3. check last update time, if more than 2 hours, update that one
 const updatePatients = async () => {
   let currentPatientsCache = await getPatientsCache();
-  let currentPatientsByLocation = await getPatientsByLocation();
+  let prePatientsMap = new Map(currentPatientsCache.map((x) => [x.PERSON_ID, x.UPDT_UNIX]));
+
   let manuallyInputPatients = await getPatientsByManuallyInput();
-
-  console.log("currentPatientsByLocation.length :>> ", currentPatientsByLocation.length);
-  let prePatientsMap = new Map(currentPatientsCache.map((x) => [x.PERSON_ID, x.UPDT_TM]));
-
   let newInputPatients = manuallyInputPatients.filter(element => !prePatientsMap.has(element.PERSON_ID));
+  console.log('newInputPatients :>> ', newInputPatients);
+
+  let currentPatientsByLocation = await getPatientsByLocation();
+  console.log("currentPatientsByLocation.length :>> ", currentPatientsByLocation.length);
+  currentPatientsByLocation = currentPatientsByLocation.filter(element => !newInputPatients.includes(element.PERSON_ID));
+  console.log("after filter, currentPatientsByLocation.length :>> ", currentPatientsByLocation.length);
 
   if (!currentPatientsCache.length) {
     console.log("no cache, will insert all current patients");
@@ -52,12 +56,6 @@ const updatePatients = async () => {
     return [...newInputPatients, ...currentPatientsByLocation];
   } else {
     // for current patients who are not old or their cache is before 2 hours ago
-    // let willUpdatePatients = currentPatientsByLocation.filter(
-    //   (patient) =>
-    //     !prePatientsMap.has(patient.PERSON_ID) ||
-    //     moment(prePatientsMap.get(patient.PERSON_ID)).isBefore(moment().subtract(2, "hours"))
-    // );
-
     let changedPatients = [];
     let expiredPatients = [];
 
@@ -66,7 +64,8 @@ const updatePatients = async () => {
         changedPatients.push(patient);
       }
 
-      if (moment(prePatientsMap.get(patient.PERSON_ID)).isBefore(moment().subtract(2, "hours"))) {
+      if (moment().unix() - prePatientsMap.get(patient.PERSON_ID) >= 12.1 * 60 * 60) {
+        // more than 12 hours
         expiredPatients.push(patient);
       }
     });
@@ -98,6 +97,7 @@ const updatePatients = async () => {
 const initialize = async () => {
   console.log("initialize interval update");
   let willUpdatePatients = await updatePatients();
+  console.log('willUpdatePatients :>> ', willUpdatePatients.map(x=>x.PERSON_ID));
   if (willUpdatePatients && willUpdatePatients.length) {
     console.log("insertNoteCache...");
     await insertNoteCache(willUpdatePatients);
@@ -115,14 +115,18 @@ const initialize = async () => {
 
 const startInterval = () => {
   const checkPatientsInterval = setInterval(async () => {
-    console.log("checking patients at ", new Date().toString());
+    console.log("🕰️ checking patients at ", new Date().toString());
     let newPatients = await updatePatients();
     console.log("newPatients :>> ", newPatients);
 
     if (newPatients && newPatients.length) {
+      console.log("updating note cache...");
       await insertNoteCache(newPatients);
+      console.log("updating diagnosis cache...");
       await insertDiagnosisCache(newPatients);
+      console.log("updating inout cache...");
       await insertInoutCache(newPatients);
+      console.log("updating rss cache...");
       await insertRssCache(newPatients);
       console.log("patients cache updated at :>> ", new Date().toString());
     } else {

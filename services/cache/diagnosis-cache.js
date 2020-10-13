@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-20 19:20:03
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-25 10:45:27
+ * @Last Modified time: 2020-10-13 01:42:36
  */
 
 const oracledb = require("oracledb");
@@ -11,14 +11,16 @@ const moment = require("moment");
 const { getDisplayLine } = require("../../db_apis/diagnosis_display/get-display-line");
 const { getVerticalBarDisplay } = require("../../db_apis/diagnosis_display/get-verticalbar-timeline");
 
-const DELETE_DIAGNOSIS_CACHE_SQL = `
-DELETE FROM API_CACHE_DIAGNOSIS`;
+const DELETE_DIAGNOSIS_CACHE_SQL = (n) => `
+DELETE FROM API_CACHE_DIAGNOSIS
+  WHERE PERSON_ID IN (${[...new Array(n).keys()].map((i) => ":" + i.toString()).join(",")})
+`;
 
 const INSERT_DIAGNOSIS_CACHE_SQL = `
 INSERT INTO API_CACHE_DIAGNOSIS
-  (PERSON_ID, AGE_DISPLAY, SEX_DISPLAY, HETEROTAXY_DISPLAY, SDD_DISPLAY, DISEASE_DISPLAY, EVENT_ID, DT_UNIX, DIAGNOSES, STUDY_TYPE, OPERATIVE_DISPLAY, UPDT_TM)
+  (PERSON_ID, AGE_DISPLAY, SEX_DISPLAY, HETEROTAXY_DISPLAY, SDD_DISPLAY, DISEASE_DISPLAY, EVENT_ID, DT_UNIX, DIAGNOSES, STUDY_TYPE, OPERATIVE_DISPLAY, UPDT_UNIX)
 VALUES
-  (:person_id, :age_display, :sex_display, :heterotaxy_display, :sdd_display, :disease_display, :event_id, :unix_time, :diagnoses, :study_type, :operative_display, TO_DATE(:update_time, 'YYYY-MM-DD HH24:MI:SS'))
+  (:person_id, :age_display, :sex_display, :heterotaxy_display, :sdd_display, :disease_display, :event_id, :unix_time, :diagnoses, :study_type, :operative_display, :updt_unix)
 `;
 
 const insertDiagnosisCache = async (patients) => {
@@ -43,7 +45,7 @@ const insertDiagnosisCache = async (patients) => {
       let diagnoses = verticalBar.diagnoses;
       let study_type = verticalBar.study_type;
       let operative_display = verticalBar.operative_display;
-      let update_time = moment().format("YYYY-MM-DD HH:mm:ss");
+      let updt_unix = moment().unix();
       binds.push({
         person_id,
         age_display,
@@ -56,7 +58,7 @@ const insertDiagnosisCache = async (patients) => {
         diagnoses,
         study_type,
         operative_display,
-        update_time,
+        updt_unix,
       });
     }
   }
@@ -64,7 +66,7 @@ const insertDiagnosisCache = async (patients) => {
   // write into database table API_CACHE_DIAGNOSIS
   console.time("insert-database-diagnosis");
   const conn = await oracledb.getConnection();
-  const deleteTable = await conn.execute(DELETE_DIAGNOSIS_CACHE_SQL);
+  const deleteTable = await conn.execute(DELETE_DIAGNOSIS_CACHE_SQL(binds.length), binds.map((x) => x.person_id));
   const insertTable = await conn.executeMany(INSERT_DIAGNOSIS_CACHE_SQL, binds);
   await conn.commit();
   await conn.close();

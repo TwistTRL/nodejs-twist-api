@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-12 21:46:21
+ * @Last Modified time: 2020-10-13 12:01:22
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -1704,27 +1704,37 @@ router.get("/person/:person_id/RSS", async (req, res) => {
     res.send("Invalid person_id, should be integer.");
     return;
   }
+  const now = Math.ceil(Date.now() / 1000);
   const from = parseFloat(req.query.from) || 0;
-  const to = parseFloat(req.query.to) || Math.ceil(Date.now() / 1000);
+  const to = parseFloat(req.query.to) || now;
   const binds = {
     person_id,
     from_: from,
     to_: to,
   };
 
-  // console.time("rss-time");
-  // const rssCache = await getRssCache(binds);
-  // if (rssCache.length) {
-  //   console.log("rss from cache");
-  //   console.timeEnd("rss-time");
-  //   res.send(rssCache);
-  // } else {
-  //   console.timeEnd("rss-time");
-  //   res.send(await getRespiratorySupportVariable(binds));
-  // }
+  let rssResults;
 
-  // TODO ==> USE CACHE
-    res.send(await getRespiratorySupportVariable(binds));
+  console.time("rss-time");
+
+  // USE CACHE
+  if (from === 0) {
+    const rssCache = await getRssCache({person_id});
+    if (rssCache.length) {
+      console.log("rss from cache: ", rssCache.length);
+      rssResults = rssCache;
+    } else {
+      rssResults = await getRespiratorySupportVariable(binds);
+    }
+  } else {
+    rssResults = await getRespiratorySupportVariable(binds);
+  }
+  console.timeEnd("rss-time");
+
+  res.send(rssResults);
+
+
+
 
 });
 

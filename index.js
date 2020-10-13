@@ -38,16 +38,16 @@ async function startup() {
     process.exit(1); // Non-zero failure code
   }
 
-  // try {
-  //   console.log("  Initializing cache-updating module");
+  try {
+    console.log("  Initializing cache-updating module");
 
-  //   await intervalUpdate.initialize();
-  //   checkPatientsInterval = intervalUpdate.startInterval()
-  // } catch (err) {
-  //   console.error(err);
+    await intervalUpdate.initialize();
+    checkPatientsInterval = intervalUpdate.startInterval()
+  } catch (err) {
+    console.error(err);
 
-  //   process.exit(1); // Non-zero failure code
-  // }
+    process.exit(1); // Non-zero failure code
+  }
 
 }
 
@@ -75,16 +75,16 @@ async function shutdown(e) {
     err = err || e;
   }
 
-  // FIXME => stop intervalUpdate
-  // try {
-  //   console.log("Closing cache-updating module");
+  // TEST => stop intervalUpdate
+  try {
+    console.log("Closing cache-updating module");
 
-  //   intervalUpdate.close();
-  // } catch (e) {
-  //   console.error(e);
+    intervalUpdate.close(checkPatientsInterval);
+  } catch (e) {
+    console.error(e);
 
-  //   err = err || e;
-  // }
+    err = err || e;
+  }
 
   console.log("Exiting process");
 
