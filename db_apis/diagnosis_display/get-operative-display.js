@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 11:07:25
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-13 10:01:05
+ * @Last Modified time: 2020-10-13 15:39:27
  */
  
 const database = require("../../services/database");
@@ -35,7 +35,7 @@ ORDER BY VALID_FROM_DT_TM`;
 
 async function operativeQuerySQLExecutor(conn, binds) {
   // set nls_date_format for oracledb.fetchAsString
-  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD HH24:MI:SS'`)
+  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS'`)
   
   console.log("~~SQL_GET_OPERATIVE: ", SQL_GET_OPERATIVE);
   let rawRecord = await conn.execute(SQL_GET_OPERATIVE, binds);

@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-13 12:01:22
+ * @Last Modified time: 2020-10-13 15:50:42
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -412,7 +412,7 @@ router.post("/labs", async (req, res) => {
           "EVENT_ID": 4538898610,
           "ENCNTR_ID": 77334246,
           "ORDER_ID": 2451959503,
-          "DT_UTC": "2018-04-26 06:49:00",
+          "DT_UTC": "2018-04-26T06:49:00Z",
           "EVENT_CD": 598376695,
           "SOURCE": "WB Venous",
           "LAB": "Oxygen dissociation p50, Venous",
@@ -424,34 +424,34 @@ router.post("/labs", async (req, res) => {
           "CRITICAL_HIGH": " ",
           "NORMALCY": "NA",
           "DT_UNIX": 1524725340,
-          "CREATED_DT_TM_EST": "2020-10-06 15:30:11",
-          "ORIG_ORDER_DT_TM_UTC": "2018-04-26 06:24:30",
+          "CREATED_DT_TM_EST": "2020-10-06T15:30:11Z",
+          "ORIG_ORDER_DT_TM_UTC": "2018-04-26T06:24:30Z",
           "ORDER_PERSON": "GRAFF MD, CLAIRE LEE",
           "DT_TM_UTC_SCHEDULED": null,
           "PERSONNEL_ID_SCHEDULED": null,
           "PERSON_SCHEDULED": null,
-          "DT_TM_UTC_DISPATCHED": "2018-04-26 06:24:51",
+          "DT_TM_UTC_DISPATCHED": "2018-04-26T06:24:51Z",
           "PERSONNEL_ID_DISPATCHED": 16762046,
           "PERSON_DISPATCHED": "HOSKINS RN, KATHERINE HAYWA",
-          "DT_TM_UTC_COLLECTED": "2018-04-26 06:49:28",
+          "DT_TM_UTC_COLLECTED": "2018-04-26T06:49:28Z",
           "PERSONNEL_ID_COLLECTED": 21534119,
           "PERSON_COLLECTED": "HUGHES RN, BREANNA",
           "DT_TM_UTC_IN_TRANSIT": null,
           "PERSONNEL_ID_IN_TRANSIT": null,
           "PERSON_IN_TRANSIT": null,
-          "DT_TM_UTC_IN_LAB": "2018-04-26 06:53:38",
+          "DT_TM_UTC_IN_LAB": "2018-04-26T06:53:38Z",
           "PERSONNEL_ID_IN_LAB": 9003102,
           "PERSON_IN_LAB": "Gemeda , Binyam S\u0000",
           "DT_TM_UTC_IN_PROCESS": null,
           "PERSONNEL_ID_IN_PROCESS": null,
           "PERSON_IN_PROCESS": null,
-          "DT_TM_UTC_COMPLETED": "2018-04-26 07:02:09",
+          "DT_TM_UTC_COMPLETED": "2018-04-26T07:02:09Z",
           "PERSONNEL_ID_COMPLETED": 9003102,
           "PERSON_COMPLETED": "Gemeda , Binyam S\u0000",
-          "DT_TM_UTC_PERFORMED": "2018-04-26 06:57:56",
+          "DT_TM_UTC_PERFORMED": "2018-04-26T06:57:56Z",
           "PERSONNEL_ID_PERFORMED": 9003102,
           "PERSON_PERFORMED": "Gemeda , Binyam S\u0000",
-          "UPDT_DT_TM_UTC": "2018-04-26 07:02:10",
+          "UPDT_DT_TM_UTC": "2018-04-26T07:02:10Z",
           "TABLE": "MISC"
       },
     ]
