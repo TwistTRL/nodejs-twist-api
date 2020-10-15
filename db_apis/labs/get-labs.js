@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-10 17:00:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-13 15:45:24
+ * @Last Modified time: 2020-10-15 10:06:35
  */
 
 const database = require("../../services/database");
@@ -55,8 +55,11 @@ SELECT
   DT_TM_UTC_PERFORMED,
   PERSONNEL_ID_PERFORMED,
   PERSON_PERFORMED,
+  DT_TM_UTC_VERIFIED,
+  PERSONNEL_ID_VERIFIED,
+  PERSON_VERIFIED,
   UPDT_DT_TM_UTC
-FROM LABS_PRD
+FROM LABS
 WHERE PERSON_ID = :person_id
 ORDER BY DT_UNIX
 `;
@@ -64,6 +67,11 @@ ORDER BY DT_UNIX
 async function getLabSqlExecutor(conn, binds) {
   // set nls_date_format for oracledb.fetchAsString
   await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`)
+  // FIXME 
+  // now nls_date_format makes everytime item UTC time. However CREATED_DT_TM_EST is EST time
+  // will fix this when all the columns in the databse have clear definition about timezone.
+
+
   const lab = await conn.execute(GET_LABS_BY_PERSONID_SQL, binds);
   let arr = lab.rows;
   console.log("lab size of current person", arr.length);

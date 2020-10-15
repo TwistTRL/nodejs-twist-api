@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-13 15:50:42
+ * @Last Modified time: 2020-10-15 10:16:29
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -424,7 +424,7 @@ router.post("/labs", async (req, res) => {
           "CRITICAL_HIGH": " ",
           "NORMALCY": "NA",
           "DT_UNIX": 1524725340,
-          "CREATED_DT_TM_EST": "2020-10-06T15:30:11Z",
+          "CREATED_DT_TM_EST": "2020-10-14T12:11:02Z",
           "ORIG_ORDER_DT_TM_UTC": "2018-04-26T06:24:30Z",
           "ORDER_PERSON": "GRAFF MD, CLAIRE LEE",
           "DT_TM_UTC_SCHEDULED": null,
@@ -451,6 +451,9 @@ router.post("/labs", async (req, res) => {
           "DT_TM_UTC_PERFORMED": "2018-04-26T06:57:56Z",
           "PERSONNEL_ID_PERFORMED": 9003102,
           "PERSON_PERFORMED": "Gemeda , Binyam S\u0000",
+          "DT_TM_UTC_VERIFIED": "2018-04-26T07:02:08Z",
+          "PERSONNEL_ID_VERIFIED": 9003102,
+          "PERSON_VERIFIED": "Gemeda , Binyam S\u0000",
           "UPDT_DT_TM_UTC": "2018-04-26T07:02:10Z",
           "TABLE": "MISC"
       },
