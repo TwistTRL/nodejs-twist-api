@@ -2,14 +2,14 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 11:19:09
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-13 09:51:34
+ * @Last Modified time: 2020-10-18 23:14:56
  */
 
 const database = require("../../services/database");
 
 const moment = require("moment");
 const { getDiagnosisDisplay } = require("./get-disease-display");
-const { getOperativeDisplay } = require("./get-operative-display");
+const { getOperativeDisplay, calculateEcmoDays } = require("./get-operative-display");
 const {  getPersonFromMrn } = require("../person/get-person-info"); // new
 
 const SQL_GET_PATIENT = `
@@ -157,6 +157,7 @@ const getDisplayLine = database.withConnection(async function (conn, binds) {
   } 
   const person_id = person_id_arr[0].PERSON_ID;
   console.log('display cache for person_id :>> ', person_id);
+  console.log('binds :>> ', binds);
   const arr = await conn.execute(GET_DIAGNOSIS_CACHE_SQL, {person_id}).then( ret=>ret.rows ); 
   if (arr && arr.length) {
     const age_display = arr[0].AGE_DISPLAY;
@@ -164,7 +165,7 @@ const getDisplayLine = database.withConnection(async function (conn, binds) {
     const heterotaxy_display = arr[0].HETEROTAXY_DISPLAY || "";
     const sdd_display = arr[0].SDD_DISPLAY || "";
     const disease_display = arr[0].DISEASE_DISPLAY;
-    const operative_display = []
+    let operative_display = []
     arr.forEach(element => {
       if (element.STUDY_TYPE === "SURG_FYLER_PRI_PRO") {
         operative_display.push({
@@ -175,6 +176,20 @@ const getDisplayLine = database.withConnection(async function (conn, binds) {
         })
       }
     });
+    // console.log('before ==> operative_display :>> ', operative_display);
+    /**
+     * will combine a series of ECMO events to one: 
+     *      {"operative_display": "ECMO cannulation", "event_time": "2018-08-14T00:00:00-04:00"}
+            {"operative_display": "ECMO cannula revision". "event_time": "2018-08-15T00:00:00-04:00"}
+            {"operative_display": "ECMO decannulation", "event_time": "2018-08-17T00:00:00-04:00"}
+
+            => {"operative_display": "ECMO cannulation (3 days)", "event_time": "2018-08-14T00:00:00-04:00"}           
+
+     * 
+     */
+    operative_display = await calculateEcmoDays(operative_display, conn, binds);
+    // console.log('after ==> operative_display :>> ', operative_display);
+
     const display_line = combineDisplayLine(age_display, sex_display, heterotaxy_display, sdd_display, disease_display, operative_display);
     console.timeEnd("display-line-time");
 

@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-20 18:03:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-13 14:13:36
+ * @Last Modified time: 2020-10-18 18:01:28
  */
 
 const database = require("../../services/database");
@@ -46,8 +46,13 @@ async function verticalBarQuerySQLExecutor(conn, binds) {
   const timeline_array = [];
   for (let item of rawRecord.rows) {
     let event_id = item.EVENT_ID;
+    // console.log('item.EVENT_DT_TM :>> ', item.EVENT_DT_TM);
+    // console.log('moment(item.EVENT_DT_TM).unix() :>> ', moment(item.EVENT_DT_TM).unix());
+
     timeline_array.push({
       event_id,
+      // FIXME:
+      // CONFIRM UTC OR EST?EDT then convert to unix time!
       unix_time: moment(item.EVENT_DT_TM).unix(),
       diagnoses: item.DIAGNOSES,
       study_type: item.STUDY_TYPE,

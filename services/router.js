@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-15 10:16:29
+ * @Last Modified time: 2020-10-15 15:50:49
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -80,7 +80,7 @@ const { testDrugInfusionsTime } = require("../test/test_drug_time");
 
 const { getPersonnelForPatient } = require("../db_apis/cross_tables/get_personnel_for_patient");
 
-const { getNUTime } = require("../db_apis/cross_tables/get_room_time");
+const { getNurseUnitTime } = require("../db_apis/adt/get-nurse-unit-for-patient");
 
 const test_crash = require("../test/test-crash");
 const { testAbnormalMRN } = require("../test/test_abnormal_mrn");
@@ -1661,7 +1661,7 @@ router.get("/person/:person_id/nurse-unit", async (req, res) => {
   const binds = {
     person_id,
   };
-  res.send(await getNUTime(binds));
+  res.send(await getNurseUnitTime(binds));
 });
 
 // ```````````````````````

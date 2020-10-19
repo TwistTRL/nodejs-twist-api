@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-20 19:20:03
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-13 01:42:36
+ * @Last Modified time: 2020-10-19 12:53:18
  */
 
 const oracledb = require("oracledb");
@@ -66,7 +66,9 @@ const insertDiagnosisCache = async (patients) => {
   // write into database table API_CACHE_DIAGNOSIS
   console.time("insert-database-diagnosis");
   const conn = await oracledb.getConnection();
-  const deleteTable = await conn.execute(DELETE_DIAGNOSIS_CACHE_SQL(binds.length), binds.map((x) => x.person_id));
+  const deletePatients = [...new Set(binds.map((x) => x.person_id))];
+  console.log('deletePatients :>> ', deletePatients);
+  const deleteTable = await conn.execute(DELETE_DIAGNOSIS_CACHE_SQL(deletePatients.length), deletePatients);
   const insertTable = await conn.executeMany(INSERT_DIAGNOSIS_CACHE_SQL, binds);
   await conn.commit();
   await conn.close();
