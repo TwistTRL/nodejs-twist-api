@@ -2,13 +2,12 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-10 17:00:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-15 10:06:35
+ * @Last Modified time: 2020-10-22 21:27:05
  */
 
-const database = require("../../services/database");
+const database_prd = require("../../services/database-prd");
 const {
   LABS_EVENT_CD_DICT,
-  WORKING_LABS_XLSX_PATH,
 } = require("../../db_relation/labs-db-relation");
 
 const GET_LABS_BY_PERSONID_SQL = `
@@ -59,7 +58,7 @@ SELECT
   PERSONNEL_ID_VERIFIED,
   PERSON_VERIFIED,
   UPDT_DT_TM_UTC
-FROM LABS
+FROM TWIST.LABS
 WHERE PERSON_ID = :person_id
 ORDER BY DT_UNIX
 `;
@@ -100,7 +99,7 @@ async function getLabSqlExecutor(conn, binds) {
   return resultArr;
 }
 
-const getLabsArray = database.withConnection(getLabSqlExecutor);
+const getLabsArray = database_prd.withConnection(getLabSqlExecutor);
 
 module.exports = {
   getLabsArray,

@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-15 15:50:49
+ * @Last Modified time: 2020-10-24 21:24:09
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -104,6 +104,7 @@ const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
 
 // -- cache
 const { getRssCache } = require("../db_apis/cache/get-rss-cache");
+const { getMedCache } = require("../db_apis/cache/get-med-cache");
 
 // --- write to database
 
@@ -859,7 +860,13 @@ router.get("/person/:person_id/med", async (req, res) => {
   }
   console.log("getting drug infusions for %s ...", person_id);
 
-  getApiFromRedis(res, getMed, { person_id }, "interface-med");
+  const medCache = await getMedCache({ person_id });
+  if (medCache.length) {
+    console.log("med from cache: ", medCache.length);
+    medResults = medCache;
+  } else {
+    medResults = getApiFromRedis(res, getMed, { person_id }, "interface-med");
+  }
 });
 
 /**
@@ -1722,7 +1729,7 @@ router.get("/person/:person_id/RSS", async (req, res) => {
 
   // USE CACHE
   if (from === 0) {
-    const rssCache = await getRssCache({person_id});
+    const rssCache = await getRssCache({ person_id });
     if (rssCache.length) {
       console.log("rss from cache: ", rssCache.length);
       rssResults = rssCache;
@@ -1735,10 +1742,6 @@ router.get("/person/:person_id/RSS", async (req, res) => {
   console.timeEnd("rss-time");
 
   res.send(rssResults);
-
-
-
-
 });
 
 router.get("/person/:person_id/HR", async (req, res) => {

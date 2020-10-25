@@ -1,14 +1,15 @@
 /*
  * @Author: Peng
  * @Date: 2019-12-27 12:54:04
- * @Last Modified by: Peng
- * @Last Modified time: 2020-03-26 13:36:39
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-10-24 20:54:51
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // define the category based on drug string
 // will updating for more
 // Table: DRUG_INFUSIONS
+const database = require("../services/database");
 
 const DRUG_INFUSIONS_LIST = [
   "DOPamine",
@@ -127,6 +128,47 @@ const FLUID_SETTINGS = {
   MED_CAT_XLSX_PATH
 };
 
+// adding suction parts to MED_CAT_STRUCTURE_ARRAY 
+const SQL_INFUSIONS_UNIT = `
+SELECT
+  DISTINCT DRUG,
+  INFUSION_RATE_UNITS
+FROM DRUG_INFUSIONS 
+`;
+
+const getUnit = database.withConnection(async function(conn) {
+  const infusionsUnit = await conn.execute(SQL_INFUSIONS_UNIT);
+  let unitDict = {};
+  infusionsUnit.rows.forEach(element => {
+    let cat = DRUG_TO_CAT_DICT[element.DRUG];
+    if (!(cat in unitDict)) {
+      unitDict[cat] = {};
+    }
+    unitDict[cat][element.DRUG] = element.INFUSION_RATE_UNITS;
+  });
+  
+  let suctionCatStructure = {
+    name: "SUCTION",
+    children: [{ name: "suction" }, { name: "child2" }, { name: "child3" }]
+  };
+  let newCatStructure = [...MEDICATION_CATEGORY_STRUCTURE];
+  newCatStructure.forEach(element => {
+    if (element.name in unitDict) {
+      element.children.forEach(item => {
+        if (item.name in unitDict[element.name]) {
+          item.unit = unitDict[element.name][item.name];
+        }
+      });
+    }
+  });
+  
+  let catStructureArray = [suctionCatStructure, ...newCatStructure];
+  return catStructureArray;
+});
+
+const MED_CAT_STRUCTURE_ARRAY = await getUnit();
+console.log('MED_CAT_STRUCTURE_ARRAY :>> ', MED_CAT_STRUCTURE_ARRAY);
+
 module.exports = {
   DRUG_INFUSIONS_LIST,
   DRUG_INTERMITTENT_LIST,
@@ -148,5 +190,7 @@ module.exports = {
   MORPHINE_EQUIVALENTS_ORDER_ARRAY,
   MORPHINE_EQUIVALENTS_COLOR_DICT,
   MED_CAT_XLSX_PATH,
-  FLUID_SETTINGS
+  FLUID_SETTINGS,
+
+  MED_CAT_STRUCTURE_ARRAY,
 };
