@@ -1,20 +1,24 @@
 /*
  * @Author: Peng
  * @Date: 2020-04-06 10:31:08
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-17 14:28:37
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-11-01 12:39:56
  */
 
 //~~~~~~~~~~ REDIS SETTINGS ~~~~~~~~
-const REDIS_PORT = 6379; // redis default port is 6379
-const USE_CACHE = true; // if true, will use redis cache
-const REDIS_EXPIRE_TIME = 60; // redis cache expire after this time in seconds
-//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// redis default port is 6379
+const REDIS_PORT = 6379; 
 
-const database = require("../services/database");
+// if true, will use redis cache
+const USE_CACHE = true; 
+
+// redis cache expire after this time in seconds
+const REDIS_EXPIRE_TIME = process.env.NODE_ENV === "development" ? 60 : 3600; 
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 const Redis = require("ioredis");
 const redis = new Redis(REDIS_PORT);
+const database = require("../services/database");
 
 /**
  * 
@@ -41,7 +45,7 @@ const getApiFromRedis = async (res, apiFn, apiInput, apiName = "api") => {
     redis.get(redisKey, async (err, reply) => {
       if (USE_CACHE && reply) {
         res.send(reply);
-        console.log("-> from cache");
+        console.log("==> api from redis cache");
         console.timeEnd(apiName);
       } else {
         let toSend = await apiFn(apiInput);
@@ -62,6 +66,24 @@ const getApiFromRedis = async (res, apiFn, apiInput, apiName = "api") => {
       res.status(400);
       res.send(error.toString());
     }
+  }
+};
+
+const tryFetchFromRedis = async (endpointKey, endpointName) => {
+  if (!USE_CACHE) {
+    return false;
+  }
+  let redisKey = `${endpointName}:${JSON.stringify(endpointKey)}`;
+  console.log("fetching from redis for redisKey :", redisKey);
+  console.time(endpointName);
+  const reply = await redis.get(redisKey);
+  if (reply) {
+    console.log("==> from redis cache");
+    console.timeEnd(endpointName);
+    return reply;
+  } else {   
+    console.log("==> no redis cache"); 
+    return false;
   }
 };
 
@@ -112,4 +134,7 @@ module.exports = {
   getApiFromRedis,
   initFetchToRedis,
   calcEndpointToRedis,
+  redis,
+  REDIS_EXPIRE_TIME,
+  tryFetchFromRedis, 
 };

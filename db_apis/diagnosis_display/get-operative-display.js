@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 11:07:25
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-18 19:17:54
+ * @Last Modified time: 2020-10-31 09:18:56
  */
  
 const database = require("../../services/database");
@@ -43,7 +43,6 @@ async function operativeQuerySQLExecutor(conn, binds) {
     console.log("Warning: no OPERATIVE");
     return null;
   }
-  console.log('==> rawRecord.rows[0] :>> ', rawRecord.rows[0]);
 
   const rawDisplayArr = rawRecord.rows.map((item) => {
     return {

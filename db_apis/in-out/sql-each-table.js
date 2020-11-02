@@ -2,27 +2,30 @@
  * @Author: Peng
  * @Date: 2020-04-07 12:57:40
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-08-27 12:31:22
+ * @Last Modified time: 2020-11-01 08:03:05
  */
 
-const SQL_GET_PERSON_ID = (mrn) => `
+const SQL_GET_PERSON_ID = `
 SELECT
-    DISTINCT PERSON_ID
+    PERSON_ID,
+    BEG_EFFECTIVE_UNIX_TS
 FROM CHB_MRN
-WHERE MRN = '${mrn}'`;
+WHERE MRN = :mrn
+ORDER BY BEG_EFFECTIVE_UNIX_TS DESC
+`;
 
 // TPN_LIPID
-const SQL_GET_TPN_LIPID = ({ person_id, from, to }) => `
+const SQL_GET_TPN_LIPID = `
 SELECT
     DT_UNIX,
     RESULT_VAL
 FROM TPN_LIPID
-WHERE PERSON_ID = ${person_id}
-AND DT_UNIX <= ${to} AND DT_UNIX >= ${from}
+WHERE PERSON_ID = :person_id
+AND DT_UNIX <= :to_ AND DT_UNIX >= :from_
 ORDER BY DT_UNIX`;
 
 // TPN
-const SQL_GET_TPN = ({ person_id, from, to }) => `
+const SQL_GET_TPN = `
 SELECT  
     START_UNIX,
     END_UNIX, 
@@ -41,12 +44,12 @@ SELECT
     "VITAMIN_PN",
     "CARNITINE_PN"
 FROM TPN
-WHERE PERSON_ID = ${person_id}
-AND START_UNIX <= ${to} AND END_UNIX >= ${from}
+WHERE PERSON_ID = :person_id
+AND START_UNIX <= :to_ AND END_UNIX >= :from_
 ORDER BY START_UNIX`;
 
 // EN
-const SQL_GET_EN = ({ person_id, from, to }) => `
+const SQL_GET_EN = `
 SELECT  
     START_TIME_UNIX,
     "VOLUME",
@@ -57,25 +60,35 @@ SELECT
     G_FAT_ROW,
     G_CHO_ROW
 FROM EN
-WHERE PERSON_ID = ${person_id}
-AND START_TIME_UNIX <= ${to}
-AND START_TIME_UNIX >= ${from}
+WHERE PERSON_ID = :person_id
+AND START_TIME_UNIX <= :to_
+AND START_TIME_UNIX >= :from_
 ORDER BY START_TIME_UNIX`;
 
 // INTAKE_OUTPUT
-const SQL_GET_IN_OUT_EVENT = ({ person_id, from, to }) => `
+const SQL_GET_IN_OUT_EVENT = `
 SELECT  
-    DT_UNIX,
     EVENT_CD,
-    RESULT_VAL
+    RESULT_VAL,
+    UNIT,
+    DESC_EVENT,
+    EVENT_CD_DEFINITION,
+    DISPLAY_IO,
+    IO_CALCS,
+    IO_CAT,
+    SUBCAT,
+    LABEL_TWIST,
+    SHORT_LABEL,
+    DEXTROSE,
+    DT_UNIX
 FROM INTAKE_OUTPUT
-WHERE PERSON_ID = ${person_id}
-AND DT_UNIX <= ${to} AND DT_UNIX >= ${from}
+WHERE PERSON_ID = :person_id
+AND DT_UNIX <= :to_ AND DT_UNIX >= :from_
 ORDER BY DT_UNIX
 `;
 
 // DRUG_DILUENTS
-const SQL_GET_DILUENTS = ({ person_id, from, to }) => `
+const SQL_GET_DILUENTS = `
 SELECT  
     START_UNIX,
     END_UNIX,
@@ -88,12 +101,12 @@ SELECT
     INFUSION_RATE_UNITS,
     DOSING_WEIGHT
 FROM DRUG_DILUENTS
-WHERE PERSON_ID = ${person_id}
-AND START_UNIX < ${to}
-AND END_UNIX > ${from}
+WHERE PERSON_ID = :person_id
+AND START_UNIX <= :to_
+AND END_UNIX >= :from_
 ORDER BY START_UNIX`;
 
-const SQL_GET_IO_MED_VOL = ({ person_id, from, to }) => `
+const SQL_GET_IO_MED_VOL = `
 SELECT 
   DT_UNIX,
   DRUG,
@@ -101,13 +114,13 @@ SELECT
   VOLUME_UNITS,
   ADMIN_ROUTE
 FROM DRUG_INTERMITTENT
-WHERE PERSON_ID = ${person_id} 
+WHERE PERSON_ID = :person_id 
   AND (VOLUME_UNITS = 'mL' OR VOLUME_UNITS = 'L')
-  AND DT_UNIX BETWEEN ${from} AND ${to}
+  AND DT_UNIX BETWEEN :from_ AND :to_
 ORDER BY DT_UNIX`;
 
 // DRUG_INFUSIONS
-const SQL_INFUSIONS = ({ person_id }) => `
+const SQL_INFUSIONS = `
 SELECT 
     START_UNIX,
     END_UNIX,
@@ -116,19 +129,19 @@ SELECT
     INFUSION_RATE,
     INFUSION_RATE_UNITS
 FROM DRUG_INFUSIONS
-WHERE PERSON_ID = ${person_id}
+WHERE PERSON_ID = :person_id
 ORDER BY START_UNIX, DRUG`;
 
-const SQL_INFUSIONS_UNIT = ({ person_id }) => `
+const SQL_INFUSIONS_UNIT = `
 SELECT
     DISTINCT DRUG,
     INFUSION_RATE_UNITS
 FROM DRUG_INFUSIONS
-WHERE PERSON_ID = ${person_id}
+WHERE PERSON_ID = :person_id
 ORDER BY DRUG`;
 
 //DRUG_INTERMITTENT
-const SQL_INTERMITTENT = ({ person_id }) => `
+const SQL_INTERMITTENT = `
 SELECT 
     DT_UNIX,
     DRUG,
@@ -139,12 +152,12 @@ SELECT
     INFUSED_VOLUME,
     VOLUME_UNITS
 FROM DRUG_INTERMITTENT
-WHERE PERSON_ID = ${person_id}
+WHERE PERSON_ID = :person_id
 AND RXCUI IS NOT NULL
 ORDER BY DT_UNIX, DRUG`;
 
 // SUCTION
-const SQL_SUCTION = ({ person_id }) => `
+const SQL_SUCTION = `
 SELECT
     DATETIMEUTC,
     LVL,
@@ -157,23 +170,23 @@ SELECT
     TRACH_SUCTION_CATHETER_SIZE,
     TRACH_SUCTION_DEPTH
 FROM SUCTION
-WHERE PERSON_ID = ${person_id}
+WHERE PERSON_ID = :person_id
 ORDER BY DATETIMEUTC`;
 
-const SQL_GET_WEIGHT = ({ person_id }) => `
+const SQL_GET_WEIGHT = `
 SELECT
     DT_UNIX,
     WEIGHT_CALC
 FROM WEIGHTS_CALCS
-WHERE PERSON_ID = ${person_id}
+WHERE PERSON_ID = :person_id
 ORDER BY DT_UNIX`;
 
-const SQL_GET_EXACT_WEIGHT = ({ person_id }) => `
+const SQL_GET_EXACT_WEIGHT = `
 SELECT
     DT_UNIX,
     WEIGHT
 FROM WEIGHTS
-WHERE PERSON_ID = ${person_id}
+WHERE PERSON_ID = :person_id
 ORDER BY DT_UNIX`;
 
 module.exports = {
@@ -183,6 +196,7 @@ module.exports = {
   SQL_GET_IN_OUT_EVENT,
   SQL_GET_TPN,
   SQL_GET_TPN_LIPID,
+  SQL_GET_IO_MED_VOL,
 
   SQL_INFUSIONS,
   SQL_INFUSIONS_UNIT,

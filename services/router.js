@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-24 21:24:09
+ * @Last Modified time: 2020-11-01 18:28:44
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -19,7 +19,7 @@ const { getPhenotypingStep2 } = require("../db_apis/phenotyping/step2");
 const { getAdtCensus } = require("../db_apis/cross_tables/get-adt-census");
 const { getCensus } = require("../db_apis/cross_tables/get-census");
 const { getRadiology } = require("../db_apis/get-radiology");
-const { getInitialFetch } = require("../db_apis/db_basic_tables/get-init-fetch");
+const { getInOutInit } = require("../db_apis/in-out/in-out-init-fetch");
 const { getRelationalQuery } = require("../db_apis/get-relational-query");
 const { getVitalsQuery } = require("../db_apis/get-vitals-all");
 const { getVitalsQueryV2 } = require("../db_apis/get-vitals-all-v2");
@@ -302,31 +302,6 @@ router.get("/person/:person_id/radiology", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   console.log("person_id is: " + person_id);
   getApiFromRedis(res, getRadiology, person_id, "interface-radiology");
-});
-
-/**
- * @api {get} /mrn/:mrn/init Initial data for patient
- * @apiVersion 0.0.1
- * @apiName initial-patient
- * @apiGroup MRN
- * @apiParam {Number} mrn patient mrn.
- *
- * @apiSuccessExample Success-Response:
- *     
-      {
-            // data saved into redis cache
-            "inoutSize": 1000,
-            "nutriFpcSize": 200,
-            "nutriVolumeSize": 300,
-            "nutriCaloriesSize": 400            
-      }
- *
- */
-
-router.get("/mrn/:mrn/init", async (req, res) => {
-  const mrn = req.params.mrn;
-  console.log("mrn is: " + mrn);
-  res.send(await getInitialFetch(mrn));
 });
 
 /**
@@ -935,11 +910,10 @@ router.post("/inout-v2", async (req, res) => {
   let query = {
     person_id: req.body.person_id,
     from: req.body.from || 0,
-    // round to next day. for keep the same redisKey
-    to: req.body.to || Math.round(new Date().getTime() / 1000 / 3600) * 3600 + 3600,
+    // ceil to next hour. for keep the same redisKey
+    to: req.body.to || Math.ceil(new Date().getTime() / 1000 / 3600) * 3600,
     resolution: req.body.resolution || 3600,
   };
-  console.log("query = ", query);
 
   if (!Number.isInteger(query.person_id)) {
     res.send("Invalid person_id, should be integer.");
@@ -3747,6 +3721,31 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 });
 
 // --------- dev
+
+/**
+ * @api {get} /inout/:mrn Initial In-Out
+ * @apiVersion 0.0.1
+ * @apiName initial-in-out
+ * @apiGroup DEV
+ * @apiParam {Number} mrn patient mrn.
+ *
+ * @apiSuccessExample Success-Response:
+ *     
+      {
+            // data saved into redis cache
+            "inoutSize": 1000,
+            "nutriFpcSize": 200,
+            "nutriVolumeSize": 300,
+            "nutriCaloriesSize": 400            
+      }
+ *
+ */
+
+router.get("/inout/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  console.log("mrn is: " + mrn);
+  res.send(await getInOutInit(mrn));
+});
 
 /**
  * @api {post} /inout-tooltip-v3 In-Out Tooltip (dev)

@@ -1,6 +1,6 @@
 {
   "name": "twist-backend-api",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "API with Node.js and Oracle Database",
   "main": "index.js",
   "scripts": {

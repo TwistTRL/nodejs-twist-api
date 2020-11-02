@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-10-19 15:19:06 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-24 19:44:59
+ * @Last Modified time: 2020-10-26 17:48:00
  */
 
 
@@ -100,8 +100,11 @@ const insertMedCache = async (patients) => {
     }
 
   }
+   
+// FIXME
+// not working
 
-  console.log("insert records length :>> ", binds.length);
+  console.log("API_CACHE_MED insert records length :>> ", binds.length);
   if (!binds.length) {
     return {}
   }

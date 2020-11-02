@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-20 18:03:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-18 18:01:28
+ * @Last Modified time: 2020-10-31 10:50:39
  */
 
 const database = require("../../services/database");
@@ -36,6 +36,9 @@ WHERE PERSON_ID = :person_id
 
 
 async function verticalBarQuerySQLExecutor(conn, binds) {
+  // set nls_date_format for oracledb.fetchAsString
+  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS'`)
+
   const rawRecord = await conn.execute(SQL_GET_OPERATIVE, binds);
 
   if (!rawRecord.rows[0]) {
@@ -46,8 +49,8 @@ async function verticalBarQuerySQLExecutor(conn, binds) {
   const timeline_array = [];
   for (let item of rawRecord.rows) {
     let event_id = item.EVENT_ID;
-    // console.log('item.EVENT_DT_TM :>> ', item.EVENT_DT_TM);
-    // console.log('moment(item.EVENT_DT_TM).unix() :>> ', moment(item.EVENT_DT_TM).unix());
+    console.log('item.EVENT_DT_TM :>> ', item.EVENT_DT_TM);
+    console.log('moment(item.EVENT_DT_TM).unix() :>> ', moment(item.EVENT_DT_TM).unix());
 
     timeline_array.push({
       event_id,

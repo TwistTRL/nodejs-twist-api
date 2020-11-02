@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-10 17:00:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-22 21:27:05
+ * @Last Modified time: 2020-10-31 10:53:40
  */
 
 const database_prd = require("../../services/database-prd");
@@ -66,7 +66,7 @@ ORDER BY DT_UNIX
 async function getLabSqlExecutor(conn, binds) {
   // set nls_date_format for oracledb.fetchAsString
   await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`)
-  // FIXME 
+  // FIXME: 
   // now nls_date_format makes everytime item UTC time. However CREATED_DT_TM_EST is EST time
   // will fix this when all the columns in the databse have clear definition about timezone.
 

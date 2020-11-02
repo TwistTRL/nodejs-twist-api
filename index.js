@@ -42,7 +42,9 @@ async function startup() {
     console.log("  Initializing cache-updating module");
 
     await intervalUpdate.initialize();
-    checkPatientsInterval = intervalUpdate.startInterval()
+
+    // temp disable update patients interval 10/31/20
+    // checkPatientsInterval = intervalUpdate.startInterval()
   } catch (err) {
     console.error(err);
 
@@ -75,16 +77,16 @@ async function shutdown(e) {
     err = err || e;
   }
 
-  // TEST => stop intervalUpdate
-  try {
-    console.log("Closing cache-updating module");
+  // temp disable stop patients interval 10/31/20
+  // try {
+  //   console.log("Closing cache-updating module");
 
-    intervalUpdate.close(checkPatientsInterval);
-  } catch (e) {
-    console.error(e);
+  //   intervalUpdate.close(checkPatientsInterval);
+  // } catch (e) {
+  //   console.error(e);
 
-    err = err || e;
-  }
+  //   err = err || e;
+  // }
 
   console.log("Exiting process");
 

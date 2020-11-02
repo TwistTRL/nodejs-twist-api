@@ -5,6 +5,7 @@ const { insertNoteCache } = require("./cache/procedural-note-cache");
 const { insertInoutCache } = require("./cache/inout-cache");
 const { insertDiagnosisCache } = require("./cache/diagnosis-cache");
 const { insertRssCache } = require("./cache/rss-cache");
+const { insertMedCache } = require("./cache/medicine-cache");
 
 const { getPatientsCache } = require("../db_apis/cache/get-patients-cache");
 
@@ -96,18 +97,22 @@ const updatePatients = async () => {
 
 const initialize = async () => {
   console.log("initialize interval update");
-  let willUpdatePatients = await updatePatients();
-  console.log('willUpdatePatients :>> ', willUpdatePatients.map(x=>x.PERSON_ID));
-  if (willUpdatePatients && willUpdatePatients.length) {
+  let manuallyInputPatients = await getPatientsByManuallyInput();
+  console.log('initialize manuallyInputPatients :>> ', manuallyInputPatients.map(x=>x.PERSON_ID));
+  if (manuallyInputPatients && manuallyInputPatients.length) {
+    console.log("insertPatientsCache...");
+    await insertPatientsCache(manuallyInputPatients);
     console.log("insertNoteCache...");
-    await insertNoteCache(willUpdatePatients);
+    await insertNoteCache(manuallyInputPatients);
     console.log("insertDiagnosisCache...");
-    await insertDiagnosisCache(willUpdatePatients);
-    console.log("insertInoutCache");
-    await insertInoutCache(willUpdatePatients);
-    console.log("insertRssCache");
-    await insertRssCache(willUpdatePatients);
-    console.log("🕰️ patients cache updated at :>> ", new Date().toString());
+    await insertDiagnosisCache(manuallyInputPatients);
+    console.log("insertInoutCache...");
+    await insertInoutCache(manuallyInputPatients);
+    console.log("insertRssCache...");
+    await insertRssCache(manuallyInputPatients);
+    console.log("insertMedCache...");
+    await insertMedCache(manuallyInputPatients);    
+    console.log("🕰️ 🕰️ 🕰️ patients cache updated at :>> ", new Date().toString());
   } else {
     console.log("no update at initialization");
   }
@@ -128,7 +133,9 @@ const startInterval = () => {
       await insertInoutCache(newPatients);
       console.log("updating rss cache...");
       await insertRssCache(newPatients);
-      console.log("patients cache updated at :>> ", new Date().toString());
+      console.log("updating medicine cache...");
+      await insertMedCache(newPatients);    
+      console.log("🕰️ patients cache updated at :>> ", new Date().toString());
     } else {
       console.log("no change on current patients");
     }
@@ -143,6 +150,6 @@ const close = (checkPatientsInterval) => {
 
 module.exports = {
   initialize,
-  startInterval,
+  // startInterval,
   close,
 };
