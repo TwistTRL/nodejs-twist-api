@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-01 18:28:44
+ * @Last Modified time: 2020-11-01 21:57:34
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -3723,12 +3723,12 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 // --------- dev
 
 /**
- * @api {get} /inout/:mrn Initial In-Out
+ * @api {get} /inout/:mrn Initial In-Out (dev)
  * @apiVersion 0.0.1
  * @apiName initial-in-out
  * @apiGroup DEV
  * @apiParam {Number} mrn patient mrn.
- *
+ * @apiDescription For patient in-out, do this first, in order to fetch some database table only once.  
  * @apiSuccessExample Success-Response:
  *     
       {

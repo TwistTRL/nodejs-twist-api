@@ -37,16 +37,16 @@ API documentation: web browser `twist:3333/api/`
 
 ```bash
 .
-├── apidoc2-header.md
-├── apidoc-header.md
-├── _apidoc.js
 ├── assets
 │   ├── api-cached-fetch.iuml
+│   ├── api-cache.iuml
 │   ├── api-init-fetch.iuml
 │   ├── database-diagram.iuml
 │   ├── db-api-front.iuml
 │   ├── db-api-front-v2.iuml
 │   ├── flowchart.iuml
+│   ├── phenotyping-initial.iuml
+│   ├── phenotyping.iuml
 │   └── sequence.iuml
 ├── cerner_apis
 │   ├── cerner-FHIR-config.js
@@ -56,18 +56,22 @@ API documentation: web browser `twist:3333/api/`
 │   ├── apidoc2-config
 │   ├── apidoc-config
 │   ├── database-config.js
+│   ├── database-prd-config.js
 │   ├── ipList.txt
 │   ├── redis-config.js
 │   ├── users.js
 │   └── web-server-config.js
 ├── db_apis
+│   ├── adt
+│   ├── cache
 │   ├── cross_tables
-│   ├── db_basic_tables
+│   ├── diagnosis_display
 │   ├── get_bed.js
 │   ├── get_bed_survey.js
 │   ├── get-diluent-nutrition-calc.js
 │   ├── get_drug.js
 │   ├── get-ecmo.js
+│   ├── get-formula.js
 │   ├── get_heart_rate.js
 │   ├── get_hr_binned.js
 │   ├── get_hr_binned_v2.js
@@ -76,6 +80,7 @@ API documentation: web browser `twist:3333/api/`
 │   ├── get-in-out-tooltip.js
 │   ├── get-in-out-tooltip-v1.js
 │   ├── get-in-out-tooltip-v2.js
+│   ├── get-in-out-tooltip-v3.js
 │   ├── get-in-out-v2.js
 │   ├── get-labs-all.js
 │   ├── get_labs.js
@@ -101,6 +106,11 @@ API documentation: web browser `twist:3333/api/`
 │   ├── get-vitals-all.js
 │   ├── get-vitals-all-v2.js
 │   ├── get-weight.js
+│   ├── in-out
+│   ├── labs
+│   ├── lines
+│   ├── person
+│   ├── phenotyping
 │   └── utils
 ├── db_relation
 │   ├── converted-database.js
@@ -111,6 +121,7 @@ API documentation: web browser `twist:3333/api/`
 │   ├── hr-raw-config.js
 │   ├── in-out-db-relation.js
 │   ├── labs-category-config.js
+│   ├── labs-db-relation.js
 │   ├── microbiology-db-relation.js
 │   ├── nurse-unit-abbr.js
 │   ├── radiology-db-relation.js
@@ -119,9 +130,12 @@ API documentation: web browser `twist:3333/api/`
 ├── docs
 │   ├── apidoc
 │   ├── apidoc2
+│   ├── cache.md
 │   ├── files
+│   ├── oracledb.md
 │   ├── pm2.service
-│   └── redis.service
+│   ├── redis.service
+│   └── thoughts.md
 ├── ecosystem.config.js
 ├── index.js
 ├── nodemon.json
@@ -165,9 +179,8 @@ API documentation: web browser `twist:3333/api/`
 
 ## TODO list
 
-- [ ] FHIR files
-- [x] Nutrition data
-- [x] api cache layer
+- [x] API Redis cache layer
+- [ ] Database cache table update
 - [ ] Census page
 
 <!-- ![db-api-front](http://www.plantuml.com/plantuml/proxy?cache=no&src=https://raw.githubusercontent.com/TwistTRL/nodejs-twist-api/master/assets/db-api-front.iuml) -->
