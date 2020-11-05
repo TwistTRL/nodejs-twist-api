@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-01 10:30:07
+ * @Last Modified time: 2020-11-05 15:30:18
  */
 
 /**
@@ -731,30 +731,30 @@ const getInOutQueryV2 = database.withConnection(async function (conn, query) {
   let consoleTimeCount = timeLable++;
   console.time("getInOut " + consoleTimeCount);
 
-  // USE CACHE
-  if (Number(query.resolution) === 3600) {
-    // try cache
-    const binds = {
-      person_id: query.person_id,
-    };
-    console.log("getting cache");
-    console.time("getInOut from cache" + consoleTimeCount);
-    result = await conn.execute(GET_INOUT_CACHE_SQL, binds).then( ret=>ret.rows ); 
-    console.timeEnd("getInOut from cache" + consoleTimeCount);
+  // TODO: USE CACHE 
+  // if (Number(query.resolution) === 3600) {
+  //   // try cache
+  //   const binds = {
+  //     person_id: query.person_id,
+  //   };
+  //   console.log("getting cache");
+  //   console.time("getInOut from cache" + consoleTimeCount);
+  //   result = await conn.execute(GET_INOUT_CACHE_SQL, binds).then( ret=>ret.rows ); 
+  //   console.timeEnd("getInOut from cache" + consoleTimeCount);
 
-    if (result && result[0]) {
-      console.timeEnd("getInOut " + consoleTimeCount);
-      console.log("~~> from cache table: ", query.person_id);
-      return result.map( item => {
-        return {
-          value: item.INOUT_VALUE,
-          short_label: item.SHORT_LABEL,
-          time: item.DT_UNIX,
-          type: item.INOUT_TYPE,   
-        }
-      });
-    }
-  }
+  //   if (result && result[0]) {
+  //     console.timeEnd("getInOut " + consoleTimeCount);
+  //     console.log("~~> from cache table: ", query.person_id);
+  //     return result.map( item => {
+  //       return {
+  //         value: item.INOUT_VALUE,
+  //         short_label: item.SHORT_LABEL,
+  //         time: item.DT_UNIX,
+  //         type: item.INOUT_TYPE,   
+  //       }
+  //     });
+  //   }
+  // }
 
   // while no cache
   let rawResults = await parallelQuery(conn, query);
