@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-01 21:57:34
+ * @Last Modified time: 2020-11-05 16:08:43
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -1701,18 +1701,21 @@ router.get("/person/:person_id/RSS", async (req, res) => {
 
   console.time("rss-time");
 
-  // USE CACHE
-  if (from === 0) {
-    const rssCache = await getRssCache({ person_id });
-    if (rssCache.length) {
-      console.log("rss from cache: ", rssCache.length);
-      rssResults = rssCache;
-    } else {
-      rssResults = await getRespiratorySupportVariable(binds);
-    }
-  } else {
-    rssResults = await getRespiratorySupportVariable(binds);
-  }
+  // TODO: USE CACHE
+  // if (from === 0) {
+  //   const rssCache = await getRssCache({ person_id });
+  //   if (rssCache.length) {
+  //     console.log("rss from cache: ", rssCache.length);
+  //     rssResults = rssCache;
+  //   } else {
+  //     rssResults = await getRespiratorySupportVariable(binds);
+  //   }
+  // } else {
+  //   rssResults = await getRespiratorySupportVariable(binds);
+  // }
+
+  rssResults = await getRespiratorySupportVariable(binds);
+
   console.timeEnd("rss-time");
 
   res.send(rssResults);

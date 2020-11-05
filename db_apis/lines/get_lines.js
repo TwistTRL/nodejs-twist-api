@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 07:28:25
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-08-28 10:38:19
+ * @Last Modified time: 2020-11-05 16:11:02
  */
 
 const database = require("../../services/database");
@@ -45,6 +45,9 @@ FROM LINES_COUNTER
 WHERE LINE_ID IS NOT NULL AND PERSON_ID = :person_id`;
 
 async function getLinesSqlExecutor(conn, binds) {
+  // set nls_date_format for oracledb.fetchAsString
+  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
+
   let person_lines = await conn.execute(GET_PERSON_LINES_SQL, binds).then((ret) => ret.rows);
   if (person_lines) {
     return person_lines.map((item) => {
@@ -63,6 +66,9 @@ async function getLinesSqlExecutor(conn, binds) {
 }
 
 async function getLinesCounterSqlExecutor(conn, binds) {
+  // set nls_date_format for oracledb.fetchAsString
+  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
+
   let person_lines_counter = await conn
     .execute(GET_PERSON_LINES_COUNTER_SQL, binds)
     .then((ret) => ret.rows);
