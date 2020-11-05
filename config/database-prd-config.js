@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-10-22 20:57:50 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-24 20:00:13
+ * @Last Modified time: 2020-11-05 15:05:29
  */
 
 // copy of datase-config.js
@@ -29,4 +29,5 @@ module.exports = {
   poolMin: 10,
   poolMax: 10,
   poolIncrement: 0,
+  poolAlias: "prd_db",
 };

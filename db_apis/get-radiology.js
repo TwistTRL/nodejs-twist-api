@@ -2,12 +2,12 @@
  * @Author: Peng Zeng
  * @Date: 2020-05-04 17:16:28
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-05-11 14:49:21
+ * @Last Modified time: 2020-11-05 15:03:00
  */
 
 const database = require("../services/database");
 const { CATALOG_CD_DICT } = require("../db_relation/radiology-db-relation");
-const { RADIOLOGY_TOKEN } = require("../config/database-config");
+const { RADIOLOGY_TOKEN } = require("../config/token");
 var timeLable = 0;
 
 const SQL_GET_RADIOLOGY = (person_id) => `

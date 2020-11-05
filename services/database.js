@@ -5,7 +5,7 @@ const DatabaseError = require("../utils/errors").DatabaseError;
 // https://github.com/oracle/node-oracledb/blob/master/doc/api.md#-16173-fetching-dates-and-timestamps
 // in our database, some date is UTC and some is EST
 // so fetch the date as String to avoid auto convertion
-oracledb.fetchAsString = [ oracledb.DATE ];
+oracledb.fetchAsString = [oracledb.DATE];
 
 async function initialize() {
   if (dbConfig.user && dbConfig.password) {
@@ -17,14 +17,14 @@ async function initialize() {
 }
 
 async function close() {
-  await oracledb.getPool().close();
-  console.log("database closed");
+  await oracledb.getPool(dbConfig.poolAlias).close();
+  console.log(`database ${dbConfig.poolAlias} closed`);
 }
 
 function withConnection(func) {
-  return async function(...args) {
+  return async function (...args) {
     try {
-      let conn = await oracledb.getConnection();
+      let conn = await oracledb.getConnection(dbConfig.poolAlias);
       let result = await func(conn, ...args);
       await conn.close();
       return result;
@@ -50,5 +50,5 @@ function withConnection(func) {
 module.exports = {
   initialize,
   close,
-  withConnection
+  withConnection,
 };

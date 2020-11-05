@@ -2,7 +2,7 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-12 21:37:03
+ * @Last Modified time: 2020-11-05 15:20:14
  */
 const express = require("express");
 const timeout = require("connect-timeout");
@@ -23,6 +23,9 @@ const users = require("../config/users").items;
 const ipListPath = path.join(__dirname, "../config/ipList.txt");
 const accessTokenSecret = process.env.TWIST_API_TOKEN_SECRET || "youraccesstokensecret";
 
+const FRONT_END_ADDRESS = "http://twist:4000/";
+const API_ADDRESS = "http://twist:3333/api/";
+
 const findUser = (name, password) => {
   return users.find((item) => {
     return item.name === name && item.password === password;
@@ -31,6 +34,7 @@ const findUser = (name, password) => {
 
 var currentAddress;
 var ipWhiteList = webServerConfig.ipWhiteList;
+var isBacktoFrontend = false;
 
 function initialize() {
   return new Promise((resolve, reject) => {
@@ -56,8 +60,9 @@ function initialize() {
 
     app.use(bodyParser.urlencoded({ extended: false }));
 
+
     app.get("/login", function (req, res) {
-      console.log("reaching /login");
+      console.log("reaching /login, req.headers.referer :>> ", req.headers.referer);
       res.sendFile(path.join(__dirname, "/login.html"));
       return;
     });
@@ -71,25 +76,39 @@ function initialize() {
 
       if (user) {
         if (req.body.source) {
-          console.log("ipWhiteList.includes(currentAddress) :", ipWhiteList.includes(currentAddress));
+          console.log(
+            "ipWhiteList.includes(currentAddress) :",
+            ipWhiteList.includes(currentAddress)
+          );
           if (currentAddress && !ipWhiteList.includes(currentAddress)) {
             ipWhiteList.push(currentAddress);
             console.log("ipWhiteList updated:", ipWhiteList);
             fs.appendFile(ipListPath, "\n" + currentAddress, function (err) {
               if (err) throw err;
               console.log("Saved currentAddress: ", currentAddress);
-              res.redirect("/api");
+              if (isBacktoFrontend) {
+                res.redirect(FRONT_END_ADDRESS);
+              } else {
+                res.redirect("/api");
+              }
             });
           } else {
-            res.redirect("/api");
+            if (isBacktoFrontend) {
+              res.redirect(FRONT_END_ADDRESS);
+            } else {
+              res.redirect("/api");
+            }
           }
         } else {
-
           // TODO add front-end jwt part
 
           console.log("signed in from front-end");
           // Generate an access token, expires in 24 hours
-          const accessToken = jwt.sign({ username: user.name, role: user.role }, accessTokenSecret, { expiresIn: '24h' });
+          const accessToken = jwt.sign(
+            { username: user.name, role: user.role },
+            accessTokenSecret,
+            { expiresIn: "24h" }
+          );
           res.json({
             accessToken,
           });
@@ -110,11 +129,18 @@ function initialize() {
 
       if (!ipWhiteList.includes(req.connection.remoteAddress)) {
         console.log("redirect to login");
+        if (req.headers.referer === FRONT_END_ADDRESS) {
+          isBacktoFrontend = true;
+        } else if (req.headers.referer !== API_ADDRESS){
+          isBacktoFrontend = false;
+        }
+
         res.sendFile(path.join(__dirname, "/login.html"));
         return;
       }
       next();
     });
+
 
     // Mount the router at /api so all its routes start with /api
     app.use("/api", rootRouter);

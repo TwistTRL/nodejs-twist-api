@@ -7,6 +7,7 @@ console.log("HTTP_PORT :", process.env.HTTP_PORT);
 
 const webServer = require("./services/web-server.js");
 const database = require("./services/database.js");
+const databasePrd = require("./services/database-prd.js");
 const dbConfig = require("./config/database-config.js");
 const intervalUpdate = require("./services/interval-update.js");
 
@@ -22,6 +23,7 @@ async function startup() {
     console.log("  Initializing database module");
 
     await database.initialize();
+    await databasePrd.initialize();
   } catch (err) {
     console.error(err);
 
@@ -71,6 +73,7 @@ async function shutdown(e) {
     console.log("Closing database module");
 
     await database.close();
+    await databasePrd.close();
   } catch (e) {
     console.error(e);
 

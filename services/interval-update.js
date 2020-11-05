@@ -12,14 +12,6 @@ const { getPatientsCache } = require("../db_apis/cache/get-patients-cache");
 const moment = require("moment");
 const INTERVAL_MINUTE = 30; // every 30 min
 const MANUALLY_INPUT_PATITENTS = [
-  {
-    PERSON_ID: 25796315,
-    MRN: '5184229',
-  },
-  { 
-    PERSON_ID: 24407610, 
-    MRN: '5080159', 
-  },
 ];
 
 const getPatientsByManuallyInput = async () => MANUALLY_INPUT_PATITENTS;

@@ -2,13 +2,11 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-10 17:00:02
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-31 10:53:40
+ * @Last Modified time: 2020-11-05 14:05:12
  */
 
 const database_prd = require("../../services/database-prd");
-const {
-  LABS_EVENT_CD_DICT,
-} = require("../../db_relation/labs-db-relation");
+const { LABS_EVENT_CD_DICT } = require("../../db_relation/labs-db-relation");
 
 const GET_LABS_BY_PERSONID_SQL = `
 SELECT 
@@ -65,15 +63,16 @@ ORDER BY DT_UNIX
 
 async function getLabSqlExecutor(conn, binds) {
   // set nls_date_format for oracledb.fetchAsString
-  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`)
-  // FIXME: 
+  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
+  // FIXME:
   // now nls_date_format makes everytime item UTC time. However CREATED_DT_TM_EST is EST time
   // will fix this when all the columns in the databse have clear definition about timezone.
 
-
+  console.time("get-labs-prod");
   const lab = await conn.execute(GET_LABS_BY_PERSONID_SQL, binds);
   let arr = lab.rows;
   console.log("lab size of current person", arr.length);
+  console.timeEnd("get-labs-prod");
 
   // based on results of GET_LABS_BY_PERSONID_SQL,
   // adding TABLE, DISPLAY_ORDER, TWIST_DISPLAY_NAME, EVENT_CD, EVENT_CD_DESCRIPTION, SOURCE for this event_cd
