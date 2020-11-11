@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-07 21:53:03
+ * @Last Modified time: 2020-11-11 12:15:31
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -103,6 +103,7 @@ const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
 
 const { getAirway } = require('../db_apis/airway/get-airway');
+const { getProviderInfo } = require('../db_apis/provider-info/get-provider-info');
 
 // -- cache
 const { getRssCache } = require("../db_apis/cache/get-rss-cache");
@@ -343,7 +344,7 @@ router.get("/mrn/:mrn", async (req, res) => {
  * @apiParam {String[]} lab_names Array of lab's category name.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "lab_names": ["SvO2", "PaCO2"]
         }
  * @apiSuccess {String} labName Name of this lab, such as "SvO2".
@@ -877,7 +878,7 @@ router.get("/person/:person_id/med", async (req, res) => {
  * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "from":1541030400,
           "to":1542018000,
           "resolution":3600
@@ -978,7 +979,7 @@ router.post("/inout-v2", async (req, res) => {
  * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "from":1539568800,
           "resolution":3600
         }
@@ -1089,7 +1090,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "data_type": "binned",
           "data_resolution": "1D"
@@ -1144,7 +1145,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "sbp",
           "data_type": "calc",
           "data_resolution": "1D"
@@ -1199,7 +1200,7 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "from":1542014000,
           "to":1542018000
@@ -1256,19 +1257,19 @@ router.post("/vitalsv2", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "data_type": "binned",
           "data_resolution": "1D"
         }
 
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "data_type": "calc",
           "data_resolution": "1D"
         }
 
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "data_type": "raw",
           "from": 1542014000,
           "to": 1542018000
@@ -1415,7 +1416,7 @@ router.get("/person/:person_id/vitals/hr/raw", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-            "person_id": 25796315,
+            "person_id": EXAMPLE_PERSON_ID,
             "vital_type": "hr",
             "data_type": "binned",
             "data_resolution": "1D"
@@ -1471,7 +1472,7 @@ router.post("/test/hr", async (req, res) => {
  * @apiParam {String} lab_names Lab category name.
  * @apiParamExample {json} POST json example
         {
-            "person_id": 25796315,
+            "person_id": EXAMPLE_PERSON_ID,
             "lab_names": 
                 [
                      "SvO2",
@@ -2499,7 +2500,7 @@ router.get("/person/:person_id/nutrition/volume", async (req, res) => {
  * @apiParam {Number} resolution response data timestamp resolution.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "from": 1543251600,
           "resolution": 86400
         }
@@ -2637,7 +2638,7 @@ router.get("/person/:person_id/nutrition/calories", async (req, res) => {
  * @apiParam {Number} resolution response data timestamp resolution.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "from": 1543251600,
           "resolution": 86400
         }
@@ -2974,7 +2975,7 @@ router.get("/person/:person_id/labs", async (req, res) => {
  * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "from":0,
           "to":1541037600,
           "resolution":3600
@@ -3085,7 +3086,7 @@ router.post("/inout-tooltip", async (req, res) => {
  * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "from":1541030400,
           "to":1542018000,
           "resolution":3600
@@ -3368,7 +3369,7 @@ router.get("/person/:person_id/vitals/hr/binned/5M", async (req, res) => {
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "from":1542014000,
           "to":1542018000
         }
@@ -3416,7 +3417,7 @@ router.post("/vitals/temperature", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "data_type": "binned",
           "data_resolution": "1D"
@@ -3460,7 +3461,7 @@ router.post("/vitals/temperature", async (req, res) => {
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "data_type": "calc",
           "data_resolution": "1D"
@@ -3502,7 +3503,7 @@ router.post("/vitals/temperature", async (req, res) => {
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "vital_type": "mbp",
           "from":1542014000,
           "to":1542018000
@@ -3788,6 +3789,29 @@ router.get("/airway/:person_id", async (req, res) => {
 
 
 /**
+ * @api {get} /provider-info/:mrn Get Provider Info (dev)
+ * @apiVersion 0.0.1
+ * @apiName get-provider-info
+ * @apiGroup DEV
+ * @apiParam {String} mrn patient MRN.
+ * @apiSuccessExample Success-Response:
+ * {
+      "primary_cardiologist": "Rahul Rathod, M.D.",
+      "primary_cardiac_surgeon": "Luis Quinonez, M.D.",
+      "primary_ICU_attending": "Katie Moynihan, M.D.",
+      "referring_cardiologist": "Thomas Albrecht, M.D."
+    }  
+
+ *
+ */
+router.get("/provider-info/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  console.log("mrn is: " + mrn);
+  res.send(await getProviderInfo({mrn}));
+});
+
+
+/**
  * @api {get} /inout/:mrn Initial In-Out (dev)
  * @apiVersion 0.0.1
  * @apiName initial-in-out
@@ -3849,7 +3873,7 @@ router.get("/inout/:mrn", async (req, res) => {
  * @apiParam {Number} [resolution=3600] Binned time resolution.
  * @apiParamExample {json} Example of request in-out data
         {
-          "person_id": 25796315,
+          "person_id": EXAMPLE_PERSON_ID,
           "from":1539568800,
           "resolution":3600
         }
