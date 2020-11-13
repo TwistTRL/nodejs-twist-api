@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-11 12:15:31
+ * @Last Modified time: 2020-11-12 21:01:03
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -102,7 +102,10 @@ const { getProceduralNote } = require("../db_apis/diagnosis_display/get-procedur
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
 
+const { getAirwayAims } = require('../db_apis/airway/get-airway-aims');
+const { getAirwayV500 } = require('../db_apis/airway/get-airway-v500');
 const { getAirway } = require('../db_apis/airway/get-airway');
+
 const { getProviderInfo } = require('../db_apis/provider-info/get-provider-info');
 
 // -- cache
@@ -3728,66 +3731,6 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 
 // --------- dev
 
-
-/**
- * @api {get} /airway/:person_id Get Airway (dev)
- * @apiVersion 0.0.1
- * @apiName get-airway
- * @apiGroup DEV
- * @apiParam {Number} person_id patient person_id.
- * @apiSuccessExample Success-Response:
- *     
-  [
-    {
-        "PERSON_ID": 111111,
-        "PATIENTID": 222222,
-        "MRN": 333333,
-        "CURSORTIME_UTC": "2018-04-26T11:40:00Z",
-        "CURSORTIME_EST": "2018-04-26T07:40:00Z",
-        "FORMNAME": "In-Situ",
-        "FRAMENAME": "In-Situ",
-        "VALUE_F": "ETT",
-        "PARAMETERNAME": "In-Situ Type",
-        "ABBREVIATION": "In-Situ Type",
-        "CATEGORYNAME": "AIRWAY",
-        "INSITU": "ETT",
-        "TYPE_F": "ETT",
-        "ORAL_NASAL": "Oral",
-        "SIZE_F": "3",
-        "CUFF_TYPE": "Cuffed",
-        "CUFF_PRESS": null,
-        "LEAK": null,
-        "TAPED": 10,
-        "LUNG_ISOLATION": null,
-        "TECHNIQUE": null,
-        "INTUBATOR": null,
-        "MASKDIFF": null,
-        "PREOX": null,
-        "ORALAIRWAY": null,
-        "BITEBLOCK": null,
-        "LIDOCAINE": null,
-        "DIFFAIRWAY": null,
-        "DEVICE": null,
-        "BLADETYPE": null,
-        "BLADESIZE": null,
-        "GRADEVIEW": null,
-        "CRICOID": null,
-        "NUMATT": null,
-        "COMMENTS": null,
-        "COMPLICATIONS": "nan",
-        "NATURAL_F": null
-    },
-  ]
- *
- */
-
-router.get("/airway/:person_id", async (req, res) => {
-  const person_id = req.params.person_id;
-  console.log("person_id is: " + person_id);
-  res.send(await getAirway({person_id}));
-});
-
-
 /**
  * @api {get} /provider-info/:mrn Get Provider Info (dev)
  * @apiVersion 0.0.1
@@ -3809,6 +3752,95 @@ router.get("/provider-info/:mrn", async (req, res) => {
   console.log("mrn is: " + mrn);
   res.send(await getProviderInfo({mrn}));
 });
+
+/**
+ * @api {get} /airway/:person_id Get Airway (dev)
+ * @apiVersion 0.0.1
+ * @apiName get-airway
+ * @apiGroup DEV
+ * @apiParam {Number} person_id patient person_id.
+ * @apiSuccessExample Success-Response:
+ *  [
+      {
+          "time": "2018-08-31T16:25:00Z",
+          "location": null,
+          "blade": "Miller 1",
+          "grade": "I",
+          "type": "Oral ETT",
+          "size": "3",
+          "cuff": "Cuffed",
+          "numatt": 1,
+          "comments": "ETT position confirmed via fluroscopy,  0"
+      }
+    ]
+ *
+ */
+router.get("/airway/:person_id", async (req, res) => {
+  const person_id = req.params.person_id;
+  console.log("person_id is: " + person_id);
+  res.send(await getAirway({person_id}));
+});
+
+
+/**
+ * @api {get} /airway/aims/:person_id Get Airway-Aims (dev)
+ * @apiVersion 0.0.1
+ * @apiName get-airway-aims
+ * @apiGroup DEV
+ * @apiParam {Number} person_id patient person_id.
+ * @apiSuccessExample Success-Response:
+ *  [
+      {
+          "time": "2018-08-31T16:25:00Z",
+          "location": null,
+          "blade": "Miller 1",
+          "grade": "I",
+          "type": "Oral ETT",
+          "size": "3",
+          "cuff": "Cuffed",
+          "numatt": 1,
+          "comments": "ETT position confirmed via fluroscopy,  0"
+      }
+    ]
+ *
+ */
+router.get("/airway/aims/:person_id", async (req, res) => {
+  const person_id = req.params.person_id;
+  console.log("person_id is: " + person_id);
+  res.send(await getAirwayAims({person_id}));
+});
+
+/**
+ * @api {get} /airway/v500/:person_id Get Airway-V500 (dev)
+ * @apiVersion 0.0.1
+ * @apiName get-airway-v500
+ * @apiGroup DEV
+ * @apiParam {Number} person_id patient person_id.
+ * @apiSuccessExample Success-Response:
+ *  [
+      {
+          "time": "2018-06-21T22:13:59Z",
+          "location": "08 South",
+          "blade": "CMAC null",
+          "grade": "I",
+          "type": "ETT",
+          "size": "3.5",
+          "cuff": "Cuffed",
+          "taped": "9",
+          "numatt": "2",
+          "performed": "...",
+          "comments": "..."
+      },
+    ]
+
+ *
+ */
+router.get("/airway/v500/:person_id", async (req, res) => {
+  const person_id = req.params.person_id;
+  console.log("person_id is: " + person_id);
+  res.send(await getAirwayV500({person_id}));
+});
+
 
 
 /**
