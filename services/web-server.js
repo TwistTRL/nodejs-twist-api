@@ -146,11 +146,16 @@ function initialize() {
     app.use("/api", rootRouter);
     app.use(haltOnTimedout);
 
-    // all other go to /login
-    // app.get("*", function(req, res) {
-    //   console.log("any other pages to login");
-    //   res.sendFile(path.join(__dirname, "/login.html"));
-    // });
+    // catch undefined routes and respond with 404
+    app.use(function(req, res, next) {
+      res.status(404).send("Sorry can't find that!")
+    });
+
+    // catch server errors and respond with 500
+    app.use(function (err, req, res, next) {
+      console.error(err.stack)
+      res.status(500).send('Something broke!')
+    })
 
     function haltOnTimedout(req, res, next) {
       if (!req.timedout) {

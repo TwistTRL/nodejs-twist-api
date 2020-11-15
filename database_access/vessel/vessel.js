@@ -8,31 +8,52 @@
 
 const database = require("../../services/database");
 
-const GET_VESSEL_SQL = `
+// note: AUTOTIME is Eastern time
+const GET_VESSEL_CATH_ACCESS_SQL = `
 SELECT 
-  REFNO,
-  EVENT_ID,
-  CARDPTID,
-  SEQNO,
   AUTOTIME,
   ENTRSITE,
-  PLANSITE,
-  TIMEACCS,
   SHETSZ,
-  ENTRMETH,
   VESSDETL
 FROM CATH_ACCESS
+ORDER BY AUTOTIME
 WHERE MRN = :mrn
 `;
 
-async function getVesselSqlExecutor(conn, binds) {
-  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
-  let result = await conn.execute(GET_VESSEL_SQL, binds).then((ret) => ret.rows);
+// note: INSERT_DTM is UTC
+const GET_VESSEL_LINES_HD_SQL = `
+SELECT 
+  INSERT_DTM,
+  VESSEL,
+  LOCATION,
+  EVENT_CD_SUBTYPE,
+  DIAM,
+  REMOVE_DTM,
+  INSERT_DTM,
+  INSERT_BY
+FROM LINES_HD
+ORDER BY INSERT_DTM
+WHERE MRN = :mrn
+`;
+
+
+async function getVesselCathSqlExecutor(conn, binds) {
+  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS'`);
+  let result = await conn.execute(GET_VESSEL_CATH_ACCESS_SQL, binds).then((ret) => ret.rows);
   return result;
 }
 
-const getVesselData = database.withConnection(getVesselSqlExecutor);
+async function getVesselLinesSqlExecutor(conn, binds) {
+  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
+  let result = await conn.execute(GET_VESSEL_LINES_HD_SQL, binds).then((ret) => ret.rows);
+  return result;
+}
+
+
+const getVesselCathData = database.withConnection(getVesselCathSqlExecutor);
+const getVesselLinesData = database.withConnection(getVesselLinesSqlExecutor);
 
 module.exports = {
-  getVesselData,
+  getVesselCathData,
+  getVesselLinesData
 };
