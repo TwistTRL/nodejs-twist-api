@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-11-12 16:48:10
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-15 22:51:59
+ * @Last Modified time: 2020-11-15 22:58:25
  */
 
 const { getVesselCathData, getVesselLinesData } = require("../../database_access/vessel/vessel");
@@ -47,7 +47,7 @@ const getVesselFromData = (cathData, linesData) => {
     .map((item) => {
       const time = item.INSERT_DTM;
       const vessel = getLinesVessel(item.VESSEL, item.LOCATION, item.EVENT_CD_SUBTYPE);
-      const catheter_size = item.DIAM.replace("Other: ", "");
+      const catheter_size = item.DIAM && item.DIAM.replace("Other: ", "");
       const duration_minutes = moment(item.REMOVE_DTM).diff(moment(item.INSERT_DTM), "minutes");
       const duration = Math.round(duration_minutes / (3600 * 24 * 60)) || "<1 day";
       const inserted_by = item.INSERT_BY;
@@ -71,14 +71,13 @@ const getLinesVessel = (vessel, location, event_cd_subtype) => {
 
   let result_location;
   let result_type;
-  const result_vessel = vessel
-    ? vessel
-        .replace("Other: ", "")
-        .split(" ")
-        .map((item) => item[0].toUpperCase())
-        .join("")
-    : null;
-
+  const result_vessel =
+    vessel &&
+    vessel
+      .replace("Other: ", "")
+      .split(" ")
+      .map((item) => item[0].toUpperCase())
+      .join("");
   if (location.toLowerCase().includes("right")) {
     result_location = "R";
   } else if (location.toLowerCase().includes("left")) {
@@ -94,7 +93,7 @@ const getLinesVessel = (vessel, location, event_cd_subtype) => {
     result_type = "V";
   }
 
-  return `${result_location || "()"}${result_vessel}${result_type}`;
+  return `${result_location || "_"}${result_vessel}${result_type}`;
 };
 
 module.exports = {
