@@ -26,6 +26,7 @@ const VESSEL_RESULT = [
     },
   ],
 ];
+
 describe("Get Vessel", () => {
   it("return list of users", () => {
     assert.equal(

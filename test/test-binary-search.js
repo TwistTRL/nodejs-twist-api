@@ -1,5 +1,7 @@
 
 const { getBinarySearchNearest } = require("../db_apis/utils/binarySearchUtils");
+const chai = require("chai");
+const assert = chai.assert;
 
 describe('binarySearchUtils test', function () {
     describe('#binary search in array', function () {

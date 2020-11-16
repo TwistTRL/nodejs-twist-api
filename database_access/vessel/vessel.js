@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-11-12 16:41:09 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-12 16:43:39
+ * @Last Modified time: 2020-11-15 17:20:01
  */
 
 
@@ -11,13 +11,13 @@ const database = require("../../services/database");
 // note: AUTOTIME is Eastern time
 const GET_VESSEL_CATH_ACCESS_SQL = `
 SELECT 
-  AUTOTIME,
+  AUTOTIME_ET,
   ENTRSITE,
   SHETSZ,
   VESSDETL
 FROM CATH_ACCESS
-ORDER BY AUTOTIME
 WHERE MRN = :mrn
+ORDER BY AUTOTIME_ET
 `;
 
 // note: INSERT_DTM is UTC
@@ -25,15 +25,14 @@ const GET_VESSEL_LINES_HD_SQL = `
 SELECT 
   INSERT_DTM,
   VESSEL,
-  LOCATION,
+  "LOCATION",
   EVENT_CD_SUBTYPE,
   DIAM,
   REMOVE_DTM,
-  INSERT_DTM,
   INSERT_BY
 FROM LINES_HD
+WHERE PERSON_ID = :person_id
 ORDER BY INSERT_DTM
-WHERE MRN = :mrn
 `;
 
 
