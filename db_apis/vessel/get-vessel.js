@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-11-12 16:48:10
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-15 22:58:25
+ * @Last Modified time: 2020-11-16 16:08:15
  */
 
 const { getVesselCathData, getVesselLinesData } = require("../../database_access/vessel/vessel");
@@ -34,22 +34,27 @@ const getVesselFromData = (cathData, linesData) => {
     };
   });
 
+  // shoule has LOCATION, VESSEL for each record
+  // and LOCATION has "Right" or "Left" in it
+  // and EVENT_CD_SUBTYPE is "CVL" or "PICC" or "ARTERIAL LINE"
   const linesResults = linesData
     .filter((item) => item.LOCATION)
+    .filter((item) => item.VESSEL)
     .filter(
       (item) =>
         item.EVENT_CD_SUBTYPE === "CVL" ||
         item.EVENT_CD_SUBTYPE === "PICC" ||
         item.EVENT_CD_SUBTYPE === "ARTERIAL LINE"
     )
-    // .filter((item) => !item.DIAM.includes("Other:"))
-    // .filter((item) => !item.VESSEL.includes("Other:"))
+    .filter((item) => item.LOCATION.includes("Right") || item.LOCATION.includes("Left"))
+    .filter((item) => !(item.LOCATION.includes("Right") && item.LOCATION.includes("Left")))
     .map((item) => {
       const time = item.INSERT_DTM;
       const vessel = getLinesVessel(item.VESSEL, item.LOCATION, item.EVENT_CD_SUBTYPE);
       const catheter_size = item.DIAM && item.DIAM.replace("Other: ", "");
       const duration_minutes = moment(item.REMOVE_DTM).diff(moment(item.INSERT_DTM), "minutes");
-      const duration = Math.round(duration_minutes / (3600 * 24 * 60)) || "<1 day";
+      const duration_days = Math.round(duration_minutes / (24 * 60))
+      const duration = duration_days ? `${duration_days} days` : "<1 day";
       const inserted_by = item.INSERT_BY;
       return {
         time,
@@ -72,28 +77,27 @@ const getLinesVessel = (vessel, location, event_cd_subtype) => {
   let result_location;
   let result_type;
   const result_vessel =
-    vessel &&
     vessel
       .replace("Other: ", "")
       .split(" ")
       .map((item) => item[0].toUpperCase())
       .join("");
-  if (location.toLowerCase().includes("right")) {
+  if (location.includes("Right")) {
     result_location = "R";
-  } else if (location.toLowerCase().includes("left")) {
+  } else if (location.includes("Left")) {
     result_location = "L";
   }
 
-  if (event_cd_subtype.toLowerCase().includes("arterial line")) {
+  if (event_cd_subtype ==="ARTERIAL LINE") {
     result_type = "A";
   } else if (
-    event_cd_subtype.toUpperCase().includes("PICC") ||
-    event_cd_subtype.toUpperCase().includes("CVL")
+    event_cd_subtype === "PICC" ||
+    event_cd_subtype === "CVL"
   ) {
     result_type = "V";
   }
 
-  return `${result_location || "_"}${result_vessel}${result_type}`;
+  return `${result_location}${result_vessel}${result_type}`;
 };
 
 module.exports = {
