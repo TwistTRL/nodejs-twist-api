@@ -11,7 +11,7 @@
     "stadocs": "HTTP_PORT=3300 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
     "devdocs": "HTTP_PORT=3100 node replace-string.js && apidoc -e node_modules -c config/apidoc-config -i ./ -o docs/apidoc && apidoc -e node_modules -c config/apidoc2-config -i ./ -o docs/apidoc2 -t template/",
     "pre-push": "HTTP_PORT=3100 node replace-pre-push.js",
-    "test": "mocha"
+    "test": "mocha ./test/**/*.js"
   },
   "keywords": [],
   "license": "Apache-2.0",

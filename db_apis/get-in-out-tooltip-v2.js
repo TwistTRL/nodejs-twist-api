@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-02-05 16:33:06
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-23 12:32:55
+ * @Last Modified time: 2020-11-17 20:44:41
  */
 
 /**
@@ -28,7 +28,7 @@ const {
   CAT_ORDER_ARRAY,
   IVF_TO_DEXTROSE,
 } = require("../db_relation/in-out-db-relation");
-const { getBinarySearchNearest } = require("./utils/binarySearchUtils");
+// const { getBinarySearchNearest } = require("./utils/binarySearchUtils");
 
 const PERSON_ID = "person_id";
 const FROM = "from";

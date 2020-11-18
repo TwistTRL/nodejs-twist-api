@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-19 12:00:21
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-20 15:26:07
+ * @Last Modified time: 2020-11-17 20:44:48
  */
 
 // `INTAKE_OUTPUT` updated to including inoutcodes.xlsx
@@ -30,7 +30,7 @@ const {
   CAT_ORDER_ARRAY,
   IVF_TO_DEXTROSE,
 } = require("../db_relation/in-out-db-relation");
-const { getBinarySearchNearest } = require("./utils/binarySearchUtils");
+// const { getBinarySearchNearest } = require("./utils/binarySearchUtils");
 
 const PERSON_ID = "person_id";
 const FROM = "from";

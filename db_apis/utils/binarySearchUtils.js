@@ -44,15 +44,15 @@ const getBinarySearchNearest = (num, arr) => {
 // };
 
 
-const getWeightOnTime = (timestamp, weightArray) => {
-  let timeArr = weightArray.map(item => item.DT_UNIX);
-  let index = getBinarySearchNearest(timestamp, timeArr);
-  let roundWeight =
-    Math.round((weightArray[index].WEIGHT + Number.EPSILON) * 1000) / 1000;
-  return roundWeight;
-}
+// const getWeightOnTime = (timestamp, weightArray) => {
+//   let timeArr = weightArray.map(item => item.DT_UNIX);
+//   let index = getBinarySearchNearest(timestamp, timeArr);
+//   let roundWeight =
+//     Math.round((weightArray[index].WEIGHT + Number.EPSILON) * 1000) / 1000;
+//   return roundWeight;
+// }
 
 module.exports = {
   getBinarySearchNearest,
-  getWeightOnTime
+  // getWeightOnTime
 };
