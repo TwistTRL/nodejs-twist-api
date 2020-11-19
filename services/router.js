@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-15 22:22:02
+ * @Last Modified time: 2020-11-19 09:38:55
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -105,6 +105,9 @@ const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
 const { getAirway } = require('../db_apis/airway/get-airway');
 const { getVessel } = require('../db_apis/vessel/get-vessel');
 const { getProviderInfo } = require('../db_apis/provider-info/get-provider-info');
+const { getParentInfo } = require('../db_apis/parent-info/get-parent-info');
+const { getCriticalContingency } = require('../db_apis/critical-contingency/get-critical-contingency');
+
 
 // -- cache
 const { getRssCache } = require("../db_apis/cache/get-rss-cache");
@@ -3728,6 +3731,60 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 });
 
 // --------- dev
+
+/**
+ * @api {get} /parent-info/:person_id Get Parent Info (dev)
+ * @apiVersion 0.0.1
+ * @apiName get-parent-info
+ * @apiGroup DEV
+ * @apiParam {Number} person_id patient person_id.
+ * @apiSuccessExample Success-Response:
+ *  [
+      {
+          "relationship": "Child/Insured Responsible",
+          "name": "LAST, FIRST",
+          "phone_num": "111",
+          "street_addr": "abc",
+          "city": "abc",
+          "state": "abc",
+          "zipcode": "111"
+      },
+    ]
+
+ *
+ */
+router.get("/parent-info/:person_id", async (req, res) => {
+  const person_id = req.params.person_id;
+  console.log("person_id is: " + person_id);
+  res.send(await getParentInfo({person_id}));
+});
+
+/**
+ * @api {get} /critical-contingency/:person_id Critical Contingency (dev)
+ * @apiVersion 0.0.1
+ * @apiName get-critical-contingency
+ * @apiGroup DEV
+ * @apiParam {Number} person_id patient person_id.
+ * @apiSuccessExample Success-Response:
+ *  [
+      {
+          "encntr_id": 111111,
+          "performed_dt_tm": "2018-06-12T14:02:56Z",
+          "event_cd": 2222222,
+          "display": "Card - Contingency Planning",
+          "result_val": " ",
+          "display_order": null
+      },
+    ]
+ *
+ */
+router.get("/critical-contingency/:person_id", async (req, res) => {
+  const person_id = req.params.person_id;
+  console.log("person_id is: " + person_id);
+  res.send(await getCriticalContingency({person_id}));
+});
+
+
 
 /**
  * @api {get} /provider-info/:mrn Get Provider Info (dev)
