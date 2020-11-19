@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-19 09:38:55
+ * @Last Modified time: 2020-11-19 15:59:20
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -3741,13 +3741,14 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
  * @apiSuccessExample Success-Response:
  *  [
       {
-          "relationship": "Child/Insured Responsible",
-          "name": "LAST, FIRST",
-          "phone_num": "111",
-          "street_addr": "abc",
-          "city": "abc",
-          "state": "abc",
-          "zipcode": "111"
+        "relationship_type": "Emergency Contact",
+        "relationship": "Mother",
+        "name": "LAST, FIRST",
+        "phone_num": "111",
+        "street_addr": "abc",
+        "city": "abc",
+        "state": "abc",
+        "zipcode": "111"
       },
     ]
 
@@ -3769,7 +3770,7 @@ router.get("/parent-info/:person_id", async (req, res) => {
  *  [
       {
           "encntr_id": 111111,
-          "performed_dt_tm": "2018-06-12T14:02:56Z",
+          "performed_dt_tm_utc": "2018-06-12T14:02:56Z",
           "event_cd": 2222222,
           "display": "Card - Contingency Planning",
           "result_val": " ",
