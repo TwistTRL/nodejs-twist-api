@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-19 15:59:20
+ * @Last Modified time: 2020-11-19 16:20:06
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -3769,11 +3769,11 @@ router.get("/parent-info/:person_id", async (req, res) => {
  * @apiSuccessExample Success-Response:
  *  [
       {
-          "encntr_id": 111111,
-          "performed_dt_tm_utc": "2018-06-12T14:02:56Z",
-          "event_cd": 2222222,
-          "display": "Card - Contingency Planning",
-          "result_val": " ",
+          "encntr_id": 1111,
+          "performed_dt_tm_utc": "2018-09-13T19:08:48Z",
+          "event_cd": 222222,
+          "event_disp": "MOLST/DNR Discussion OR",
+          "result_val": "No",
           "display_order": null
       },
     ]

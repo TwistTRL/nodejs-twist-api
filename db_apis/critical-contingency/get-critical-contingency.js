@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-11-18 21:26:45
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-19 15:41:11
+ * @Last Modified time: 2020-11-19 16:18:40
  */
 
 const {
@@ -19,7 +19,7 @@ const getCriticalContingency = async (binds) => {
       encntr_id: item.ENCNTR_ID,
       performed_dt_tm_utc: item.PERFORMED_DT_TM_UTC,
       event_cd: item.EVENT_CD,
-      display: item.DISPLAY,
+      event_disp: item.EVENT_DISP,
       result_val: item.RESULT_VAL,
       display_order: null,
     }));

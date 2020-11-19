@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-11-18 21:23:54 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-19 15:41:06
+ * @Last Modified time: 2020-11-19 16:18:18
  */
 
 const database = require("../../services/database");
@@ -12,7 +12,7 @@ SELECT
   ENCNTR_ID,
   PERFORMED_DT_TM_UTC,
   EVENT_CD,
-  DISPLAY,
+  EVENT_DISP,
   RESULT_VAL
 FROM CRITICAL_CONTINGENCY
 WHERE PERSON_ID = :person_id
