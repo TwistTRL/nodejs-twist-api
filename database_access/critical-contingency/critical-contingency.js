@@ -2,22 +2,21 @@
  * @Author: Peng Zeng 
  * @Date: 2020-11-18 21:23:54 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-18 21:36:52
+ * @Last Modified time: 2020-11-19 15:41:06
  */
 
 const database = require("../../services/database");
 
-// PERFORMED_DT_TM is UTC
 const GET_CRITICAL_CONTINGENCY_SQL = `
 SELECT 
   ENCNTR_ID,
-  PERFORMED_DT_TM,
+  PERFORMED_DT_TM_UTC,
   EVENT_CD,
   DISPLAY,
   RESULT_VAL
 FROM CRITICAL_CONTINGENCY
 WHERE PERSON_ID = :person_id
-ORDER BY PERFORMED_DT_TM
+ORDER BY PERFORMED_DT_TM_UTC
 `;
 
 async function getCriticalContingencySqlExecutor(conn, binds) {

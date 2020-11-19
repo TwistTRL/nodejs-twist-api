@@ -2,13 +2,14 @@
  * @Author: Peng Zeng 
  * @Date: 2020-11-18 21:11:17 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-18 21:31:22
+ * @Last Modified time: 2020-11-19 15:32:10
  */
 
 const database = require("../../services/database");
 
 const GET_PARENT_INFO_SQL = `
 SELECT DISTINCT
+  PERSON_RELTN_TYPE_NAME AS RELATIONSHIP_TYPE,
   PERSON_RELTN_NAME AS RELATIONSHIP,
   NAME_FULL_FORMATTED AS NAME,
   PHONE_NUM AS PHONE_NUM,
