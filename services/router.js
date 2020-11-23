@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-19 16:20:06
+ * @Last Modified time: 2020-11-22 21:23:21
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -454,10 +454,13 @@ router.get("/person/:person_id/labsv3", async (req, res) => {
 
   console.log("getting labsv3 for %s ...", person_id);
 
-  const binds = {
-    person_id,
-  };
-  res.send(await getLabsArray(binds));
+  // const binds = {
+  //   person_id,
+  // };
+  // res.send(await getLabsArray(binds));
+
+  getApiFromRedis(res, getLabsArray, {person_id}, "interface-labs");
+
 });
 
 /**
@@ -842,13 +845,15 @@ router.get("/person/:person_id/med", async (req, res) => {
   }
   console.log("getting drug infusions for %s ...", person_id);
 
-  const medCache = await getMedCache({ person_id });
-  if (medCache.length) {
-    console.log("med from cache: ", medCache.length);
-    medResults = medCache;
-  } else {
-    medResults = getApiFromRedis(res, getMed, { person_id }, "interface-med");
-  }
+  getApiFromRedis(res, getMed, { person_id }, "interface-med");
+
+  // const medCache = await getMedCache({ person_id });
+  // if (medCache.length) {
+  //   console.log("med from cache: ", medCache.length);
+  //   medResults = medCache;
+  // } else {
+  //   medResults = getApiFromRedis(res, getMed, { person_id }, "interface-med");
+  // }
 });
 
 /**
@@ -1690,23 +1695,28 @@ router.get("/person/:person_id/nurse-unit", async (req, res) => {
  *
  */
 router.get("/person/:person_id/RSS", async (req, res) => {
+
+  const sleep = (milliseconds) => {
+    return new Promise(resolve => setTimeout(resolve, milliseconds))
+  }
+  
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
     res.send("Invalid person_id, should be integer.");
     return;
   }
-  const now = Math.ceil(Date.now() / 1000);
+
+  // now is ceiled to latest 10 minutes
+  const now = Math.ceil(Date.now() / 1000 / 600) * 600;
   const from = parseFloat(req.query.from) || 0;
   const to = parseFloat(req.query.to) || now;
-  const binds = {
-    person_id,
-    from_: from,
-    to_: to,
-  };
+  // const binds = {
+  //   person_id,
+  //   from_: from,
+  //   to_: to,
+  // };
 
-  let rssResults;
-
-  console.time("rss-time");
+  // let rssResults;
 
   // TODO: USE CACHE
   // if (from === 0) {
@@ -1721,11 +1731,13 @@ router.get("/person/:person_id/RSS", async (req, res) => {
   //   rssResults = await getRespiratorySupportVariable(binds);
   // }
 
-  rssResults = await getRespiratorySupportVariable(binds);
+  // rssResults = await getRespiratorySupportVariable(binds);
+  // res.send(rssResults);
 
-  console.timeEnd("rss-time");
+  await sleep(1000);
 
-  res.send(rssResults);
+  getApiFromRedis(res, getRespiratorySupportVariable, { person_id, from_: from, to_: to }, "interface-rss", 600);
+
 });
 
 router.get("/person/:person_id/HR", async (req, res) => {

@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-06 10:31:08
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-01 22:01:50
+ * @Last Modified time: 2020-11-22 21:23:44
  */
 
 //~~~~~~~~~~ REDIS SETTINGS ~~~~~~~~
@@ -14,7 +14,7 @@ const USE_CACHE = true;
 
 // redis cache expire after this time in seconds
 const TWO_HOURS = 7200;
-const REDIS_EXPIRE_TIME = process.env.NODE_ENV === "development" ? 60 : TWO_HOURS; 
+const REDIS_EXPIRE_TIME = process.env.NODE_ENV === "development" ? 120 : TWO_HOURS; 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 const Redis = require("ioredis");
@@ -37,7 +37,7 @@ const database = require("../services/database");
       getApiFromRedis(res, apiForGetIdInfo, req.params.id, "id");
     });
  */
-const getApiFromRedis = async (res, apiFn, apiInput, apiName = "api") => {
+const getApiFromRedis = async (res, apiFn, apiInput, apiName = "api", expireTime = REDIS_EXPIRE_TIME) => {
   if (USE_CACHE) {
     let redisKey = `${apiName}:${JSON.stringify(apiInput)}`;
     console.log("redisKey :", redisKey);
@@ -51,7 +51,7 @@ const getApiFromRedis = async (res, apiFn, apiInput, apiName = "api") => {
       } else {
         let toSend = await apiFn(apiInput);
         // Save the API response in Redis store,  data expire time in 3600*24 seconds, it means one day
-        redis.set(redisKey, JSON.stringify(toSend), "ex", REDIS_EXPIRE_TIME);
+        redis.set(redisKey, JSON.stringify(toSend), "ex", expireTime);
         res.send(toSend);
         console.timeEnd(apiName);
       }
