@@ -265,45 +265,6 @@ async function getLinesTooltipsSqlExecutor(conn, binds) {
       console.log("element warning:>> ", element);
     }
   });
-
-  // return tooltip_dict;
-  // "1524654000": {
-  //       "25796315.77334246.CVL1.1": {
-  //           "disp": "3.5 Fr double lumen UVC ",
-  //           "FLUSH": 7
-  //       },
-  //       "25796315.77334246.PIV1.1": {
-  //           "disp": "24g L saphenous PIV",
-  //           "MEDICATIONS": {
-  //               "fentaNYL": 4,
-  //               "atropine": 1,
-  //               "rocuronium": 2,
-  //               "albumin human": 1,
-  //               "EPINEPHrine": 4,
-  //               "sodium bicarbonate": 3,
-  //               "famotidine": 1,
-  //               "hydrocortisone": 1,
-  //               "vecuronium": 1,
-  //               "ceFAZolin": 1
-  //           }
-  //       },}
-
-  // =>
-
-  // “25796315.77334246.PIV2.1”: {
-  //  “disp”: “24g R digital dorsal PIV”,
-  //  count: 14,
-  //  breakdown: [{
-  //  count: 7,
-  //  item_name: “MEDICATIONS”,
-  //  breakdown: [{item_name: “sodium bicarbonate:, count: 3}, ...]
-  //  },
-  //  {
-  //  count: 7,
-  //  item_name: “FLUSH”,
-  //  breakdown: []
-  //  }]]
-  //  }
   let result = {};
   for (let ts in tooltip_dict) {
     result[ts] = {};
