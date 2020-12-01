@@ -2,23 +2,23 @@
  * @Author: Peng
  * @Date: 2020-01-21 11:53:31
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-21 16:32:02
+ * @Last Modified time: 2020-11-30 21:39:44
  */
 
  // for get-vitals-all-v2
 // get raw vitals between two timestamp
 
-const database = require("../services/database");
+const database = require("../../services/database");
 const {
   getSingleBinnedResult,
   getSingleRawResult,
   CAT_VITAL_TYPE_ARRAY,
   SQLVitalTypeDict,
   SQLVitalTypeDict2ndChoice,
-} = require("../db_relation/vitals-db-relation");
-const isValidJson = require("../utils/isJson");
-const InputInvalidError = require("../utils/errors").InputInvalidError;
-const { getSingleVitalCALCResult } = require("../db_relation/vitals-calc-relation");
+} = require("../../db_relation/vitals-db-relation");
+const isValidJson = require("../../utils/isJson");
+const InputInvalidError = require("../../utils/errors").InputInvalidError;
+const { getSingleVitalCALCResult } = require("../../db_relation/vitals-calc-relation");
 
 const cat2 = "data_type";
 const cat3 = "data_resolution";

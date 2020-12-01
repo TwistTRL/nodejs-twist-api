@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-22 21:23:21
+ * @Last Modified time: 2020-12-01 14:19:43
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -33,6 +33,9 @@ const {
   getPersonFromMrn,
   getMrnListFromMrn,
 } = require("../db_apis/person/get-person-info"); // new
+const {
+  getPersonnel,
+} = require("../db_apis/personnel/get-personnel-info"); // new
 const { getRssRange } = require("../db_apis/person/get-rss-range");
 
 const { getWeight, getWeightCalc } = require("../db_apis/get-weight");
@@ -1816,6 +1819,8 @@ router.get("/person/id/:person_id", async (req, res) => {
   };
   res.send(await getPersonFromPersonId(binds));
 });
+
+
 
 /**
  * @api {get} /person/mrn/:mrn Person ID List From MRN
@@ -3743,6 +3748,40 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 });
 
 // --------- dev
+
+
+/**
+ * @api {get} /person/personnel/:person_id Personnel for Patient
+ * @apiVersion 0.0.1
+ * @apiName Get Personnel Information for Patient
+ * @apiGroup DEV
+ * @apiDescription Personnel from patient person_id 
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *  [
+      {
+          "ASSIGN_TYPE": "TEAMATTENDINGMD",
+          "PARENT_ENTITY_ID": 123456,
+          "NAME_FULL_FORMATTED": "ABC DEF",
+          "START_TAKING_CARE_UTC": "11-JAN-19",
+          "END_TAKING_CARE_UTC": "11-JAN-19"
+      },
+    ]
+ *
+ */
+router.get("/person/personnel/:person_id", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("Invalid person_id. Should be integer.");
+    return;
+  }
+  console.log("get personnel information for ID: " + person_id);
+  const binds = {
+    person_id,
+  };
+  res.send(await getPersonnel(binds));
+});
+
 
 /**
  * @api {get} /parent-info/:person_id Get Parent Info (dev)

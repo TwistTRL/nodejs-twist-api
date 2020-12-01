@@ -6,7 +6,7 @@ const GET_RESPIRATORY_SUPPORT_VARIABLE_SQL =
 `
 SELECT  ROWNUM AS ID,
         PERSON_ID,
-        VALID_FROM_DT_TM AS TIME,
+        EVENT_END_DT_TM_UNIX AS TIME,
         AIRWAY_ASSESSMENT,
         APRV_PHIGH,
         APRV_PLOW,
@@ -56,11 +56,15 @@ SELECT  ROWNUM AS ID,
         VENT_RATE,
         AGE_IN_SECOND,
         RST,
-        RSS
-FROM RSS
+        RSS,
+        EVENT_END_DT_TM_UTC,
+        VALID_FROM_DT_TM_UTC,
+        PERFORMED_DT_TM_UTC,
+        PERFORMED_PRSNL_ID
+FROM RSS_UPDATED
 WHERE PERSON_ID = :person_id
-  AND VALID_FROM_DT_TM BETWEEN :from_ AND :to_
-ORDER BY VALID_FROM_DT_TM ASC
+  AND EVENT_END_DT_TM_UNIX BETWEEN :from_ AND :to_
+ORDER BY EVENT_END_DT_TM_UNIX ASC
 `
 
 async function getRespiratorySupportVariableSqlExecutor(conn,binds){
