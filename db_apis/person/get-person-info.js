@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-11 15:47:13
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-01 14:10:46
+ * @Last Modified time: 2020-12-01 14:26:25
  */
 
 const database = require("../../services/database");
@@ -61,8 +61,8 @@ async function getPersonSqlExecutor(conn, binds) {
   let person = { ...person_basics };
   person["MRNS"] = person_mrns;
   person["RSS"] = {
-    rss_start: person_rss && person_rss[0] ? person_rss[0].VALID_FROM_DT_TM : 0,
-    rss_end: person_rss && person_rss.length > 1 ? person_rss[1].VALID_FROM_DT_TM: 0,
+    rss_start: person_rss && person_rss[0] ? person_rss[0].EVENT_END_DT_TM_UNIX : 0,
+    rss_end: person_rss && person_rss.length > 1 ? person_rss[1].EVENT_END_DT_TM_UNIX: 0,
   }
   return person;
 }
