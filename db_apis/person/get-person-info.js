@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-09-11 15:47:13
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-01 14:26:25
+ * @Last Modified time: 2020-12-01 14:27:51
  */
 
 const database = require("../../services/database");
@@ -41,7 +41,7 @@ const GET_RESPIRATORY_SUPPORT_VARIABLE_SQL = `
   SELECT RSS_UPDATED.*
   FROM RSS_UPDATED
   WHERE PERSON_ID = :person_id
-  ORDER BY VALID_FROM_DT_TM
+  ORDER BY EVENT_END_DT_TM_UNIX
   FETCH FIRST 1 ROWS ONLY
 )
 UNION ALL
@@ -49,7 +49,7 @@ UNION ALL
   SELECT RSS_UPDATED.*
   FROM RSS_UPDATED
   WHERE PERSON_ID = :person_id
-  ORDER BY VALID_FROM_DT_TM DESC
+  ORDER BY EVENT_END_DT_TM_UNIX DESC
   FETCH FIRST 1 ROWS ONLY
 )`
 
