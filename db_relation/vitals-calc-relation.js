@@ -19,6 +19,7 @@ function getSingleVitalCALCResult(vitalRecord) {
     "perc95":vitalRecord.VAL_PERC95,
     "perc99":vitalRecord.VAL_PERC99,
     "perc100":vitalRecord.VAL_MAX,
+    "val_size":vitalRecord.VAL_SIZE,
     "mean":vitalRecord.VAL_MEAN,
     "time":(vitalRecord.START_TM*1+vitalRecord.END_TM*1)/2
   };

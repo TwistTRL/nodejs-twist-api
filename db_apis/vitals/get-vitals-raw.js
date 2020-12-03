@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 11:53:31
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-30 21:39:44
+ * @Last Modified time: 2020-12-03 12:57:48
  */
 
  // for get-vitals-all-v2
@@ -29,24 +29,6 @@ const catTo = "to";
 const cat2Array = ["binned", "calc"];
 const cat3Array = ["1D", "12H", "5H", "5M"];
 
-
-var timeLable = 0;
-
-const SQL_GET_RAW_PART1 = `
-SELECT
-`;
-const SQL_GET_RAW_PART2 = `, 
-  DTUNIX
-FROM VITALS
-WHERE PERSON_ID = `;
-
-const SQL_GET_RAW_PART3 = `
-AND DTUNIX > `;
-
-const SQL_GET_RAW_PART4 = ` AND DTUNIX < `;
-const SQL_GET_RAW_PART5 = ` 
-ORDER BY DTUNIX
-`;
 
 /**
  * query:

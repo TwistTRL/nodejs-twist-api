@@ -28,8 +28,8 @@ async function getRssRangeSqlExecutor(conn,binds){
   let arr = await conn.execute(GET_RESPIRATORY_SUPPORT_VARIABLE_SQL,binds).then( ret=>ret.rows );
   
   return {
-    rss_start: arr[0].EVENT_END_DT_TM_UNIX,
-    RSS_END: arr[1].EVENT_END_DT_TM_UNIX
+    rss_start: arr[0] ? arr[0].EVENT_END_DT_TM_UNIX : null,
+    RSS_END: arr[1]? arr[1].EVENT_END_DT_TM_UNIX : null,
   };
 }
 
