@@ -60,7 +60,9 @@ SELECT  ROWNUM AS ID,
         EVENT_END_DT_TM_UTC,
         VALID_FROM_DT_TM_UTC,
         PERFORMED_DT_TM_UTC,
-        PERFORMED_PRSNL_ID
+        PERFORMED_PRSNL_ID,
+        OXYGEN_FLOW_RATE,
+        PRSNL_NAME
 FROM RSS_UPDATED
 WHERE PERSON_ID = :person_id
   AND EVENT_END_DT_TM_UNIX BETWEEN :from_ AND :to_
@@ -86,6 +88,12 @@ async function getRespiratorySupportVariableSqlExecutor(conn,binds){
         row[property] = Math.round(num * 100) / 100;
       }      
     }
+
+    // FIO2 * 100
+    if (row["FIO2"]) {
+      row["FIO2"] = row["FIO2"] * 100;
+    }
+
     result.push(row);
   }
   return result;

@@ -2,52 +2,56 @@
  * @Author: Peng Zeng
  * @Date: 2020-11-12 16:41:09
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-15 17:20:01
+ * @Last Modified time: 2020-12-05 18:19:45
  */
 
 const database = require("../../services/database");
 
 const GET_VITALS_SQL = (vitalType) => `
 SELECT
-  ${vitalsName(vitalType)},
+  ${vitalsName[vitalType]},
   DTUNIX
 FROM VITALS
 WHERE PERSON_ID = :person_id
-  AND DTUNIX >= :from 
-  AND DTUNIX < :to 
+  AND DTUNIX >= :from_ 
+  AND DTUNIX < :to_ 
+  AND ${vitalsName[vitalType]} IS NOT NULL
 ORDER BY DTUNIX
 `;
 
 const GET_VITALS_ALT_SQL = (vitalType) => `
 SELECT
-  ${vitalsAltName(vitalType)},
+  ${vitalsAltName[vitalType]},
   DTUNIX
 FROM VITALS
 WHERE PERSON_ID = :person_id
-  AND DTUNIX >= :from 
-  AND DTUNIX < :to 
+  AND DTUNIX >= :from_ 
+  AND DTUNIX < :to_ 
+  AND ${vitalsAltName[vitalType]} IS NOT NULL
 ORDER BY DTUNIX
 `;
 
 const GET_VITAL_V500_SQL = (vitalType) => `
 SELECT
-  ${vitalV500Name(vitalType)},
+  ${vitalV500Name[vitalType]},
   DTUNIX
 FROM VITAL_V500
 WHERE PERSON_ID = :person_id
-  AND DTUNIX >= :from 
-  AND DTUNIX < :to 
+  AND DTUNIX >= :from_ 
+  AND DTUNIX < :to_ 
+  AND ${vitalV500Name[vitalType]} IS NOT NULL
 ORDER BY DTUNIX
 `;
 
 const GET_VITAL_AIMS_SQL = (vitalType) => `
 SELECT
-  ${vitalAimsName(vitalType)},
+  ${vitalAimsName[vitalType]},
   DTUNIX
 FROM VITAL_AIMS
 WHERE PERSON_ID = :person_id
-  AND DTUNIX >= :from 
-  AND DTUNIX < :to 
+  AND DTUNIX >= :from_ 
+  AND DTUNIX < :to_ 
+  AND ${vitalAimsName[vitalType]} IS NOT NULL
 ORDER BY DTUNIX
 `;
 
@@ -81,7 +85,7 @@ const vitalV500Name = {
   rap: "RAP",
   lapm: "LAP",
   rr: "RR",
-  // temp: "TEMPERATURE",
+  // temp:   "TEMPERATURE",  "TEMPERATURE_ESOPH",  "TEMPERATURE_SKIN"
   // tempcore: "TEMPCORE1",
 };
 
@@ -92,42 +96,46 @@ const vitalAimsName = {
   spo2: "SPO2",
   hr: "HR",
   cvpm: "CVPM",
-  // rap: "RAP",
+  rap: "RAPM",
   lapm: "LAPM",
-  // rr: "RR",
-  // temp: "TEMP1",
-  // tempcore: "TEMPCORE1",
+  // rr: ?,
+  // temp: TSCORE, TSCAME..
+  tempcore: "TCORE",
 };
 
 async function getVitalsSqlExecutor(conn, binds) {
-  const { vital_type, person_id, from, to } = binds;
+  console.log('binds :>> ', binds);
+  const { vital_type, person_id, from_, to_ } = binds;
   const vitals_result = await conn
-    .execute(GET_VITALS_SQL(vital_type), { person_id, from, to })
+    .execute(GET_VITALS_SQL(vital_type), { person_id, from_, to_ })
     .then((ret) => ret.rows);
-  const vitals2ndType = vitalsAltName(vital_type);
+  const vitals2ndType = vitalsAltName[vital_type];
   let vitals_2nd_result;
   if (vitals2ndType) {
     vitals_2nd_result = await conn
-      .execute(GET_VITALS_ALT_SQL(vital_type), { person_id, from, to })
+      .execute(GET_VITALS_ALT_SQL(vital_type), { person_id, from_, to_ })
       .then((ret) => ret.rows);
   }
   const vital_v500_result = await conn
-    .execute(GET_VITAL_V500_SQL(vital_type), { person_id, from, to })
+    .execute(GET_VITAL_V500_SQL(vital_type), { person_id, from_, to_ })
     .then((ret) => ret.rows);
-  const vital_aims__result = await conn
-    .execute(GET_VITAL_AIMS_SQL(vital_type), { person_id, from, to })
-    .then((ret) => ret.rows);
+  // const vital_aims_result = await conn
+  //   .execute(GET_VITAL_AIMS_SQL(vital_type), { person_id, from_, to_ })
+  //   .then((ret) => ret.rows);
 
   return {
     vitals_result,
     vitals_2nd_result,
     vital_v500_result,
-    vital_aims__result,
+    vital_aims_result: [], // TODO: 
   };
 }
 
-const getVitalsData = database.withConnection(getVitalsSqlExecutor);
+const getVitalsRawData = database.withConnection(getVitalsSqlExecutor);
 
 module.exports = {
-  getVitalsData,
+  getVitalsRawData,
 };
+
+
+

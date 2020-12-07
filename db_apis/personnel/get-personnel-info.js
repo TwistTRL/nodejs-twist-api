@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-01 13:52:41 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-01 13:56:23
+ * @Last Modified time: 2020-12-05 19:59:51
  */
 
 
@@ -12,7 +12,8 @@ const GET_PERSONNEL_SQL = `
 SELECT 
   ASSIGN_TYPE, 
   PARENT_ENTITY_ID, 
-  NAME_FULL_FORMATTED, 
+  NAME_FULL_FORMATTED,
+  CONTACT_NUM,
   START_TAKING_CARE_UTC, 
   END_TAKING_CARE_UTC
 FROM ADT_PERSONNEL

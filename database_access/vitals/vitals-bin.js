@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-03 10:10:03 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-03 10:40:19
+ * @Last Modified time: 2020-12-03 16:02:27
  */
 
 const database = require("../../services/database");
@@ -66,9 +66,9 @@ async function vitalsBinQuerySQLExecutor(conn, binds) {
   return result;
 }
 
-const getVitalsCalcData = database.withConnection(vitalsBinQuerySQLExecutor);
+const getVitalsBinData = database.withConnection(vitalsBinQuerySQLExecutor);
 
 
 module.exports = {
-  getVitalsCalcData,
+  getVitalsBinData,
 };

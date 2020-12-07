@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-01 14:19:43
+ * @Last Modified time: 2020-12-06 20:58:37
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -16,13 +16,16 @@ const { getApiFromRedis } = require("../config/redis-config");
 const { getPhenotypingStep1 } = require("../db_apis/phenotyping/step1");
 const { getPhenotypingStep2 } = require("../db_apis/phenotyping/step2");
 
-const { getAdtCensus } = require("../db_apis/cross_tables/get-adt-census");
+const { getAdtCensus } = require("../db_apis/census/get-census");
+const { getCensusInit } = require("../db_apis/census/get-census-init");
+
 const { getCensus } = require("../db_apis/cross_tables/get-census");
 const { getRadiology } = require("../db_apis/get-radiology");
 const { getInOutInit } = require("../db_apis/in-out/in-out-init-fetch");
 const { getRelationalQuery } = require("../db_apis/get-relational-query");
 const { getVitalsQuery } = require("../db_apis/get-vitals-all");
 const { getVitalsQueryV2 } = require("../db_apis/get-vitals-all-v2");
+const { getVitalsRaw } = require('../db_apis/vitals/get-vitals-raw');
 const { getTemperature } = require("../db_apis/get-temperature");
 
 const { getRespiratorySupportVariable } = require("../db_apis/get_respiratory_support_variables");
@@ -254,6 +257,28 @@ router.get("/census", async (req, res) => {
   const timestamp = parseInt(parseInt(Math.floor(Date.now() / 1000 / 60) * 60));
   console.log("timestamp is: " + timestamp);
   getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
+});
+
+/**
+ * @api {get} /census-init/:timestamp Census data init
+ * @apiVersion 0.0.1
+ * @apiName get-census-init
+ * @apiGroup Census
+ * @apiParam {Number} timestamp Unix Timestamp in seconds.
+ */
+
+router.get("/census-init/:timestamp", async (req, res) => {
+  const timestamp =
+    parseInt(Math.floor(req.params.timestamp / 60) * 60) ||
+    parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
+  console.log("timestamp is: " + timestamp);
+  getApiFromRedis(res, getCensusInit, timestamp, "interface-init-census");
+});
+
+router.get("/census-init", async (req, res) => {
+  const timestamp = parseInt(parseInt(Math.floor(Date.now() / 1000 / 60) * 60));
+  console.log("timestamp is: " + timestamp);
+  getApiFromRedis(res, getCensusInit, timestamp, "interface-init-census");
 });
 
 /**
@@ -1238,16 +1263,19 @@ router.post("/vitalsv2", async (req, res) => {
   query.person_id = Number(query.person_id);
   query.from = Number(query.from);
   query.to = Number(query.to);
-  try {
-    const toSend = await getVitalsQueryV2(query);
-    res.send(toSend);
-    return;
-  } catch (e) {
-    console.log(new Date());
-    console.log(e);
-    res.status(400);
-    res.send(e.toString());
-  }
+  // try {
+  //   const toSend = await getVitalsQueryV2(query);
+  //   res.send(toSend);
+  //   return;
+  // } catch (e) {
+  //   console.log(new Date());
+  //   console.log(e);
+  //   res.status(400);
+  //   res.send(e.toString());
+  // }
+
+  getApiFromRedis(res, getVitalsQueryV2, query, "interface-vitals");
+
 });
 
 /**
@@ -3748,6 +3776,53 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 });
 
 // --------- dev
+
+/**
+ * @api {post} /vitals-raw Raw Vitals
+ * @apiVersion 0.0.1
+ * @apiName get-raw-vitals-from-four-tabls
+ * @apiGroup DEV
+ * @apiDescription 
+ * data get from table `VITALS`, `VITAL_V500`, and `VITAL_AIMS`
+ *
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
+ * @apiParam {Number} from Start timestamp.
+ * @apiParam {Number} to End timestamp.
+ * @apiParamExample {json} Example of request vitals raw data
+        {
+          "person_id": EXAMPLE_PERSON_ID,
+          "vital_type": "mbp",
+          "from":1542014000,
+          "to":1542018000
+        }
+ * @apiSuccess {String} vital_type_string Vital type name such as "SBP1".
+ * @apiSuccess {Number} value Vitals raw data.
+ * @apiSuccess {Number} timestamp time in Unix seconds.
+ * @apiSuccessExample Success-Response:
+ *      
+      [
+        {
+          "name": vital_type_string,
+          "value": value,
+          "time": timestamp
+        },
+        ...
+      ]
+ *
+ */
+
+router.post("/vitals-raw", async (req, res) => {
+  const query = req.body;
+  const person_id = Number(query.person_id);
+  const vital_type = query.vital_type;
+  const from_ = Number(query.from);
+  const to_ = Number(query.to);
+
+  getApiFromRedis(res, getVitalsRaw, {person_id, vital_type, from_, to_}, "interface-vitals-raw", 120);
+
+});
+
 
 
 /**

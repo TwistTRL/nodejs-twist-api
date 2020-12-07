@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-03 12:58:19 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-03 14:18:34
+ * @Last Modified time: 2020-12-03 21:08:58
  */
 
 
@@ -28,7 +28,7 @@ const DATATYPE = Object.freeze({
 
 var timeLable = 0;
 
-function _getQueryType(query) {
+function getQueryType(query) {
   if (Object.entries(query).length === 0 && query.constructor === Object) {
     console.error("query empty");
     throw new InputInvalidError("Input not valid, so query is empty.");
@@ -87,63 +87,32 @@ function _getQueryType(query) {
 
 
 
-async function tempVitalSQLExecutor(conn, query) {
-  console.log("~~SQL for get raw temp from V500: ", SQL_GET_TEMP_V500_RAW(query.person_id, query.from, query.to));
-  // console.time("temp-vitals");
-  let raw1 = await conn.execute(SQL_GET_TEMP_V500_RAW(query.person_id, query.from, query.to));
-  // console.timeEnd("temp-vitals");
-  console.log("~~SQL for get raw temp from VITALS: ", SQL_GET_TEMP_VITALS_RAW(query.person_id, query.from, query.to));
-  let raw2 = await conn.execute(SQL_GET_TEMP_VITALS_RAW(query.person_id, query.from, query.to));
-
-  let result = [];
-  if (raw1.rows && raw1.rows.length) {
-    raw1.rows.forEach((element) => {
-      let time = element.DTUNIX;
-      let value;
-      let type;
-      if (element.TEMPERATURE) {
-        value = element.TEMPERATURE;
-        type = "TEMPERATURE";
-      } else if (element.TEMPERATURE_ESOPH) {
-        value = element.TEMPERATURE_ESOPH;
-        type = "TEMPERATURE_ESOPH";
-      } else {
-        value = element.TEMPERATURE_SKIN;
-        type = "TEMPERATURE_SKIN";
-      }
-      result.push({ time, value, type });
-    });
-  }
-  if (raw2.rows && raw2.rows.length) {
-    raw2.rows.forEach((element) => {
-      let time = element.DTUNIX;
-      let value = element.TEMP1;
-      let type = "VITALS";
-      result.push({ time, value, type });
-    });
-  }
-
-  console.log('temperature result.length :>> ', result.length);
-  return result.sort((a, b) => a.time - b.time);
-}
-
 //TODO: 
 
-const getVitalsQueryV2 = database.withConnection(async function (conn, query) {
-  console.log("getVitalsQueryV2: query = ", query);
-  if (_getQueryType(query) == DATATYPE.BINNED) {
-    return await vitalsBinnedQuerySQLExecutor(conn, query);
-  } else if (_getQueryType(query) == DATATYPE.CALC) {
-    return await vitalsCalcQuerySQLExecutor(conn, query);
-  } else if (_getQueryType(query) == DATATYPE.TEMP_RAW) {
-    return await tempVitalSQLExecutor(conn, query);
-  } else if (_getQueryType(query) == DATATYPE.RAW) {
-    return await vitalsRawQuerySQLExecutor(conn, query);
+const getVitalsMain = async (query) => {
+  console.log("getVitalsMain: query = ", query);
+  if (getQueryType(query) == DATATYPE.BINNED) {
+    const vitalsData = await getVitalsBinData(query);
+    return getVitalsBin(vitalsData);
+
+  } else if (getQueryType(query) == DATATYPE.CALC) {
+    const vitalsData = await getVitalsCalcData(query)
+    return getVitalsRaw(vitalsData);
+
+  } else if (getQueryType(query) == DATATYPE.TEMP_RAW) {
+    const vitalsData = await getVitalsTempData(query)
+    return getVitalsRaw(vitalsData);
+
+  } else if (getQueryType(query) == DATATYPE.RAW) {
+    vitalsData = await getVitalsRawData(query);
+    return getVitalsRaw(vitalsData); 
+
   } else {
-    throw new InputInvalidError("_getQueryType ERROR");
+    throw new InputInvalidError("getQueryType ERROR");
   }
-});
+  
+};
 
 module.exports = {
-  getVitalsQueryV2,
+  getVitalsMain,
 };

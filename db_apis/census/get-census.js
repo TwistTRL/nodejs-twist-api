@@ -1,93 +1,145 @@
 /*
  * @Author: Peng Zeng
- * @Date: 2020-08-27 10:54:55
+ * @Date: 2020-12-05 13:17:07
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-06 12:55:14
+ * @Last Modified time: 2020-12-06 12:57:58
  */
 
-const database = require("../../services/database");
+const moment = require("moment");
+
+const { getCensusData } = require("../../database_access/census/census");
 const {
   DISEASE_TO_COVARIATE_DICT,
-  DISEASE_TO_SUBCAT_DICT,
-  DISEASE_TO_PATIENT_SELECTION,
-  COVARIATE_TO_DISPLAY_DICT,
-  DISEASE_TO_COVARIATE_DISPLAY_DICT,
+  DISEASE_TO_SUBCAT_DICT
 } = require("../phenotyping/codes721");
 
-const SQL_GET_DIAGNOSIS = `
-SELECT 
-  ANATOMY,
-  SUBCAT_ANAT,
-  SUBCAT_NAME,
-  SUBCAT_VALUE,
-  COVARIATE
-FROM DIAGNOSIS
-WHERE MRN = :mrn`;
-
-async function diagnosisQuerySQLExecutor(conn, binds) {
-  console.log("~~SQL_GET_DIAGNOSIS: ", SQL_GET_DIAGNOSIS);
-  let rawRecord = await conn.execute(SQL_GET_DIAGNOSIS, binds);
-  if (!rawRecord.rows[0] || !rawRecord.rows[0].ANATOMY) {
-    return "no anatomy";
+async function getAdtCensus(timestamp) {
+  if (!timestamp) {
+    // now
+    timestamp = Math.floor(Date.now() / 1000);
   }
-  const curAnatomy = rawRecord.rows[0].ANATOMY;
-  console.log("curAnatomy :>> ", curAnatomy);
-  let arr = rawRecord.rows;
+  const censusData = await getCensusData({ timestamp });
+  let cur_mrn = "";
+  let cur_mrn_records = [];
+  let ret = [];
+  for (let row of censusData) {
+    if (row.MRN !== cur_mrn) {
+      if (cur_mrn_records.length) {
+        const age_display = getAge(row.PATIENT_BIRTH_UNIX_TS, row.PATIENT_DECEASED_UNIX_TS);
+        const anatomy_display = getAnatomyDisplay(cur_mrn_records);
+        cur_mrn_records.forEach((item) => {
+          item.AGE_DISPLAY = age_display;
+          item.ANATOMY_DISPLAY = anatomy_display;
+        });
+        ret = [...ret, ...cur_mrn_records];
+      }
+      cur_mrn_records = [row];
+      cur_mrn = row.MRN;
+    } else {
+      cur_mrn_records.push(row);
+    }
+  }
+  // last one
+  if (cur_mrn_records.length) {
+    const age_display = getAge(cur_mrn_records[0].PATIENT_BIRTH_UNIX_TS, cur_mrn_records[0].PATIENT_DECEASED_UNIX_TS);
+    const anatomy_display = getAnatomyDisplay(cur_mrn_records);
+    cur_mrn_records.forEach((item) => {
+      item.AGE_DISPLAY = age_display;
+      item.ANATOMY_DISPLAY = anatomy_display;
+    });
+    ret = [...ret, ...cur_mrn_records];
+  }
+  return ret;
+}
 
+function getAge(birth_time, deceased_time) {
+  if (deceased_time) {
+    age = moment.unix(deceased_time).diff(moment.unix(birth_time), "days");
+  } else {
+    age = moment().diff(moment.unix(birth_time), "days");
+  }
+
+  if (age > 365 * 2) {
+    return Math.floor(age / 365) + "Y";
+  } else if (age > 30) {
+    return Math.floor(age / 30) + "M";
+  } else {
+    return age + "D";
+  }
+}
+
+// copied from diagnosis_display/get-disease-display.js
+function getAnatomyDisplay(arr) {
+  
+  const curAnatomy = arr[0].ANATOMY;
   let diagnosisDict = {};
-    arr.forEach((element) => {
-      if (element.SUBCAT_ANAT) {
-        if (element.SUBCAT_ANAT in diagnosisDict) {
-          diagnosisDict[element.SUBCAT_ANAT][element.SUBCAT_NAME] = element.SUBCAT_VALUE;
+  arr.forEach((element) => {
+    if (element.SUBCAT_ANAT) {
+      if (element.SUBCAT_ANAT in diagnosisDict) {
+        diagnosisDict[element.SUBCAT_ANAT][element.SUBCAT_NAME] = element.SUBCAT_VALUE;
+      } else {
+        diagnosisDict[element.SUBCAT_ANAT] = {};
+        diagnosisDict[element.SUBCAT_ANAT][element.SUBCAT_NAME] = element.SUBCAT_VALUE;
+      }
+    } else if (element.COVARIATE) {
+      if (diagnosisDict[curAnatomy]) {
+        if (diagnosisDict[curAnatomy].COVARIATE) {
+          diagnosisDict[curAnatomy].COVARIATE.push(element.COVARIATE);
         } else {
-          diagnosisDict[element.SUBCAT_ANAT] = {};
-          diagnosisDict[element.SUBCAT_ANAT][element.SUBCAT_NAME] = element.SUBCAT_VALUE;
-        }
-      } else if (element.COVARIATE) {
-        if (diagnosisDict[curAnatomy]) {
-          if (diagnosisDict[curAnatomy].COVARIATE) {
-            diagnosisDict[curAnatomy].COVARIATE.push(element.COVARIATE);
-          } else {
-            diagnosisDict[curAnatomy].COVARIATE = [element.COVARIATE];
-          }
-        } else {
-          diagnosisDict[curAnatomy] = {};
           diagnosisDict[curAnatomy].COVARIATE = [element.COVARIATE];
         }
+      } else {
+        diagnosisDict[curAnatomy] = {};
+        diagnosisDict[curAnatomy].COVARIATE = [element.COVARIATE];
       }
-    });
-
-    console.log("diagnosisDict :>> ", diagnosisDict);
-    const DIAGNOSIS_OUTPUT_ORDER = getOutputOrder(DISEASE_TO_COVARIATE_DICT);
-    const DIAGNOSIS_SUBCAT_ORDER = getSubcatOrder(DISEASE_TO_SUBCAT_DICT);
-    const curOutputOrder = DIAGNOSIS_OUTPUT_ORDER[curAnatomy];
-    //curOutputOrder = ["DORV", "AVC", "TAPVC"]
-    console.log("curOutputOrder :>> ", curOutputOrder);
-
-    if (!["AVC", "TAPVC"].includes(curAnatomy)) {
-      // FIXME: getSubcatDisplay could return null, then will error
-      return getSubcatDisplay(curAnatomy, diagnosisDict[curAnatomy], DIAGNOSIS_SUBCAT_ORDER, diagnosisDict)
-        .replace(" n/a ", " ")
-        .replace(/unmentioned /gi, "");
-      // return curOutputOrder
-      //   .map((x) => getSubcatDisplay(x, diagnosisDict[x]))
-      //   .filter(Boolean)
-      //   .join("/")
-      //   .replace(" n/a ", " ");
     }
+  });
 
-    let ret = [];
-    curOutputOrder.forEach((anat) => {
-      if (anat in diagnosisDict) {
-        ret.push(get_AVC_or_TAPVC(anat, DIAGNOSIS_SUBCAT_ORDER, diagnosisDict));
-      }
-    });
-    ret = ret
-      .join("/")
-      .replace(" n/a ", " ")
+  const DIAGNOSIS_OUTPUT_ORDER = getOutputOrder(DISEASE_TO_COVARIATE_DICT);
+  const DIAGNOSIS_SUBCAT_ORDER = getSubcatOrder(DISEASE_TO_SUBCAT_DICT);
+  const curOutputOrder = DIAGNOSIS_OUTPUT_ORDER[curAnatomy];
+  //curOutputOrder = ["DORV", "AVC", "TAPVC"]
+
+  if (!["AVC", "TAPVC"].includes(curAnatomy)) {
+    const subcatDisplay = getSubcatDisplay(
+      curAnatomy,
+      diagnosisDict[curAnatomy],
+      DIAGNOSIS_SUBCAT_ORDER,
+      diagnosisDict
+    );
+    if (subcatDisplay) {
+      return subcatDisplay.replace(" n/a ", " ")
       .replace(/unmentioned /gi, "");
-    return ret;
+    }
+    return null;
+
+    // return getSubcatDisplay(
+    //   curAnatomy,
+    //   diagnosisDict[curAnatomy],
+    //   DIAGNOSIS_SUBCAT_ORDER,
+    //   diagnosisDict
+    // )
+    //   .replace(" n/a ", " ")
+    //   .replace(/unmentioned /gi, "");
+    // // return curOutputOrder
+    // //   .map((x) => getSubcatDisplay(x, diagnosisDict[x]))
+    // //   .filter(Boolean)
+    // //   .join("/")
+    // //   .replace(" n/a ", " ");
   }
+
+  let ret = [];
+  curOutputOrder.forEach((anat) => {
+    if (anat in diagnosisDict) {
+      ret.push(get_AVC_or_TAPVC(anat, DIAGNOSIS_SUBCAT_ORDER, diagnosisDict));
+    }
+  });
+  ret = ret
+    .join("/")
+    .replace(" n/a ", " ")
+    .replace(/unmentioned /gi, "");
+  return ret;
+}
 
 const get_AVC_or_TAPVC = (anat, DIAGNOSIS_SUBCAT_ORDER, diagDict) => {
   let eachAnat = [];
@@ -188,7 +240,7 @@ const getOutputOrder = (DISEASE_TO_COVARIATE_DICT) => {
 };
 
 const getSubcatDisplay = (subcatName, subcatObj, DIAGNOSIS_SUBCAT_ORDER, diagDict) => {
-//   console.log("subcatName :>> ", subcatName);
+  //   console.log("subcatName :>> ", subcatName);
   console.log("subcatObj :>> ", subcatObj);
   let ret;
   switch (subcatName) {
@@ -748,11 +800,6 @@ const getSubcatDisplay = (subcatName, subcatObj, DIAGNOSIS_SUBCAT_ORDER, diagDic
   return ret;
 };
 
-const getDiagnosisDisplay = database.withConnection(async function (conn, binds) {
-  let result = await diagnosisQuerySQLExecutor(conn, binds);
-  return result;
-});
-
 module.exports = {
-  getDiagnosisDisplay
+  getAdtCensus,
 };
