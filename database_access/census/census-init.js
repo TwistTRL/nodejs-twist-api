@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-06 17:40:48 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-06 20:53:07
+ * @Last Modified time: 2020-12-07 17:20:49
  */
 
 const database = require("../../services/database");
@@ -10,14 +10,7 @@ const database = require("../../services/database");
 const SQL_GET_INIT_CENSUS =`
 SELECT
     PERSON_ID,
-    START_UNIX,
-    END_UNIX,
-    LOC_NURSE_UNIT_CD,
-    LOC_BED_CD,
-    LOC_ROOM_CD,
-    NURSE_UNIT_DISP,
-    BED_DISP,
-    ROOM_DISP,
+    MRN,
     PERSON.NAME_FIRST AS PATIENT_FIRST_NAME,
     PERSON.NAME_MIDDLE AS PATIENT_MIDDLE_NAME,
     PERSON.NAME_LAST AS PATIENT_LAST_NAME,
@@ -25,7 +18,14 @@ SELECT
     PERSON.DECEASED_UNIX_TS AS PATIENT_DECEASED_UNIX_TS,
     SEX_CD AS PATIENT_SEX_CD,
     SEX_CODE.VALUE AS PATIENT_SEX,
-    CHB_MRN.MRN
+    START_UNIX,
+    END_UNIX,
+    LOC_NURSE_UNIT_CD,
+    LOC_BED_CD,
+    LOC_ROOM_CD,
+    NURSE_UNIT_DISP,
+    BED_DISP,
+    ROOM_DISP
 FROM ADT
 JOIN PERSON USING (PERSON_ID)
 JOIN SEX_CODE USING (SEX_CD)

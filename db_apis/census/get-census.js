@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-05 13:17:07
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-06 12:57:58
+ * @Last Modified time: 2020-12-07 15:49:53
  */
 
 const moment = require("moment");
@@ -60,11 +60,11 @@ function getAge(birth_time, deceased_time) {
   }
 
   if (age > 365 * 2) {
-    return Math.floor(age / 365) + "Y";
+    return Math.floor(age / 365) + "y";
   } else if (age > 30) {
-    return Math.floor(age / 30) + "M";
+    return Math.floor(age / 30) + "m";
   } else {
-    return age + "D";
+    return age + "d";
   }
 }
 

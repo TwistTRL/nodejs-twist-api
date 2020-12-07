@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-06 11:00:01 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-06 21:59:51
+ * @Last Modified time: 2020-12-07 17:20:15
  */
 
 const database = require("../../services/database");
@@ -57,15 +57,15 @@ WITH
 
     -- get latest RSS for patient
     PATIENT_RSS AS (
-        SELECT PERSON_ID, RST, RSS, EVENT_END_DT_TM_UNIX
+        SELECT PERSON_ID, RST, RSS, INO_DOSE, EVENT_END_DT_TM_UNIX
         FROM PATIENT_BED
         JOIN RSS_UPDATED USING (PERSON_ID)    
     ),
     
     PATIENT_LATEST_RSS AS (
-      SELECT PERSON_ID, RST, RSS, EVENT_END_DT_TM_UNIX 
+      SELECT PERSON_ID, RST, RSS, INO_DOSE, EVENT_END_DT_TM_UNIX 
       FROM (
-        SELECT PERSON_ID, RST, RSS, EVENT_END_DT_TM_UNIX, ROW_NUMBER () 
+        SELECT PERSON_ID, RST, RSS, INO_DOSE, EVENT_END_DT_TM_UNIX, ROW_NUMBER () 
         OVER (PARTITION BY PERSON_ID ORDER BY EVENT_END_DT_TM_UNIX DESC) LATEST_RSS
         FROM PATIENT_RSS
       )
@@ -101,10 +101,10 @@ WITH
           END_UNIX
       FROM ADT_PERSONNEL
       WHERE :timestamp BETWEEN START_UNIX AND END_UNIX
-    )
-    
+    )    
     
 SELECT
+    PERSON_ID,
     MRN,
     PATIENT_BED.NAME_FIRST AS PATIENT_FIRST_NAME,
     PATIENT_BED.NAME_MIDDLE AS PATIENT_MIDDLE_NAME,
@@ -131,7 +131,8 @@ SELECT
     PATIENT_LATEST_WEIGHT.DT_UNIX AS WEIGHT_UNIX,
     WEIGHT,
     RST, 
-    RSS, 
+    RSS,
+    INO_DOSE, 
     EVENT_END_DT_TM_UNIX AS RSS_UNIX,
     ECMO_FLOW_NORM, 
     ECMO_VAD_SCORE, 
