@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-01 13:52:41 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-05 19:59:51
+ * @Last Modified time: 2020-12-08 12:58:12
  */
 
 
@@ -14,8 +14,8 @@ SELECT
   PARENT_ENTITY_ID, 
   NAME_FULL_FORMATTED,
   CONTACT_NUM,
-  START_TAKING_CARE_UTC, 
-  END_TAKING_CARE_UTC
+  START_UNIX,
+  END_UNIX
 FROM ADT_PERSONNEL
 WHERE PERSON_ID = :person_id`;
 

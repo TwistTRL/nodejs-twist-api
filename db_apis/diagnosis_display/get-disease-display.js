@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 10:54:55
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-06 12:55:14
+ * @Last Modified time: 2020-12-08 15:10:11
  */
 
 const database = require("../../services/database");
@@ -25,7 +25,7 @@ FROM DIAGNOSIS
 WHERE MRN = :mrn`;
 
 async function diagnosisQuerySQLExecutor(conn, binds) {
-  console.log("~~SQL_GET_DIAGNOSIS: ", SQL_GET_DIAGNOSIS);
+  // console.log("~~SQL_GET_DIAGNOSIS: ", SQL_GET_DIAGNOSIS);
   let rawRecord = await conn.execute(SQL_GET_DIAGNOSIS, binds);
   if (!rawRecord.rows[0] || !rawRecord.rows[0].ANATOMY) {
     return "no anatomy";

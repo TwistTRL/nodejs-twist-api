@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-06 20:58:37
+ * @Last Modified time: 2020-12-08 16:47:40
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -3835,11 +3835,12 @@ router.post("/vitals-raw", async (req, res) => {
  * @apiSuccessExample Success-Response:
  *  [
       {
-          "ASSIGN_TYPE": "TEAMATTENDINGMD",
-          "PARENT_ENTITY_ID": 123456,
-          "NAME_FULL_FORMATTED": "ABC DEF",
-          "START_TAKING_CARE_UTC": "11-JAN-19",
-          "END_TAKING_CARE_UTC": "11-JAN-19"
+          "ASSIGN_TYPE": "RN",
+          "PARENT_ENTITY_ID": 1111,
+          "NAME_FULL_FORMATTED": "Last_name, First_name",
+          "CONTACT_NUM": "55555",
+          "START_UNIX": 1524697800,
+          "END_UNIX": 1524741600
       },
     ]
  *
