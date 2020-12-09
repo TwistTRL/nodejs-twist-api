@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-05 13:17:07
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-08 16:40:26
+ * @Last Modified time: 2020-12-09 12:25:40
  */
 
 const moment = require("moment");
@@ -69,20 +69,25 @@ const getAssignType = (assignType) => {
     return "AA";
   }
 
-
   console.warn("assignType :>> ", assignType);
   return assignType;
 };
 
 const isE = (ecmo_unix, ecmo_flow_norm, ecmo_vad_score) =>
-  (ecmo_flow_norm || ecmo_vad_score) && moment().diff(moment.unix(ecmo_unix), "hours") <= 6;
+  Boolean(
+    (ecmo_flow_norm || ecmo_vad_score) && moment().diff(moment.unix(ecmo_unix), "hours") <= 6
+  );
 const isV = (rss_unix, rst) =>
-  ["PSV", "PCV", "VCV", "HFJV", "HFOV"].includes(rst) &&
-  moment().diff(moment.unix(rss_unix), "hours") <= 6;
+  Boolean(
+    ["PSV", "PCV", "VCV", "HFJV", "HFOV"].includes(rst) &&
+      moment().diff(moment.unix(rss_unix), "hours") <= 6
+  );
 const isN = (rss_unix, rst) =>
-  ["BiPAP", "CPAP", "HFNC"].includes(rst) && moment().diff(moment.unix(rss_unix), "hours") <= 6;
+  Boolean(
+    ["BiPAP", "CPAP", "HFNC"].includes(rst) && moment().diff(moment.unix(rss_unix), "hours") <= 6
+  );
 const isINO = (rss_unix, ino_dose) =>
-  ino_dose && moment().diff(moment.unix(rss_unix), "hours") <= 6;
+  Boolean(ino_dose && moment().diff(moment.unix(rss_unix), "hours") <= 6);
 
 const getSingelPatientInfo = async (element) => ({
   PERSON_ID: element.PERSON_ID,
@@ -122,6 +127,9 @@ async function getAdtCensus(timestamp) {
 
   let patientDict = {};
   for (let element of censusData) {
+    if (element.PERSON_ID == 29032579) {
+      console.log('element :>> ', element);
+    }
     const personnelInfo = {
       NAME_FULL_FORMATTED: element.PERSONNEL_NAME,
       CONTACT_NUM: element.CONTACT_NUM,

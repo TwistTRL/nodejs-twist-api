@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 10:54:55
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-08 15:10:11
+ * @Last Modified time: 2020-12-09 12:28:30
  */
 
 const database = require("../../services/database");
@@ -57,12 +57,12 @@ async function diagnosisQuerySQLExecutor(conn, binds) {
       }
     });
 
-    console.log("diagnosisDict :>> ", diagnosisDict);
+    // console.log("diagnosisDict :>> ", diagnosisDict);
     const DIAGNOSIS_OUTPUT_ORDER = getOutputOrder(DISEASE_TO_COVARIATE_DICT);
     const DIAGNOSIS_SUBCAT_ORDER = getSubcatOrder(DISEASE_TO_SUBCAT_DICT);
     const curOutputOrder = DIAGNOSIS_OUTPUT_ORDER[curAnatomy];
     //curOutputOrder = ["DORV", "AVC", "TAPVC"]
-    console.log("curOutputOrder :>> ", curOutputOrder);
+    // console.log("curOutputOrder :>> ", curOutputOrder);
 
     if (!["AVC", "TAPVC"].includes(curAnatomy)) {
       // FIXME: getSubcatDisplay could return null, then will error
@@ -189,7 +189,7 @@ const getOutputOrder = (DISEASE_TO_COVARIATE_DICT) => {
 
 const getSubcatDisplay = (subcatName, subcatObj, DIAGNOSIS_SUBCAT_ORDER, diagDict) => {
 //   console.log("subcatName :>> ", subcatName);
-  console.log("subcatObj :>> ", subcatObj);
+  // console.log("subcatObj :>> ", subcatObj);
   let ret;
   switch (subcatName) {
     case "HLHS":
