@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-08 16:47:40
+ * @Last Modified time: 2020-12-10 22:43:27
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -18,6 +18,7 @@ const { getPhenotypingStep2 } = require("../db_apis/phenotyping/step2");
 
 const { getAdtCensus } = require("../db_apis/census/get-census");
 const { getCensusInit } = require("../db_apis/census/get-census-init");
+const { getCensusTeam } = require("../db_apis/census/get-census-team");
 
 const { getCensus } = require("../db_apis/cross_tables/get-census");
 const { getRadiology } = require("../db_apis/get-radiology");
@@ -243,6 +244,71 @@ router.get("/phenotyping/step2/:mrn", async (req, res) => {
  * @apiName get-census
  * @apiGroup Census
  * @apiParam {Number} timestamp Unix Timestamp in seconds.
+ * @apiSuccessExample Success-Response:
+ * [
+      {
+        "PERSON_ID": 11111,
+        "MRN": "22222",
+        "FIRST_NAME": "First_name",
+        "MIDDLE_NAME": "Middle_name",
+        "LAST_NAME": "Last_name",
+        "BIRTH_UNIX_TS": 334209600,
+        "DECEASED_UNIX_TS": null,
+        "SEX_CD": 362,
+        "SEX": "Female",
+
+        // location
+        "BED_START_UNIX": 11111,
+        "BED_END_UNIX": 11111,
+        "LOC_NURSE_UNIT_CD": 11111,
+        "LOC_ROOM_CD": 11111,
+        "NURSE_UNIT_DISP": "Emergency Department",
+        "BED_DISP": " ",
+        "ROOM_DISP": "WR",
+        "ASSIGN_ID": null,
+        "BED_ASSIGN_ID": null,
+
+        // latest weight
+        "WEIGHT": null,
+        "WEIGHT_UNIX": null,
+
+        // E, V, N, iNO
+        "E": false,
+        "V": false,
+        "N": false,
+        "INO": false,
+
+        // age and anatomy
+        "AGE_DISPLAY": "40y",
+        "ANATOMY_DISPLAY": "",
+        
+        // latest RSS/RST
+        "RSS": null,
+        "RST": null,
+        "RSS_UNIX": null,
+
+        // latest ecmo score
+        "ECMO_FLOW_NORM": null,
+        "ECMO_VAD_SCORE": null,
+        "ECMO_UNIX": null,
+        
+        // latest team
+        "TEAM": "A",
+
+        // personnel for patient at this timestamp
+        "PERSONNEL": [
+          {
+                "NAME_FULL_FORMATTED": "Last_name, First_name",
+                "CONTACT_NUM": "222222",
+                // original assign type
+                "ASSIGN_TYPE": "COVERINGATTENDING",
+                "TEAM_ASSIGN_TYPE": "ATTEND",
+                "START_UNIX": 1607644800,
+                "END_UNIX": 1607688000
+            },
+        ]
+      },
+  ]
  */
 
 router.get("/census/:timestamp", async (req, res) => {
@@ -282,10 +348,42 @@ router.get("/census-init", async (req, res) => {
 });
 
 /**
+ * @api {get} /census-team/:person_id/:timestamp Census Team For Patient
+ * @apiVersion 0.0.1
+ * @apiName get-census-team
+ * @apiGroup Census
+ * @apiParam {Number} person_id Patient Person ID.
+ * @apiParam {Number} timestamp Unix Timestamp in seconds.
+ */
+
+router.get("/census-team/:person_id/:timestamp", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id is: " + person_id);
+
+  const timestamp =
+    parseInt(Math.floor(req.params.timestamp / 60) * 60) ||
+    parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
+  console.log("timestamp is: " + timestamp);
+  getApiFromRedis(res, getCensusTeam, {person_id, timestamp}, "interface-team-census");
+});
+
+router.get("/census-team/:person_id", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id is: " + person_id);
+
+  const timestamp =
+    parseInt(Math.floor(req.params.timestamp / 60) * 60) ||
+    parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
+  console.log("timestamp is: " + timestamp);
+  getApiFromRedis(res, getCensusTeam, {person_id, timestamp}, "interface-team-census");
+});
+
+/**
  * @api {get} /censusv0/:timestamp Census data old
  * @apiVersion 0.0.1
  * @apiName get-census-old
  * @apiGroup Census
+ * @apiDeprecated use now (#Census:get-census).
  * @apiParam {Number} timestamp Unix Timestamp in seconds.
  *
  *

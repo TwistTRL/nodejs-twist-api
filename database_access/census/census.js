@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-06 11:00:01 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-09 12:30:55
+ * @Last Modified time: 2020-12-10 22:45:33
  */
 
 const database = require("../../services/database");
@@ -12,6 +12,7 @@ WITH
     PATIENT_BED AS (
       SELECT
           PERSON_ID,
+          ENCNTR_ID,
           START_UNIX,
           END_UNIX,
           LOC_NURSE_UNIT_CD,
@@ -42,7 +43,8 @@ WITH
           DT_UNIX,
           WEIGHT
         FROM PATIENT_BED
-        JOIN WEIGHTS USING (PERSON_ID)    
+        JOIN WEIGHTS USING (PERSON_ID)
+        WHERE :timestamp >= DT_UNIX    
     ),
     
     PATIENT_LATEST_WEIGHT AS (
@@ -59,7 +61,8 @@ WITH
     PATIENT_RSS AS (
         SELECT PERSON_ID, RST, RSS, INO_DOSE, EVENT_END_DT_TM_UNIX
         FROM PATIENT_BED
-        JOIN RSS_UPDATED USING (PERSON_ID)    
+        JOIN RSS_UPDATED USING (PERSON_ID)
+        WHERE :timestamp >= EVENT_END_DT_TM_UNIX
     ),
     
     PATIENT_LATEST_RSS AS (
@@ -77,6 +80,7 @@ WITH
         SELECT PERSON_ID, ECMO_FLOW_NORM, ECMO_VAD_SCORE, VALID_FROM_DT_TM
         FROM PATIENT_BED
         JOIN ECMO_VAD_VARIABLE USING (PERSON_ID)    
+        WHERE :timestamp >= VALID_FROM_DT_TM
     ),
     
     PATIENT_LATEST_ECMO AS (
@@ -87,6 +91,29 @@ WITH
         FROM PATIENT_ECMO
       )
       WHERE LATEST_ECMO = 1
+    ),
+
+    -- get latest Team for patient
+    PERSONNEL_TEAM AS (
+      SELECT
+          PERSON_ID,
+          ENCNTR_ID,
+          NAME_PERSONNEL,
+          START_UNIX,
+          END_UNIX
+      FROM ADT_PERSONNEL
+      WHERE NAME_PERSONNEL LIKE 'Team%'
+          AND :timestamp >= START_UNIX
+    ),
+
+    PATIENT_LATEST_TEAM AS (
+      SELECT PERSON_ID, ENCNTR_ID, NAME_PERSONNEL, START_UNIX, END_UNIX
+      FROM (
+        SELECT PERSON_ID, ENCNTR_ID, NAME_PERSONNEL, START_UNIX, END_UNIX, ROW_NUMBER () 
+        OVER (PARTITION BY PERSON_ID ORDER BY START_UNIX DESC) LATEST_TEAM
+        FROM PERSONNEL_TEAM
+      )
+      WHERE LATEST_TEAM = 1
     ),
 
     PERSONNEL_BED AS (
@@ -102,7 +129,7 @@ WITH
           END_UNIX
       FROM ADT_PERSONNEL
       WHERE :timestamp BETWEEN START_UNIX AND END_UNIX
-    )    
+    )
     
 SELECT
     PERSON_ID,
@@ -137,10 +164,12 @@ SELECT
     EVENT_END_DT_TM_UNIX AS RSS_UNIX,
     ECMO_FLOW_NORM, 
     ECMO_VAD_SCORE, 
-    VALID_FROM_DT_TM AS ECMO_UNIX
+    VALID_FROM_DT_TM AS ECMO_UNIX,
+    NAME_PERSONNEL AS TEAM
 FROM PATIENT_BED
 -- LEFT JOIN PERSONNEL_BED ON PATIENT_BED.LOC_BED_CD = PERSONNEL_BED.BED_CD
 LEFT JOIN PERSONNEL_BED USING (PERSON_ID)
+LEFT JOIN PATIENT_LATEST_TEAM USING (PERSON_ID)
 LEFT JOIN PATIENT_LATEST_WEIGHT USING (PERSON_ID)
 LEFT JOIN PATIENT_LATEST_RSS USING (PERSON_ID)
 LEFT JOIN PATIENT_LATEST_ECMO USING (PERSON_ID)
@@ -166,17 +195,3 @@ const getCensusData = database.withConnection(getCensusSqlExecutor);
 module.exports = {
   getCensusData,
 };
-
-// -- census table part
-// select * from RSS;
-// --most recent rss, rst
-
-// select * from ecmo_vad_variable;
-// -- norm, value
-// --past 12 hours, send the most recent rss/ecmo
-
-// -- check ==> ecmo_flow_norm
-
-
-
-// slow => person basic info first then rss + weight + age + diagnosis

@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-05 13:17:07
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-09 12:25:40
+ * @Last Modified time: 2020-12-10 20:17:34
  */
 
 const moment = require("moment");
@@ -89,6 +89,17 @@ const isN = (rss_unix, rst) =>
 const isINO = (rss_unix, ino_dose) =>
   Boolean(ino_dose && moment().diff(moment.unix(rss_unix), "hours") <= 6);
 
+const getTeam = (team) => TEAM_DICT[team] || team//.split(" ").length === 2 ? team.splict(" ")[1] : null;
+
+const TEAM_DICT = {
+  "Team 3": "3",
+  "Team B": "B",
+  "Team A": "A",
+  "Team 1": "1",
+  "Team 2": "2",
+  "Team C": "C",
+};
+
 const getSingelPatientInfo = async (element) => ({
   PERSON_ID: element.PERSON_ID,
   MRN: element.MRN,
@@ -116,6 +127,13 @@ const getSingelPatientInfo = async (element) => ({
   INO: isINO(element.RSS_UNIX, element.INO_DOSE),
   AGE_DISPLAY: getAge(element.PATIENT_BIRTH_UNIX_TS, element.PATIENT_DECEASED_UNIX_TS),
   ANATOMY_DISPLAY: await getDiagnosisDisplay({ mrn: element.MRN }),
+  RSS: element.RSS,
+  RST: element.RST,
+  RSS_UNIX: element.RSS_UNIX,
+  ECMO_FLOW_NORM: element.ECMO_FLOW_NORM,
+  ECMO_VAD_SCORE: element.ECMO_VAD_SCORE,
+  ECMO_UNIX: element.ECMO_UNIX,
+  TEAM: getTeam(element.TEAM),
 });
 
 async function getAdtCensus(timestamp) {
@@ -127,9 +145,6 @@ async function getAdtCensus(timestamp) {
 
   let patientDict = {};
   for (let element of censusData) {
-    if (element.PERSON_ID == 29032579) {
-      console.log('element :>> ', element);
-    }
     const personnelInfo = {
       NAME_FULL_FORMATTED: element.PERSONNEL_NAME,
       CONTACT_NUM: element.CONTACT_NUM,
