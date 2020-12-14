@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-13 21:57:09
+ * @Last Modified time: 2020-12-14 09:36:50
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -263,6 +263,7 @@ router.get("/phenotyping/step2/:mrn", async (req, res) => {
         "LOC_NURSE_UNIT_CD": 11111,
         "LOC_ROOM_CD": 11111,
         "NURSE_UNIT_DISP": "Emergency Department",
+        "LOCATION_BED": null,
         "BED_DISP": " ",
         "ROOM_DISP": "WR",
         "ASSIGN_ID": null,

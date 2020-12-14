@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-05 13:17:07
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-12 14:25:54
+ * @Last Modified time: 2020-12-14 09:30:06
  */
 
 const moment = require("moment");
@@ -90,8 +90,18 @@ const isN = (rss_unix, rst) =>
 const isINO = (rss_unix, ino_dose) =>
   Boolean(ino_dose && moment().diff(moment.unix(rss_unix), "hours") <= 6);
 
-const getTeam = (team) =>
-  TEAM_DICT[team] || team.split(" ").length === 2 ? team.split(" ")[1] : team;
+const getTeam = (team) => {
+  if (!team) {
+    return null;
+  }
+  if (team in TEAM_DICT) {
+    return TEAM_DICT[team];
+  }
+  if (team.split(" ").length === 2) {
+    return team.split(" ")[1];
+  }
+  return team;
+}
 
 const TEAM_DICT = {
   "Team 3": "3",

@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-06 11:00:01 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-12 12:12:19
+ * @Last Modified time: 2020-12-14 09:33:48
  */
 
 const database = require("../../services/database");
@@ -146,6 +146,7 @@ SELECT
     PATIENT_BED.END_UNIX AS PATIENT_BED_END_UNIX,
     LOC_NURSE_UNIT_CD,
     LOC_ROOM_CD,
+    LOCATION_BED,
     NURSE_UNIT_DISP,
     BED_DISP,
     ROOM_DISP,
