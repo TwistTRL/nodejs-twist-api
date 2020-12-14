@@ -2,13 +2,13 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-06 17:40:48 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-08 16:50:56
+ * @Last Modified time: 2020-12-14 16:32:07
  */
 
 const database = require("../../services/database");
 
 const SQL_GET_INIT_CENSUS =`
-SELECT
+SELECT DISTINCT
     PERSON_ID,
     MRN,
     PERSON.NAME_FIRST AS FIRST_NAME,
@@ -32,6 +32,7 @@ JOIN SEX_CODE USING (SEX_CD)
 JOIN CHB_MRN USING (PERSON_ID)
 WHERE :timestamp BETWEEN START_UNIX AND END_UNIX
   AND :timestamp BETWEEN BEG_EFFECTIVE_UNIX_TS AND END_EFFECTIVE_UNIX_TS
+  AND (DECEASED_UNIX_TS IS NULL OR :timestamp BETWEEN BIRTH_UNIX_TS AND DECEASED_UNIX_TS)
 `;
 
 async function getCensusInitSqlExecutor(conn, binds) {

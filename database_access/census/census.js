@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-06 11:00:01 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-14 09:33:48
+ * @Last Modified time: 2020-12-14 16:32:18
  */
 
 const database = require("../../services/database");
@@ -36,7 +36,8 @@ WITH
       JOIN CHB_MRN USING (PERSON_ID)
       WHERE :timestamp BETWEEN START_UNIX AND END_UNIX
         AND :timestamp BETWEEN BEG_EFFECTIVE_UNIX_TS AND END_EFFECTIVE_UNIX_TS
-    ),
+        AND (DECEASED_UNIX_TS IS NULL OR :timestamp BETWEEN BIRTH_UNIX_TS AND DECEASED_UNIX_TS)
+      ),
     
     -- get latest weight for patient
     PATIENT_WEIGHT AS (
