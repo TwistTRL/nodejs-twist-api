@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-10 22:43:27
+ * @Last Modified time: 2020-12-13 21:57:09
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -26,7 +26,7 @@ const { getInOutInit } = require("../db_apis/in-out/in-out-init-fetch");
 const { getRelationalQuery } = require("../db_apis/get-relational-query");
 const { getVitalsQuery } = require("../db_apis/get-vitals-all");
 const { getVitalsQueryV2 } = require("../db_apis/get-vitals-all-v2");
-const { getVitalsRaw } = require('../db_apis/vitals/get-vitals-raw');
+const { getVitalsMain } = require('../db_apis/vitals/get-vitals-main');
 const { getTemperature } = require("../db_apis/get-temperature");
 
 const { getRespiratorySupportVariable } = require("../db_apis/get_respiratory_support_variables");
@@ -3876,17 +3876,15 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 // --------- dev
 
 /**
- * @api {post} /vitals-raw Raw Vitals
+ * @api {post} /vitals-main Vitals
  * @apiVersion 0.0.1
- * @apiName get-raw-vitals-from-four-tabls
+ * @apiName get-vitals-main
  * @apiGroup DEV
  * @apiDescription 
  * data get from table `VITALS`, `VITAL_V500`, and `VITAL_AIMS`
  *
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
- * @apiParam {Number} from Start timestamp.
- * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
         {
           "person_id": EXAMPLE_PERSON_ID,
@@ -3910,14 +3908,13 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
  *
  */
 
-router.post("/vitals-raw", async (req, res) => {
+router.post("/vitals-main", async (req, res) => {
   const query = req.body;
   const person_id = Number(query.person_id);
   const vital_type = query.vital_type;
-  const from_ = Number(query.from);
-  const to_ = Number(query.to);
-
-  getApiFromRedis(res, getVitalsRaw, {person_id, vital_type, from_, to_}, "interface-vitals-raw", 120);
+  const from = Number(query.from);
+  const to = Number(query.to);
+  getApiFromRedis(res, getVitalsMain, {person_id, vital_type, from, to}, "interface-vitals-main", 120);
 
 });
 

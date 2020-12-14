@@ -2,12 +2,12 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 09:46:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-03 10:09:22
+ * @Last Modified time: 2020-12-14 07:02:34
  */
 
 const database = require("../../services/database");
 
-const caclTable = {
+const CAlC_TABLE = {
   "1D": "VITALS_CALC_1D",
   "12H": "VITALS_CALC_12H",
   "5H": "VITALS_CALC_5H",
@@ -29,9 +29,9 @@ SELECT
   VAL_PERC95,
   VAL_PERC99,
   VAL_MAX
-FROM ${caclTable[data_resolution]}
+FROM ${CAlC_TABLE[data_resolution]}
 WHERE PERSON_ID = :person_id
-AND VITAL_TYPE = :vital_type
+  AND VITAL_TYPE = :vital_type
 ORDER BY START_TM`;
 
 async function vitalsCalcQuerySQLExecutor(conn, binds) {

@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-06 11:00:01 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-10 22:45:33
+ * @Last Modified time: 2020-12-12 12:12:19
  */
 
 const database = require("../../services/database");
@@ -18,6 +18,7 @@ WITH
           LOC_NURSE_UNIT_CD,
           LOC_BED_CD,
           LOC_ROOM_CD,
+          LOCATION_BED,
           NURSE_UNIT_DISP,
           BED_DISP,
           ROOM_DISP,

@@ -2,27 +2,14 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-03 21:10:09 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-03 21:18:10
+ * @Last Modified time: 2020-12-14 07:57:23
  */
 
 
-const isValidJson = require("../utils/isJson");
-const InputInvalidError = require("../utils/errors").InputInvalidError;
-const { getSingleVitalCALCResult } = require("../db_relation/vitals-calc-relation");
-
-const cat2 = "data_type";
 const cat3 = "data_resolution";
-const catPersonId = "person_id";
 const catVitalType = "vital_type";
-const catFrom = "from";
-const catTo = "to";
-const cat2Array = ["binned", "calc"];
-const cat3Array = ["1D", "12H", "5H", "5M"];
 
-const getVitalsBin = async(vitalsData) => {
-
- 
-  let vitalsRecords = await conn.execute(sqlQuery);
+const getVitalsBin = async(vitalsBinData) => {
 
   let timeInterval = convertTimeInterval(query[cat3]);
   let vitalType2nd = SQLVitalTypeDict2ndChoice[query[catVitalType]];
@@ -42,47 +29,29 @@ const getVitalsBin = async(vitalsData) => {
     console.time("getVitalBinned-2nd " + timestamp);
     let vitalsRecords2nd = await conn.execute(sqlQuery2nd);
     console.timeEnd("getVitalBinned-2nd " + timestamp);
-    let binnedResult = _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsRecords, vitalType2nd, mapDictResult, vitalsRecords2nd);
+    let binnedResult = _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsBinData, vitalType2nd, mapDictResult, vitalsRecords2nd);
     console.timeEnd("getVitalBinned" + timestamp);
     return binnedResult;
   }
 
-  let binnedResult = _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsRecords);
+  let binnedResult = _calculateBinnedRecords(vitalType, dictResult, timeInterval, vitalsBinData);
   console.timeEnd("getVitalBinned" + timestamp);
   return binnedResult;
-}
-
-function getMinMaxBinId(dictRecord) {
-  let dictResult = {};
-  let maxBinId = 0;
-  let minBinId = Number.MAX_SAFE_INTEGER;
-  for (let row of dictRecord.rows) {
-    if (row.BIN_ID > maxBinId) {
-      maxBinId = row.BIN_ID;
-    }
-    if (row.BIN_ID < minBinId) {
-      minBinId = row.BIN_ID;
-    }
-    dictResult[row.BIN_ID] = [row.LMT_ST, row.LMT_END];
-  }
-  return [minBinId, maxBinId, dictResult];
 }
 
 function _calculateBinnedRecords(
   vitalType,
   dictResult,
   timeInterval,
-  vitalsRecords,
+  vitalsBinData,
   vitalType2nd = null,
   mapDictResult = null,
   vitalsRecords2nd = null
 ) {
   var result = [dictResult];
-  // vitalsRecords = {"metadata":[], "rows":[]}
-  var arr1 = vitalsRecords.rows;
+  var arr1 = vitalsBinData;
   console.log("vitals Binned record size :", arr1.length);
 
-  // vitalsRecords = {"metadata":[], "rows":[]}
   if (vitalsRecords2nd != null && vitalsRecords2nd.rows != null && vitalsRecords2nd.rows.length != 0) {
     let arr2 = vitalsRecords2nd.rows;
     console.log("vitals Binned 2nd record size :", arr2.length);
