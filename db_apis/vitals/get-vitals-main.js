@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 12:58:19
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-14 07:49:16
+ * @Last Modified time: 2020-12-17 23:31:32
  */
 
 const isValidJson = require("../../utils/isJson");
@@ -12,6 +12,7 @@ const { getVitalsBin } = require("./get-vitals-bin");
 const { getVitalsCalc } = require("./get-vitals-calc");
 const { getTempRaw } = require("./get-vitals-temp-raw");
 
+const {getVitalsBinDef} = require('../../database_access/vitals/vitals-bin-def');
 const {getVitalsRawData} = require('../../database_access/vitals/vitals-raw');
 const {getVitalsBinData} = require('../../database_access/vitals/vitals-bin');
 const {getVitalsCalcData} = require('../../database_access/vitals/vitals-calc');
@@ -105,14 +106,21 @@ function getQueryType(query) {
 const getVitalsMain = async (query) => {
   console.log("getVitalsMain: query = ", query);
   const { vital_type, person_id, data_resolution, from, to } = query;
-//TODO:
+  const input_vital_type = vital_type.toUpperCase();
+  console.log('input_vital_type :>> ', input_vital_type);
   if (getQueryType(query) == DATATYPE.BINNED) {
-    const vitalsBinData = await getVitalsBinData({ vital_type, person_id, data_resolution});
-    return getVitalsBin(vitalsBinData);
+    console.log('DATATYPE is BINNED :>> ', DATATYPE.BINNED);
+    const bin_def = await getVitalsBinDef({ input_vital_type });
+    if (!bin_def) {
+      return null;
+    }
+    const bin_data = await getVitalsBinData({ bin_def, input_vital_type, person_id, data_resolution});
+    const ret = getVitalsBin(bin_data, bin_def);
+    return ret;
   }
 
   if (getQueryType(query) == DATATYPE.CALC) {
-    const vitalsCalcData = await getVitalsCalcData({ vital_type, person_id, data_resolution});
+    const vitalsCalcData = await getVitalsCalcData({ input_vital_type, person_id, data_resolution});
     return getVitalsCalc(vitalsCalcData);
   }
 

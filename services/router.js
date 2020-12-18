@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-14 09:36:50
+ * @Last Modified time: 2020-12-17 22:26:56
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -3877,13 +3877,17 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 // --------- dev
 
 /**
- * @api {post} /vitals-main Vitals
+ * @api {post} /vitals-main Vitals V3
  * @apiVersion 0.0.1
  * @apiName get-vitals-main
  * @apiGroup DEV
  * @apiDescription 
- * data get from table `VITALS`, `VITAL_V500`, and `VITAL_AIMS`
- *
+ * data table source: raw: `VITALS`, `VITAL_V500`, and `VITAL_AIMS`
+ * percentile: VITALS_CALC_1D, VITALS_CALC_12H, VITALS_CALC_5H, VITALS_CALC_5M, 
+ * VITALS_V500_PERC_1D, VITALS_V500_PERC_12H, VITALS_V500_PERC_5H
+ * binned: VITALS_BIN_1D, VITALS_BIN_12H, VITALS_BIN_5H, VITALS_BIN_5M, 
+ * VITALS_V500_BIN_1D, VITALS_V500_BIN_12H, VITALS_V500_BIN_5H
+
  * @apiParam {Number} person_id Patient unique ID.
  * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
  * @apiParamExample {json} Example of request vitals raw data
@@ -3893,6 +3897,22 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
           "from":1542014000,
           "to":1542018000
         }
+
+        {
+            "person_id": EXAMPLE_PERSON_ID,
+            "vital_type": "mbp",
+            "data_type": "binned",
+            "data_resolution": "1D"
+        }
+
+        {
+            "person_id": EXAMPLE_PERSON_ID,
+            "vital_type": "sbp",
+            "data_type": "calc",
+            "data_resolution": "1D"
+        }
+
+        
  * @apiSuccess {String} vital_type_string Vital type name such as "SBP1".
  * @apiSuccess {Number} value Vitals raw data.
  * @apiSuccess {Number} timestamp time in Unix seconds.
@@ -3915,7 +3935,9 @@ router.post("/vitals-main", async (req, res) => {
   const vital_type = query.vital_type;
   const from = Number(query.from);
   const to = Number(query.to);
-  getApiFromRedis(res, getVitalsMain, {person_id, vital_type, from, to}, "interface-vitals-main", 120);
+  const data_type = query.data_type;
+  const data_resolution = query.data_resolution;
+  getApiFromRedis(res, getVitalsMain, {person_id, vital_type, from, to, data_type, data_resolution}, "interface-vitals-main", 90);
 
 });
 

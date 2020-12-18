@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-06 17:40:48 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-14 16:32:07
+ * @Last Modified time: 2020-12-17 09:00:39
  */
 
 const database = require("../../services/database");
@@ -33,7 +33,9 @@ JOIN CHB_MRN USING (PERSON_ID)
 WHERE :timestamp BETWEEN START_UNIX AND END_UNIX
   AND :timestamp BETWEEN BEG_EFFECTIVE_UNIX_TS AND END_EFFECTIVE_UNIX_TS
   AND (DECEASED_UNIX_TS IS NULL OR :timestamp BETWEEN BIRTH_UNIX_TS AND DECEASED_UNIX_TS)
-`;
+  -- exclude 'Emergency Department' for now
+  AND NURSE_UNIT_DISP != 'Emergency Department'
+  `;
 
 async function getCensusInitSqlExecutor(conn, binds) {
   let patientRecords = await conn.execute(SQL_GET_INIT_CENSUS, binds);

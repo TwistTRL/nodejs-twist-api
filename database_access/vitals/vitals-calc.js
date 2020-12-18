@@ -2,19 +2,27 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 09:46:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-14 07:02:34
+ * @Last Modified time: 2020-12-17 23:41:11
  */
 
 const database = require("../../services/database");
+const { VITALS_DICT } = require("../../db_relation/vitals-api");
 
-const CAlC_TABLE = {
-  "1D": "VITALS_CALC_1D",
-  "12H": "VITALS_CALC_12H",
-  "5H": "VITALS_CALC_5H",
-  "5M": "VITALS_CALC_5M",
+const CALC_TABLE = {
+  VITALS: {
+    "1D": "VITALS_CALC_1D",
+    "12H": "VITALS_CALC_12H",
+    "5H": "VITALS_CALC_5H",
+    "5M": "VITALS_CALC_5M",
+  },
+  VITAL_V500: {
+    "1D": "VITALS_V500_PERC_1D",
+    "12H": "VITALS_V500_PERC_12H",
+    "5H": "VITALS_V500_PERC_5H",
+  },
 };
 
-const SQL_CALC = (data_resolution) => `
+const SQL_CALC = (calc_table) => `
 SELECT 
   START_TM,
   END_TM,
@@ -28,19 +36,32 @@ SELECT
   VAL_PERC75,
   VAL_PERC95,
   VAL_PERC99,
-  VAL_MAX
-FROM ${CAlC_TABLE[data_resolution]}
+  VAL_MAX,
+  VITAL_TYPE
+FROM ${calc_table}
 WHERE PERSON_ID = :person_id
-  AND VITAL_TYPE = :vital_type
 ORDER BY START_TM`;
 
 async function vitalsCalcQuerySQLExecutor(conn, binds) {
-  const { vital_type, person_id, data_resolution } = binds;
-  const result = await conn
-    .execute(SQL_CALC(data_resolution), { person_id, vital_type })
-    .then((ret) => ret.rows);
+  const { input_vital_type, person_id, data_resolution } = binds;
+  const vital_type_dict = VITALS_DICT[input_vital_type];
 
-  return result;
+  let calc_data = [];
+  for (let table_name in CALC_TABLE) {
+    const calc_table = CALC_TABLE[table_name][data_resolution];
+    const vital_type_list = Object.values(vital_type_dict).map(item => item[table_name]).flat().filter(Boolean);
+
+    if (calc_table) {
+      const cur_result = await conn
+      .execute(SQL_CALC(calc_table, vital_type_list), { person_id })
+      .then((ret) => ret.rows)
+      .then(ret => ret.filter(x => vital_type_list.includes(x.VITAL_TYPE)))
+      .then((ret) => ret.map((x) => ({ ...x, table_source: table_name, time: (Number(x.START_TM) + Number(x.END_TM)) / 2 })));
+      calc_data = [...calc_data, ...cur_result];
+    }
+  }
+
+  return calc_data;
 }
 
 const getVitalsCalcData = database.withConnection(vitalsCalcQuerySQLExecutor);

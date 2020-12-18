@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-12 22:17:54
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-13 20:18:35
+ * @Last Modified time: 2020-12-17 20:16:01
  */
 
 const VITAL_TYPE_TO_TWIST_NAME = {
