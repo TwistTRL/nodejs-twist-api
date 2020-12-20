@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 09:46:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-17 23:41:11
+ * @Last Modified time: 2020-12-19 16:15:19
  */
 
 const database = require("../../services/database");
@@ -53,7 +53,7 @@ async function vitalsCalcQuerySQLExecutor(conn, binds) {
 
     if (calc_table) {
       const cur_result = await conn
-      .execute(SQL_CALC(calc_table, vital_type_list), { person_id })
+      .execute(SQL_CALC(calc_table), { person_id })
       .then((ret) => ret.rows)
       .then(ret => ret.filter(x => vital_type_list.includes(x.VITAL_TYPE)))
       .then((ret) => ret.map((x) => ({ ...x, table_source: table_name, time: (Number(x.START_TM) + Number(x.END_TM)) / 2 })));

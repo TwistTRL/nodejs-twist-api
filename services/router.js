@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-17 22:26:56
+ * @Last Modified time: 2020-12-19 22:46:39
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -295,6 +295,9 @@ router.get("/phenotyping/step2/:mrn", async (req, res) => {
         
         // latest team
         "TEAM": "A",
+
+        // chief complaint
+        "CHIEF_COMPLAINT": "bleeding from fistula- fistulogram",
 
         // personnel for patient at this timestamp
         "PERSONNEL": [

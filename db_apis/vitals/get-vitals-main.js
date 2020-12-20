@@ -130,7 +130,7 @@ const getVitalsMain = async (query) => {
   }
 
   if (getQueryType(query) == DATATYPE.RAW) {
-    const vitalsRawData = await getVitalsRawData({person_id, vital_type, from_: from, to_: to});
+    const vitalsRawData = await getVitalsRawData({person_id, input_vital_type, from_: from, to_: to});
     const { vitals_result, vital_v500_result, vital_aims_result } = vitalsRawData;
 
     console.log("vitals_result.length :>> ", vitals_result ? vitals_result.length : 0);

@@ -2,10 +2,13 @@
  * @Author: Peng
  * @Date: 2020-01-21 11:53:31
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-13 23:18:56
+ * @Last Modified time: 2020-12-19 22:43:06
  */
 
 // calc raw vitals between two timestamp
+
+// TODO: question: at the same timestamp, only one value or could be multiple
+// for example, mbp could has MBP, MBP1, MBP2, NBPM values, from 3 data tables 
 
 async function getVitalsRaw(vitalsRawData) {
   const { vitals_result, vital_v500_result, vital_aims_result } = vitalsRawData;

@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 21:10:09
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-17 23:31:13
+ * @Last Modified time: 2020-12-19 16:45:01
  */
 
 const SORTED_TABLE = ["VITALS", "VITAL_V500"];
@@ -47,9 +47,9 @@ const getVitalsBin = ( bin_data, bin_def ) => {
   let dict = {}; // dict[start_time][source][name]
 
   bin_data.forEach((element) => {
-    const from = element.START_TM;
-    const to = element.END_TM;
-    const time = (element.START_TM + element.END_TM) / 2;
+    const from = Number(element.START_TM);
+    const to = Number(element.END_TM);
+    const time = (from + to) / 2;
     const name = BIN_ID_TO_NAME[element.BIN_ID];
     const source = element.table_source;
     if (!(from in dict)) {
