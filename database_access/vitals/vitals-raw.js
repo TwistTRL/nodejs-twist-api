@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-11-12 16:41:09
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-19 22:34:20
+ * @Last Modified time: 2020-12-21 15:51:19
  */
 
 const database = require("../../services/database");
@@ -52,7 +52,9 @@ const getColumnName = (input_vital_type, table_name) => {
     column_list = [...column_list, item[table_name]];
   });
 
-  return column_list.flat().filter(Boolean).join(", ");
+  return [].concat(...column_list).filter(Boolean).join(", ");
+
+  // return column_list.flat().filter(Boolean).join(", ");
 };
 
 const isValidValue = (item) => {
