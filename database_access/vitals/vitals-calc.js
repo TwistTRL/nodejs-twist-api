@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 09:46:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-21 11:12:09
+ * @Last Modified time: 2020-12-21 15:34:22
  */
 
 const database = require("../../services/database");
@@ -57,7 +57,7 @@ async function vitalsCalcQuerySQLExecutor(conn, binds) {
     const temp = Object.values(vital_type_dict).map((item) => item[table_name]);
     const vital_type_list = [].concat(...temp).filter(Boolean);
   
-    console.log("vital_type_list :>> ", vital_type_list);
+    // console.log("vital_type_list :>> ", vital_type_list);
     if (calc_table) {
       const cur_result = await conn
         .execute(SQL_CALC(calc_table), { person_id })

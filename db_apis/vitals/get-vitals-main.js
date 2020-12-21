@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 12:58:19
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-17 23:31:32
+ * @Last Modified time: 2020-12-21 15:39:41
  */
 
 const isValidJson = require("../../utils/isJson");
@@ -73,7 +73,7 @@ function getQueryType(query) {
       );
     }
 
-    console.log("type: get down sampled");
+    console.log("~~~ type: get down sampled");
     if (query[DATA_TYPE] == CAT_TYPE_ARRAY[0]) {
       return DATATYPE.BINNED;
     } else {
@@ -108,7 +108,10 @@ const getVitalsMain = async (query) => {
   const { vital_type, person_id, data_resolution, from, to } = query;
   const input_vital_type = vital_type.toUpperCase();
   console.log('input_vital_type :>> ', input_vital_type);
-  if (getQueryType(query) == DATATYPE.BINNED) {
+
+  const query_type = getQueryType(query);
+
+  if (query_type == DATATYPE.BINNED) {
     console.log('DATATYPE is BINNED :>> ', DATATYPE.BINNED);
     const bin_def = await getVitalsBinDef({ input_vital_type });
     if (!bin_def) {
@@ -119,17 +122,17 @@ const getVitalsMain = async (query) => {
     return ret;
   }
 
-  if (getQueryType(query) == DATATYPE.CALC) {
+  if (query_type == DATATYPE.CALC) {
     const vitalsCalcData = await getVitalsCalcData({ input_vital_type, person_id, data_resolution});
     return getVitalsCalc(vitalsCalcData);
   }
 
-  if (getQueryType(query) == DATATYPE.TEMP_RAW) {
+  if (query_type == DATATYPE.TEMP_RAW) {
     const vitalsTempRawData = await getVitalsTempData({person_id, vital_type, from_: from, to_: to});
     return getTempRaw(vitalsTempRawData);
   }
 
-  if (getQueryType(query) == DATATYPE.RAW) {
+  if (query_type == DATATYPE.RAW) {
     const vitalsRawData = await getVitalsRawData({person_id, input_vital_type, from_: from, to_: to});
     const { vitals_result, vital_v500_result, vital_aims_result } = vitalsRawData;
 

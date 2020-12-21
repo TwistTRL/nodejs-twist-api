@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 11:53:31
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-21 16:32:02
+ * @Last Modified time: 2020-12-21 15:38:02
  */
 
 const database = require("../services/database");
@@ -67,7 +67,7 @@ function _getQueryType(query) {
       throw new InputInvalidError('"data_resolution" is not valid. All "data_resolution": "1D","12H", "5H", "5M".');
     }
 
-    console.log("type: get down sampled");
+    console.log("~ type: get down sampled");
     if (query[cat2] == cat2Array[0]) {
       return DATATYPE.BINNED;
     } else {

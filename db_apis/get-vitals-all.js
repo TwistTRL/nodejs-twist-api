@@ -313,7 +313,7 @@ function _getQueryType(query) {
       throw new InputInvalidError('"data_resolution" is not valid. All "data_resolution": "1D","12H", "5H", "5M".');
     }
 
-    console.log("type: get down sampled");
+    console.log("~~ type: get down sampled");
     if (query[cat2] == cat2Array[0]) {
       return DATATYPE.BINNED;
     } else {
