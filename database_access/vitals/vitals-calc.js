@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 09:46:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-21 10:56:30
+ * @Last Modified time: 2020-12-21 10:58:01
  */
 
 const database = require("../../services/database");
@@ -52,7 +52,7 @@ async function vitalsCalcQuerySQLExecutor(conn, binds) {
   for (let table_name in CALC_TABLE) {
     const calc_table = CALC_TABLE[table_name][data_resolution];
     console.log('calc_table :>> ', calc_table);
-    console.log('values(vital_type_dict) :>> ', values(vital_type_dict));
+    console.log('Object.values(vital_type_dict) :>> ', Object.values(vital_type_dict));
     console.log('Object.values(vital_type_dict).map(item => item[table_name]) :>> ', Object.values(vital_type_dict).map(item => item[table_name]));
 
     const vital_type_list = Object.values(vital_type_dict).map(item => item[table_name]).flat().filter(Boolean);
