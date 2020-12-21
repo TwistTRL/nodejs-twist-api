@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 09:46:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-21 11:04:33
+ * @Last Modified time: 2020-12-21 11:12:09
  */
 
 const database = require("../../services/database");
@@ -45,23 +45,18 @@ ORDER BY START_TM`;
 async function vitalsCalcQuerySQLExecutor(conn, binds) {
   const { input_vital_type, person_id, data_resolution } = binds;
   const vital_type_dict = VITALS_DICT[input_vital_type];
-  console.log("VITALS_DICT :>> ", VITALS_DICT);
-  console.log("vital_type_dict :>> ", vital_type_dict);
 
   let calc_data = [];
   for (let table_name in CALC_TABLE) {
     const calc_table = CALC_TABLE[table_name][data_resolution];
-    console.log("calc_table :>> ", calc_table);
-    console.log("Object.values(vital_type_dict) :>> ", Object.values(vital_type_dict));
-    console.log(
-      "Object.values(vital_type_dict).map(item => item[table_name]) :>> ",
-      Object.values(vital_type_dict).map((item) => item[table_name])
-    );
+    // const vital_type_list = Object.values(vital_type_dict)
+    // .map((item) => item[table_name])
+    // .flat()
+    // .filter(Boolean);
 
-    const vital_type_list = Object.values(vital_type_dict)
-      .map((item) => item[table_name])
-      .flat()
-      .filter(Boolean);
+    const temp = Object.values(vital_type_dict).map((item) => item[table_name]);
+    const vital_type_list = [].concat(...temp).filter(Boolean);
+  
     console.log("vital_type_list :>> ", vital_type_list);
     if (calc_table) {
       const cur_result = await conn
