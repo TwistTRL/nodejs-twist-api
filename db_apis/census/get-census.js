@@ -70,7 +70,7 @@ const getAssignType = (assignType) => {
     return "AA";
   }
 
-  console.warn("assignType :>> ", assignType);
+  // console.warn("assignType :>> ", assignType);
   return assignType;
 };
 

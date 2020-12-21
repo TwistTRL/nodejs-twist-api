@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 10:54:55
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-21 10:35:54
+ * @Last Modified time: 2020-12-21 10:52:04
  */
 
 const database = require("../../services/database");
@@ -740,7 +740,7 @@ const getSubcatDisplay = (subcatName, subcatObj, DIAGNOSIS_SUBCAT_ORDER, diagDic
       break;
 
     default:
-      console.log(`not in dict: ${subcatName}`);
+      // console.log(`not in dict: ${subcatName}`);
       ret = subcatName;
   }
   // console.log("ret :>> ", ret);

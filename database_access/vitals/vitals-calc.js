@@ -2,11 +2,12 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 09:46:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-20 12:14:12
+ * @Last Modified time: 2020-12-21 10:50:24
  */
 
 const database = require("../../services/database");
 const { VITALS_DICT } = require("../../db_relation/vitals-api");
+console.log('VITALS_DICT :>> ', VITALS_DICT);
 
 const CALC_TABLE = {
   VITALS: {
