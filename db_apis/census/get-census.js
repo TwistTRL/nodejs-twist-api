@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-05 13:17:07
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-17 10:57:06
+ * @Last Modified time: 2020-12-21 11:16:09
  */
 
 const moment = require("moment");
@@ -157,7 +157,7 @@ async function getAdtCensus(timestamp) {
   }
   const censusData = await getCensusData({ timestamp });
   const chiefComplaintDict = await getChiefComplaint({timestamp});
-  console.log('chiefComplaintDict :>> ', chiefComplaintDict);
+  // console.log('chiefComplaintDict :>> ', chiefComplaintDict);
 
   let patientDict = {};
   for (let element of censusData) {
