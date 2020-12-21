@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-12 11:35:52 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-13 08:52:11
+ * @Last Modified time: 2020-12-21 10:37:07
  */
 
 const database = require("../../services/database");
@@ -29,7 +29,6 @@ JOIN (
 
 async function getChiefComplaintSqlExecutor(conn, binds) {
   const patientRecords = await conn.execute(SQL_GET_CHIEF_COMPLAINT, binds);
-  console.log('~~~ patientRecords :>> ', patientRecords);
   const arr = patientRecords.rows;
   console.log("chief complaint data size :", arr.length);
   if (arr.length < 1) {

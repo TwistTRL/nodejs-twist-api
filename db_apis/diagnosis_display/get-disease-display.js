@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 10:54:55
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-10 22:24:51
+ * @Last Modified time: 2020-12-21 10:35:54
  */
 
 const database = require("../../services/database");
@@ -31,7 +31,7 @@ async function diagnosisQuerySQLExecutor(conn, binds) {
     return "";
   }
   const curAnatomy = rawRecord.rows[0].ANATOMY;
-  console.log("curAnatomy :>> ", curAnatomy);
+  // console.log("curAnatomy :>> ", curAnatomy);
   let arr = rawRecord.rows;
 
   let diagnosisDict = {};
@@ -743,7 +743,7 @@ const getSubcatDisplay = (subcatName, subcatObj, DIAGNOSIS_SUBCAT_ORDER, diagDic
       console.log(`not in dict: ${subcatName}`);
       ret = subcatName;
   }
-  console.log("ret :>> ", ret);
+  // console.log("ret :>> ", ret);
 
   return ret;
 };

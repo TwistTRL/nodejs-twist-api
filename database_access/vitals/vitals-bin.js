@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 10:10:03
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-19 16:16:51
+ * @Last Modified time: 2020-12-20 16:59:23
  */
 
 const database = require("../../services/database");
@@ -41,7 +41,6 @@ ORDER BY START_TM`;
 async function vitalsBinQuerySQLExecutor(conn, binds) {
   const { bin_def, person_id, data_resolution } = binds;
   const binIdList = bin_def.map((item) => item.BIN_ID);
-  console.log('binIdList :>> ', binIdList);
 
   let bin_data = [];
   for (let table_name in BIN_TABLE) {
