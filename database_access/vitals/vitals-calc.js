@@ -2,12 +2,11 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 09:46:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-21 10:50:24
+ * @Last Modified time: 2020-12-21 10:56:30
  */
 
 const database = require("../../services/database");
 const { VITALS_DICT } = require("../../db_relation/vitals-api");
-console.log('VITALS_DICT :>> ', VITALS_DICT);
 
 const CALC_TABLE = {
   VITALS: {
@@ -46,10 +45,16 @@ ORDER BY START_TM`;
 async function vitalsCalcQuerySQLExecutor(conn, binds) {
   const { input_vital_type, person_id, data_resolution } = binds;
   const vital_type_dict = VITALS_DICT[input_vital_type];
-
+  console.log('VITALS_DICT :>> ', VITALS_DICT);
+  console.log('vital_type_dict :>> ', vital_type_dict);
+  
   let calc_data = [];
   for (let table_name in CALC_TABLE) {
     const calc_table = CALC_TABLE[table_name][data_resolution];
+    console.log('calc_table :>> ', calc_table);
+    console.log('values(vital_type_dict) :>> ', values(vital_type_dict));
+    console.log('Object.values(vital_type_dict).map(item => item[table_name]) :>> ', Object.values(vital_type_dict).map(item => item[table_name]));
+
     const vital_type_list = Object.values(vital_type_dict).map(item => item[table_name]).flat().filter(Boolean);
 
     if (calc_table) {
