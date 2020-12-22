@@ -34,16 +34,14 @@ Labs category list: (Deprecated)
 ### Vitals
 Vitals type category list:
 
-`["mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp", "tempcore"]`
-
-
-SQL_COLUNM_NAME_FOR_CAT_VITAL_TYPE_ARRAY:
-
-`["MBP1", "SBP1", "DBP1", "SPO2_1", "HR_EKG","CVPM","RAP","LAPM","RR","TEMP1","TEMPCORE1"]`
-
-SQL_COLUNM_NAME_2ND_CHOICE:
-
-`["NBPM", "NBPS", "NBPD", null, null, null, null, null, null, null, null]`
+`['dbp',    'mbp',    'sbp',
+  'bis',    'cap',    'cvp',
+  'etco2',  'hr',     'icp',
+  'nirs',   'dbp_pa', 'mbp_pa',
+  'sbp_pa', 'pcwp',   'pnn50',
+  'ppv',    'rhythm', 'rr',
+  'spo2',   'sqi',    'temp',
+  'spo2']`
 
 
 Table DEF_VITALS_LMT: 

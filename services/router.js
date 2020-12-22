@@ -1222,7 +1222,14 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * 3. `dbp`: `DBP1` first, if no data then check `NBPD`
  * 
  * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
+ * @apiParam {String='dbp',    'mbp',    'sbp',
+  'bis',    'cap',    'cvp',
+  'etco2',  'hr',     'icp',
+  'nirs',   'dbp_pa', 'mbp_pa',
+  'sbp_pa', 'pcwp',   'pnn50',
+  'ppv',    'rhythm', 'rr',
+  'spo2',   'sqi',    'temp',
+  'spo2'} vital_type Type of vital.
  * @apiParam {String="binned"} data_type Type of data.
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
@@ -1277,7 +1284,14 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * 3. `dbp`: `DBP1` first, if no data then check `NBPD`
  * 
  * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
+ * @apiParam {String='dbp',    'mbp',    'sbp',
+  'bis',    'cap',    'cvp',
+  'etco2',  'hr',     'icp',
+  'nirs',   'dbp_pa', 'mbp_pa',
+  'sbp_pa', 'pcwp',   'pnn50',
+  'ppv',    'rhythm', 'rr',
+  'spo2',   'sqi',    'temp',
+  'spo2'} vital_type Type of vital.
  * @apiParam {String="calc"} data_type Type of data.
  * @apiParam {String="1D","12H", "5H", "5M"} data_resolution Resolution of data.
  * @apiParamExample {json} POST json example
@@ -1332,7 +1346,14 @@ router.post("/inout-tooltip-v2", async (req, res) => {
  * end timestamp <= new Date().getTime() / 1000 (i.e. current time)
  *
  * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
+ * @apiParam {String='dbp',    'mbp',    'sbp',
+  'bis',    'cap',    'cvp',
+  'etco2',  'hr',     'icp',
+  'nirs',   'dbp_pa', 'mbp_pa',
+  'sbp_pa', 'pcwp',   'pnn50',
+  'ppv',    'rhythm', 'rr',
+  'spo2',   'sqi',    'temp',
+  'spo2'} vital_type Type of vital.
  * @apiParam {Number} from Start timestamp.
  * @apiParam {Number} to End timestamp.
  * @apiParamExample {json} Example of request vitals raw data
@@ -3890,7 +3911,14 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
  * VITALS_V500_BIN_1D, VITALS_V500_BIN_12H, VITALS_V500_BIN_5H
 
  * @apiParam {Number} person_id Patient unique ID.
- * @apiParam {String="mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp"} vital_type Type of vital.
+ * @apiParam {String='dbp',    'mbp',    'sbp',
+  'bis',    'cap',    'cvp',
+  'etco2',  'hr',     'icp',
+  'nirs',   'dbp_pa', 'mbp_pa',
+  'sbp_pa', 'pcwp',   'pnn50',
+  'ppv',    'rhythm', 'rr',
+  'spo2',   'sqi',    'temp',
+  'spo2'} vital_type Type of vital.
  * @apiParamExample {json} Example of request vitals raw data
         {
           "person_id": EXAMPLE_PERSON_ID,

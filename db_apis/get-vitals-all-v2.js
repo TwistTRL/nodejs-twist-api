@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 11:53:31
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-21 15:38:02
+ * @Last Modified time: 2020-12-22 15:51:37
  */
 
 const database = require("../services/database");
@@ -16,6 +16,7 @@ const {
 const isValidJson = require("../utils/isJson");
 const InputInvalidError = require("../utils/errors").InputInvalidError;
 const { getSingleVitalCALCResult } = require("../db_relation/vitals-calc-relation");
+const { VITALS_DICT } = require("../db_relation/vitals-api");
 
 const cat2 = "data_type";
 const cat3 = "data_resolution";
@@ -46,12 +47,15 @@ function _getQueryType(query) {
     throw new InputInvalidError("Input not in valid json");
   }
 
-  if (!CAT_VITAL_TYPE_ARRAY.includes(query[catVitalType])) {
+  const validInputType = [...Object.keys(VITALS_DICT), ...Object.keys(VITALS_DICT).map(x=>x.toLowerCase())];
+  if (!validInputType.includes(query[catVitalType])) {
     console.warn("catVitalType no included: " + query[catVitalType]);
     throw new InputInvalidError(
-      "vital_type not valid: " + query[catVitalType] + '. \nAll vital_type: "mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp".'
+      `vital_type not valid: ${query[catVitalType]}.
+      All vital_type: ${Object.keys(VITALS_DICT)}.`
     );
   }
+
   if (query[catPersonId] == null) {
     console.warn("catPersonId is null");
     throw new InputInvalidError("person_id is null");

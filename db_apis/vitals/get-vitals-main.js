@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 12:58:19
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-21 15:39:41
+ * @Last Modified time: 2020-12-22 15:46:51
  */
 
 const isValidJson = require("../../utils/isJson");
@@ -18,8 +18,7 @@ const {getVitalsBinData} = require('../../database_access/vitals/vitals-bin');
 const {getVitalsCalcData} = require('../../database_access/vitals/vitals-calc');
 const {getVitalsTempData} = require('../../database_access/vitals/vitals-temp');
 
-
-const { CAT_VITAL_TYPE_ARRAY } = require("../../db_relation/vitals-db-relation");
+const { VITALS_DICT } = require("../../db_relation/vitals-api");
 
 const DATA_TYPE = "data_type";
 const DATA_RESOLUTION = "data_resolution";
@@ -48,12 +47,12 @@ function getQueryType(query) {
     throw new InputInvalidError("Input not in valid json");
   }
 
-  if (!CAT_VITAL_TYPE_ARRAY.includes(query[catVitalType])) {
+  const validInputType = [...Object.keys(VITALS_DICT), ...Object.keys(VITALS_DICT).map(x=>x.toLowerCase())];
+  if (!validInputType.includes(query[catVitalType])) {
     console.warn("catVitalType no included: " + query[catVitalType]);
     throw new InputInvalidError(
-      "vital_type not valid: " +
-        query[catVitalType] +
-        '. \nAll vital_type: "mbp", "sbp", "dbp", "spo2", "hr","cvpm","rap","lapm","rr","temp".'
+      `vital_type not valid: ${query[catVitalType]}.
+      All vital_type: ${Object.keys(VITALS_DICT)}.`
     );
   }
   if (query[catPersonId] == null) {
