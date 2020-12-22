@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-19 22:46:39
+ * @Last Modified time: 2020-12-22 10:20:58
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -319,13 +319,11 @@ router.get("/census/:timestamp", async (req, res) => {
   const timestamp =
     parseInt(Math.floor(req.params.timestamp / 60) * 60) ||
     parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
-  console.log("timestamp is: " + timestamp);
   getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
 });
 
 router.get("/census", async (req, res) => {
   const timestamp = parseInt(parseInt(Math.floor(Date.now() / 1000 / 60) * 60));
-  console.log("timestamp is: " + timestamp);
   getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
 });
 
@@ -1388,8 +1386,8 @@ router.post("/vitalsv2", async (req, res) => {
  * @apiDescription 
  * 
  * from tables:
- * `STAGING_VITALS_V500_CALC_12H`, `STAGING_VITALS_V500_CALC_1D`, `STAGING_VITALS_V500_CALC_5H`, `STAGING_VITALS_V500_CALC_5M`
- * `STAGING_VITALS_V500_BIN_12H`, `STAGING_VITALS_V500_BIN_1D`, `STAGING_VITALS_V500_BIN_5H`, `STAGING_VITALS_V500_BIN_5M`
+ * `VITALS_V500_PERC_12H`, `VITALS_V500_PERC_1D`, `VITALS_V500_PERC_5H`
+ * `VITALS_V500_BIN_12H`, `VITALS_V500_BIN_1D`, `VITALS_V500_BIN_5H`
  * 
  * 3 kinds of input (`data_type` = `binned`, `calc`, `raw`), see examples. 
  * "data_type"="raw" is redirected to `Vitals - V2 Raw Vitals`

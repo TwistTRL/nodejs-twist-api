@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-06 11:14:32
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-18 10:15:45
+ * @Last Modified time: 2020-12-22 10:13:52
  */
 
 const moment = require("moment");
@@ -106,9 +106,9 @@ ORDER BY DT_UNIX`;
 async function weightCalcQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
   console.log("~~SQL getting weight for calories: ", SQL_GET_WEIGHT_CALC);
-  console.time("getWeightCalc-sql" + timestampLable);
+  // console.time("getWeightCalc-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_WEIGHT_CALC, binds);
-  console.timeEnd("getWeightCalc-sql" + timestampLable);
+  // console.timeEnd("getWeightCalc-sql" + timestampLable);
   let ret = [];
   rawRecord.rows.forEach((element) => {
     if (element["WEIGHT_CALC"]) {
@@ -121,53 +121,53 @@ async function weightCalcQuerySQLExecutor(conn, binds) {
 async function tpnNutrQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
   console.log("~~SQL for TPN Nutr all time: ", SQL_GET_TPN_NUTR);
-  console.time("getTpnNutr-sql" + timestampLable);
+  // console.time("getTpnNutr-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_TPN_NUTR, binds);
-  console.timeEnd("getTpnNutr-sql" + timestampLable);
+  // console.timeEnd("getTpnNutr-sql" + timestampLable);
   return rawRecord.rows;
 }
 
 async function tpnLipidVolQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
   console.log("~~SQL for TPN Lipid all time: ", SQL_GET_TPN_LIPID_VOL);
-  console.time("getTpnLipidVol-sql" + timestampLable);
+  // console.time("getTpnLipidVol-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_TPN_LIPID_VOL, binds);
-  console.timeEnd("getTpnLipidVol-sql" + timestampLable);
+  // console.timeEnd("getTpnLipidVol-sql" + timestampLable);
   return rawRecord.rows;
 }
 
 async function enVolQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
   console.log("~~SQL for EN all time: ", SQL_GET_EN_VOL);
-  console.time("getENVol-sql" + timestampLable);
+  // console.time("getENVol-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_EN_VOL, binds);
-  console.timeEnd("getENVol-sql" + timestampLable);
+  // console.timeEnd("getENVol-sql" + timestampLable);
   return rawRecord.rows;
 }
 
 async function inoutVolQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
   console.log("~~SQL for inout volume all time: ", SQL_GET_IN_OUT_VOL);
-  console.time("getInoutVol-sql" + timestampLable);
+  // console.time("getInoutVol-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT_VOL, binds);
-  console.timeEnd("getInoutVol-sql" + timestampLable);
+  // console.timeEnd("getInoutVol-sql" + timestampLable);
   return rawRecord.rows;
 }
 
 async function diluNutrQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
   console.log("~~SQL for Diluents Nutr all time: ", SQL_GET_DILUENTS_NUTRI);
-  console.time("getDiluNutr-sql" + timestampLable);
+  // console.time("getDiluNutr-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_DILUENTS_NUTRI, binds);
-  console.timeEnd("getDiluNutr-sql" + timestampLable);
+  // console.timeEnd("getDiluNutr-sql" + timestampLable);
   return rawRecord.rows;
 }
 async function medVolQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
   console.log("~~SQL for med volume in calories: ", SQL_GET_MED_VOL);
-  console.time("getMedVol-sql" + timestampLable);
+  // console.time("getMedVol-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_MED_VOL, binds);
-  console.timeEnd("getMedVol-sql" + timestampLable);
+  // console.timeEnd("getMedVol-sql" + timestampLable);
   return rawRecord.rows;
 }
 

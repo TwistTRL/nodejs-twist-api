@@ -1,8 +1,8 @@
 /*
  * @Author: Peng
  * @Date: 2020-04-29 23:41:40
- * @Last Modified by: Peng
- * @Last Modified time: 2020-04-30 12:57:00
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2020-12-22 10:09:35
  */
 
 const database = require("../services/database");
@@ -53,17 +53,18 @@ WHERE PERSON_ID = ${person_id} AND BIN_ID >= ${minBinId} AND BIN_ID <= ${maxBinI
 ORDER BY START_TM`;
 
 const CALC_TABLE_MAP = {
-  "1D": `STAGING_VITALS_V500_CALC_1D`,
-  "12H": `STAGING_VITALS_V500_CALC_12H`,
-  "5H": `STAGING_VITALS_V500_CALC_5H`,
-  "5M": `STAGING_VITALS_V500_CALC_5M`,
+  "1D": `VITALS_V500_PERC_1D`,
+  "12H": `VITALS_V500_PERC_12H`,
+  "5H": `VITALS_V500_PERC_5H`,
+  "5M": `VITALS_V500_PERC_5H`, // NOTE: there is no VITALS_V500_PERC_5M
 };
 
 const BIN_TABLE_MAP = {
-  "1D": `STAGING_VITALS_V500_BIN_1D`,
-  "12H": `STAGING_VITALS_V500_BIN_12H`,
-  "5H": `STAGING_VITALS_V500_BIN_5H`,
-  "5M": `STAGING_VITALS_V500_BIN_5M`,
+  "1D": `VITALS_V500_BIN_1D`,
+  "12H": `VITALS_V500_BIN_12H`,
+  "5H": `VITALS_V500_BIN_5H`,
+  "5M": `VITALS_V500_BIN_5H`,  // NOTE: there is no VITALS_V500_BIN_5M
+
 };
 
 const RESOLUTION_MAP = {

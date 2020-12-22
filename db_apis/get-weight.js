@@ -2,7 +2,7 @@
  * @Author: Peng 
  * @Date: 2020-02-12 12:04:55 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-17 20:46:36
+ * @Last Modified time: 2020-12-22 10:22:19
  */
 
 const database = require("../services/database");
@@ -40,8 +40,6 @@ async function weightCalcQuerySQLExecutor(conn, person_id) {
   console.time('getWeightCalc-sql' + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_WEIGHT_CALC);
   console.timeEnd('getWeightCalc-sql' + timestampLable);
-
-  console.log('rawRecord.rows :', rawRecord.rows);
 
   let ret = [];
   rawRecord.rows.forEach(element => {
