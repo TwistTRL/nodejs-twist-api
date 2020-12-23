@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-23 15:09:31
+ * @Last Modified time: 2020-12-23 15:32:32
  */
 
 const moment = require("moment");
@@ -29,15 +29,15 @@ const getCacheCensus = async (ts) => {
       patient_dict[element.PERSON_ID] = {
         PERSON_ID: element.PERSON_ID,
         MRN: element.MRN,
-        FIRST_NAME: element.PATIENT_FIRST_NAME,
-        MIDDLE_NAME: element.PATIENT_MIDDLE_NAME,
-        LAST_NAME: element.PATIENT_LAST_NAME,
-        BIRTH_UNIX_TS: element.PATIENT_BIRTH_UNIX_TS,
-        DECEASED_UNIX_TS: element.PATIENT_DECEASED_UNIX_TS,
+        FIRST_NAME: element.FIRST_NAME,
+        MIDDLE_NAME: element.MIDDLE_NAME,
+        LAST_NAME: element.LAST_NAME,
+        BIRTH_UNIX_TS: element.BIRTH_UNIX_TS,
+        DECEASED_UNIX_TS: element.DECEASED_UNIX_TS,
         SEX_CD: element.PATIENT_SEX_CD,
         SEX: element.PATIENT_SEX,
-        BED_START_UNIX: element.PATIENT_BED_START_UNIX,
-        BED_END_UNIX: element.PATIENT_BED_END_UNIX,
+        BED_START_UNIX: element.BED_START_UNIX,
+        BED_END_UNIX: element.BED_END_UNIX,
         LOC_NURSE_UNIT_CD: element.LOC_NURSE_UNIT_CD,
         LOC_ROOM_CD: element.LOC_ROOM_CD,
         NURSE_UNIT_DISP: element.NURSE_UNIT_DISP,
