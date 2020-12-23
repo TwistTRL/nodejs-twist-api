@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-22 10:20:58
+ * @Last Modified time: 2020-12-23 15:20:53
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -16,7 +16,8 @@ const { getApiFromRedis } = require("../config/redis-config");
 const { getPhenotypingStep1 } = require("../db_apis/phenotyping/step1");
 const { getPhenotypingStep2 } = require("../db_apis/phenotyping/step2");
 
-const { getAdtCensus } = require("../db_apis/census/get-census");
+const { getAdtCensus } = require("../db_apis/census/get-census-from-adt");
+const { getCacheCensus } = require("../db_apis/census/get-census-from-cache");
 const { getCensusInit } = require("../db_apis/census/get-census-init");
 const { getCensusTeam } = require("../db_apis/census/get-census-team");
 
@@ -244,6 +245,7 @@ router.get("/phenotyping/step2/:mrn", async (req, res) => {
  * @apiName get-census
  * @apiGroup Census
  * @apiParam {Number} timestamp Unix Timestamp in seconds.
+ * @apiHeader {String} no-cache empty here = use cache.
  * @apiSuccessExample Success-Response:
  * [
       {
@@ -319,13 +321,24 @@ router.get("/census/:timestamp", async (req, res) => {
   const timestamp =
     parseInt(Math.floor(req.params.timestamp / 60) * 60) ||
     parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
-  getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
+  if (req.get("no-cache")) {
+    getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
+
+  } else {
+    getApiFromRedis(res, getCacheCensus, timestamp, "interface-cache-census");
+
+  }
 });
 
 router.get("/census", async (req, res) => {
   const timestamp = parseInt(parseInt(Math.floor(Date.now() / 1000 / 60) * 60));
-  getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
-});
+  if (req.get("no-cache")) {
+    getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
+
+  } else {
+    getApiFromRedis(res, getCacheCensus, timestamp, "interface-cache-census");
+
+  }});
 
 /**
  * @api {get} /census-init/:timestamp Census data init

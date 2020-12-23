@@ -24,6 +24,7 @@ VALUES
 `;
 
 const insertInoutCache = async (patients) => {
+  
   let binds = [];
   for (let patient of patients) {
     let person_id = Number(patient.PERSON_ID);

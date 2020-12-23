@@ -10,6 +10,8 @@ const database = require("./services/database.js");
 const databasePrd = require("./services/database-prd.js");
 const dbConfig = require("./config/database-config.js");
 const intervalUpdate = require("./services/interval-update.js");
+const scheduledCensusUpdate = require("./services/scheduled-cache-update");
+
 
 let checkPatientsInterval;
 
@@ -52,6 +54,18 @@ async function startup() {
 
     process.exit(1); // Non-zero failure code
   }
+
+  try {
+    console.log("  Initializing census cache updating module");
+
+    await scheduledCensusUpdate.initialize();
+
+  } catch (err) {
+    console.error(err);
+
+    process.exit(1); // Non-zero failure code
+  }
+
 
 }
 
