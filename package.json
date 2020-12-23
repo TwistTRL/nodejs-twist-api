@@ -29,6 +29,7 @@
     "lodash.isempty": "^4.4.0",
     "moment": "2.24.0",
     "morgan": "^1.9.1",
+    "node-schedule": "^1.3.2",
     "oracledb": "^5.0.0",
     "pm2": "^4.5.0",
     "relational-query-sql-builder": "github:TwistTRL/relational-query-sql-builder",
