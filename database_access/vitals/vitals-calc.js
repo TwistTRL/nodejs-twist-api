@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 09:46:17
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-21 15:34:22
+ * @Last Modified time: 2020-12-28 21:53:18
  */
 
 const database = require("../../services/database");
@@ -40,6 +40,7 @@ SELECT
   VITAL_TYPE
 FROM ${calc_table}
 WHERE PERSON_ID = :person_id
+AND VAL_MEAN IS NOT NULL
 ORDER BY START_TM`;
 
 async function vitalsCalcQuerySQLExecutor(conn, binds) {
