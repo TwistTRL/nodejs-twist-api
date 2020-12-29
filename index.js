@@ -55,6 +55,12 @@ async function startup() {
     process.exit(1); // Non-zero failure code
   }
 
+  if (process.env.NODE_ENV === "production") {
+    initializeCensus();
+  }
+}
+
+const initializeCensus = async () => {
   try {
     console.log("  Initializing census cache updating module");
 
@@ -65,8 +71,6 @@ async function startup() {
 
     process.exit(1); // Non-zero failure code
   }
-
-
 }
 
 async function shutdown(e) {

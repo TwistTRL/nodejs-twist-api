@@ -2,13 +2,13 @@
  * @Author: Peng
  * @Date: 2020-03-31 18:13:54
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-18 10:21:33
+ * @Last Modified time: 2020-12-27 11:16:21
  */
+
+// https://github.com/TwistTRL/nodejs-twist-utils/tree/master/nutrition
 
 const { bisect_left } = require("bisect-js");
 const database = require("../services/database");
-const isValidJson = require("../utils/isJson");
-const InputInvalidError = require("../utils/errors").InputInvalidError;
 const { IVF_TO_DEXTROSE } = require("../db_relation/in-out-db-relation");
 
 const DEXTROSE_DICT = {
@@ -157,6 +157,11 @@ async function inoutQuerySQLExecutor(conn, binds) {
 }
 
 function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, arrInout, weightArr) {
+  // console.log('arrTpnNutr.length :>> ', arrTpnNutr.length);
+  // console.log('arrTpnLipid.length :>> ', arrTpnLipid.length);
+  // console.log('arrEN.length :>> ', arrEN.length);
+  // console.log('arrDiluNutr.length :>> ', arrDiluNutr.length);
+  // console.log('arrInout.length :>> ', arrInout.length);
   // get hour binned pro, fat, cho data
   let retDict = {};
 

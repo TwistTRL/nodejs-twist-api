@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-22 17:32:45
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-23 13:00:38
+ * @Last Modified time: 2020-12-27 11:01:37
  */
 
 const oracledb = require("oracledb");
@@ -32,6 +32,22 @@ INSERT INTO API_CACHE_CENSUS_PERSONNEL
 VALUES
   (:personnel_list_id, :name_full_formatted, :contact_num, :assign_type, :team_assign_type, :start_unix, :end_unix)
 `;
+
+const DELETE_EXPIRED_PERSONNEL_CACHE_SQL = (ts) => `
+DELETE FROM API_CACHE_CENSUS_PERSONNEL
+WHERE PERSONNEL_LIST_ID IN (
+  SELECT DISTINCT PERSONNEL_LIST_ID
+  FROM API_CACHE_CENSUS
+  WHERE DTUNIX <= ${ts}
+)
+`
+
+const DELETE_EXPIRED_CENSUS_CACHE_SQL = (ts) => `
+DELETE FROM API_CACHE_CENSUS
+WHERE DTUNIX <= ${ts}
+`
+
+
 
 const insertCensusCache = async (dtunix, current_census_data) => {
   const census_binds = [];
@@ -109,6 +125,24 @@ const insertCensusCache = async (dtunix, current_census_data) => {
   return { insertCensusTable, insertPersonnelTable };
 };
 
+
+const deleteExpiredCensusCache = async (expired_ts) => {
+
+  console.time("delete-database-census");
+  const conn = await oracledb.getConnection(dbConfig.poolAlias);
+  // delete personnel cache first because need personnel_list_id in census cache
+  const deletePersonnelTable = await conn.execute(
+    DELETE_EXPIRED_PERSONNEL_CACHE_SQL(expired_ts)
+  );
+  const deleteCensusTable = await conn.execute(DELETE_EXPIRED_CENSUS_CACHE_SQL(expired_ts));
+
+  await conn.commit();
+  await conn.close();
+  console.timeEnd("delete-database-census");
+  return { deletePersonnelTable, deleteCensusTable };
+}
+
 module.exports = {
   insertCensusCache,
+  deleteExpiredCensusCache,
 };
