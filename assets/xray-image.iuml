@@ -1,0 +1,42 @@
+@startuml xray-image
+
+' skinparam componentStyle uml2
+
+database "HOSPITAL DB" as db
+
+package "SYNAPSE COMPUTER" as synapse #f1f8e9 {
+    frame "X-Ray Images" as images {
+
+    }
+
+    frame "10.7.46.53:7001" as imageAPI {
+        component "nodejs-twist-xray"
+    }
+
+    images -right- imageAPI
+}
+
+package "TWIST SERVER" as twist #e0f7fa {
+    frame "twist:3333" as twistAPI {
+        component "nodejs-twist-api"
+    }
+
+    database Redis #fbe9e7 {
+    }
+
+    twistAPI == Redis
+}
+
+package "FRONT END COMPUTERS" as frontEnd #Plum {
+    frame "_" as imageFE {
+        component "react-xray-image-example"
+    }
+}
+
+db -right- images
+imageAPI -down- twistAPI
+imageFE -up- twistAPI
+synapse -[hidden]down- twist
+frontEnd -[hidden]up- twist
+
+@enduml
