@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-23 15:20:53
+ * @Last Modified time: 2020-12-30 19:20:52
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -27,7 +27,7 @@ const { getInOutInit } = require("../db_apis/in-out/in-out-init-fetch");
 const { getRelationalQuery } = require("../db_apis/get-relational-query");
 const { getVitalsQuery } = require("../db_apis/get-vitals-all");
 const { getVitalsQueryV2 } = require("../db_apis/get-vitals-all-v2");
-const { getVitalsMain } = require('../db_apis/vitals/get-vitals-main');
+const { getVitalsMain } = require("../db_apis/vitals/get-vitals-main");
 const { getTemperature } = require("../db_apis/get-temperature");
 
 const { getRespiratorySupportVariable } = require("../db_apis/get_respiratory_support_variables");
@@ -38,9 +38,7 @@ const {
   getPersonFromMrn,
   getMrnListFromMrn,
 } = require("../db_apis/person/get-person-info"); // new
-const {
-  getPersonnel,
-} = require("../db_apis/personnel/get-personnel-info"); // new
+const { getPersonnel } = require("../db_apis/personnel/get-personnel-info"); // new
 const { getRssRange } = require("../db_apis/person/get-rss-range");
 
 const { getWeight, getWeightCalc } = require("../db_apis/get-weight");
@@ -110,12 +108,15 @@ const { getProceduralNote } = require("../db_apis/diagnosis_display/get-procedur
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
 
-const { getAirway } = require('../db_apis/airway/get-airway');
-const { getVessel } = require('../db_apis/vessel/get-vessel');
-const { getProviderInfo } = require('../db_apis/provider-info/get-provider-info');
-const { getParentInfo } = require('../db_apis/parent-info/get-parent-info');
-const { getCriticalContingency } = require('../db_apis/critical-contingency/get-critical-contingency');
+const { getAirway } = require("../db_apis/airway/get-airway");
+const { getVessel } = require("../db_apis/vessel/get-vessel");
+const { getProviderInfo } = require("../db_apis/provider-info/get-provider-info");
+const { getParentInfo } = require("../db_apis/parent-info/get-parent-info");
+const {
+  getCriticalContingency,
+} = require("../db_apis/critical-contingency/get-critical-contingency");
 
+const { getPersonXrayImageList, getXrayImageById } = require("../db_apis/xray/get-xray-images");
 
 // -- cache
 const { getRssCache } = require("../db_apis/cache/get-rss-cache");
@@ -323,10 +324,8 @@ router.get("/census/:timestamp", async (req, res) => {
     parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
   if (req.get("no-cache")) {
     getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
-
   } else {
     getApiFromRedis(res, getCacheCensus, timestamp, "interface-cache-census");
-
   }
 });
 
@@ -334,11 +333,10 @@ router.get("/census", async (req, res) => {
   const timestamp = parseInt(parseInt(Math.floor(Date.now() / 1000 / 60) * 60));
   if (req.get("no-cache")) {
     getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
-
   } else {
     getApiFromRedis(res, getCacheCensus, timestamp, "interface-cache-census");
-
-  }});
+  }
+});
 
 /**
  * @api {get} /census-init/:timestamp Census data init
@@ -379,7 +377,7 @@ router.get("/census-team/:person_id/:timestamp", async (req, res) => {
     parseInt(Math.floor(req.params.timestamp / 60) * 60) ||
     parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
   console.log("timestamp is: " + timestamp);
-  getApiFromRedis(res, getCensusTeam, {person_id, timestamp}, "interface-team-census");
+  getApiFromRedis(res, getCensusTeam, { person_id, timestamp }, "interface-team-census");
 });
 
 router.get("/census-team/:person_id", async (req, res) => {
@@ -390,7 +388,7 @@ router.get("/census-team/:person_id", async (req, res) => {
     parseInt(Math.floor(req.params.timestamp / 60) * 60) ||
     parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
   console.log("timestamp is: " + timestamp);
-  getApiFromRedis(res, getCensusTeam, {person_id, timestamp}, "interface-team-census");
+  getApiFromRedis(res, getCensusTeam, { person_id, timestamp }, "interface-team-census");
 });
 
 /**
@@ -600,8 +598,7 @@ router.get("/person/:person_id/labsv3", async (req, res) => {
   // };
   // res.send(await getLabsArray(binds));
 
-  getApiFromRedis(res, getLabsArray, {person_id}, "interface-labs");
-
+  getApiFromRedis(res, getLabsArray, { person_id }, "interface-labs");
 });
 
 /**
@@ -1409,7 +1406,6 @@ router.post("/vitalsv2", async (req, res) => {
   // }
 
   getApiFromRedis(res, getVitalsQueryV2, query, "interface-vitals");
-
 });
 
 /**
@@ -1860,11 +1856,10 @@ router.get("/person/:person_id/nurse-unit", async (req, res) => {
  *
  */
 router.get("/person/:person_id/RSS", async (req, res) => {
-
   const sleep = (milliseconds) => {
-    return new Promise(resolve => setTimeout(resolve, milliseconds))
-  }
-  
+    return new Promise((resolve) => setTimeout(resolve, milliseconds));
+  };
+
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
     res.send("Invalid person_id, should be integer.");
@@ -1901,8 +1896,13 @@ router.get("/person/:person_id/RSS", async (req, res) => {
 
   await sleep(1000);
 
-  getApiFromRedis(res, getRespiratorySupportVariable, { person_id, from_: from, to_: to }, "interface-rss", 600);
-
+  getApiFromRedis(
+    res,
+    getRespiratorySupportVariable,
+    { person_id, from_: from, to_: to },
+    "interface-rss",
+    600
+  );
 });
 
 router.get("/person/:person_id/HR", async (req, res) => {
@@ -1972,7 +1972,7 @@ router.get("/HeartRate", async (req, res) => {
 router.get("/person/id/:person_id", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id. Should be integer.");
+    res.send("-> Invalid person_id. Should be integer.");
     return;
   }
   console.log("get person information for ID: " + person_id);
@@ -1981,8 +1981,6 @@ router.get("/person/id/:person_id", async (req, res) => {
   };
   res.send(await getPersonFromPersonId(binds));
 });
-
-
 
 /**
  * @api {get} /person/mrn/:mrn Person ID List From MRN
@@ -2094,7 +2092,7 @@ router.get("/person/rss-range/:person_id", async (req, res) => {
 router.get("/person/:person_id/weight", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id. Should be integer.");
+    res.send("-> Invalid person_id. Should be integer.");
     return;
   }
   res.send(await getWeight(person_id));
@@ -2129,7 +2127,7 @@ router.get("/person/:person_id/weight", async (req, res) => {
 router.get("/person/:person_id/weight-calc", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id. Should be integer.");
+    res.send("->  Invalid person_id. Should be integer.");
     return;
   }
   getApiFromRedis(res, getWeightCalc, person_id, "interface-weight");
@@ -2193,7 +2191,7 @@ router.get("/person/:person_id/weight-calc", async (req, res) => {
 router.get("/person/:person_id", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id. Should be integer.");
+    res.send("--> Invalid person_id. Should be integer.");
     return;
   }
   console.log("router person_id is: " + person_id);
@@ -2259,7 +2257,7 @@ router.get("/bed/:bed_cd", async (req, res) => {
 router.get("/RespiratorySupportVariable", async (req, res) => {
   const person_id = parseInt(req.query.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id. Should be integer.");
+    res.send("=> Invalid person_id. Should be integer.");
     return;
   }
   const from = parseFloat(req.query.from) || 0;
@@ -3912,6 +3910,62 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 // --------- dev
 
 /**
+ * @api {get} /person-xray-image/:person_id Xray image for Patient
+ * @apiVersion 0.0.1
+ * @apiName get-xray-image-for-patient
+ * @apiGroup DEV
+ * @apiDescription Xray image for Patient
+ * @apiParam {Number} person_id Patient unique ID.
+ * @apiSuccessExample Success-Response:
+ *  {
+      "XrAbdomen_Ap_View__1111111": {
+          "FUJI_Basic_Text_SR_for_HL7_Radiological_Report_11111": [
+              {
+                  "image": "IM-0015-0001.jpg",
+                  "id": "2b46f26c-07d7-1111111"
+              },
+          ]
+      }
+    }
+ *
+ */
+router.get("/person-xray-image", async (req, res) => {
+  res.send(null);
+});
+
+router.get("/person-xray-image/:person_id", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  console.log("person_id :>> ", person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send(null);
+    return;
+  }
+
+  res.send(await getPersonXrayImageList(person_id));
+});
+
+/**
+ * @api {get} /xray-image/:image_id Xray image by ID
+ * @apiVersion 0.0.1
+ * @apiName get-xray-image-by-id
+ * @apiGroup DEV
+ * @apiDescription Xray image by ID
+ * @apiParam {String} image_id Image ID.
+ * @apiSuccessExample Success-Response:
+ *  data:image/jpg;base64,/9j/4AAQSkZJRgA...
+ *
+ */
+
+router.get("/xray-image", async (req, res) => {
+  res.send(await getXrayImageById("test"));
+});
+
+router.get("/xray-image/:image_id", async (req, res) => {
+  const image_id = req.params.image_id;
+  res.send(await getXrayImageById(image_id));
+});
+
+/**
  * @api {post} /vitals-main Vitals V3
  * @apiVersion 0.0.1
  * @apiName get-vitals-main
@@ -3979,11 +4033,14 @@ router.post("/vitals-main", async (req, res) => {
   const to = Number(query.to);
   const data_type = query.data_type;
   const data_resolution = query.data_resolution;
-  getApiFromRedis(res, getVitalsMain, {person_id, vital_type, from, to, data_type, data_resolution}, "interface-vitals-main", 90);
-
+  getApiFromRedis(
+    res,
+    getVitalsMain,
+    { person_id, vital_type, from, to, data_type, data_resolution },
+    "interface-vitals-main",
+    90
+  );
 });
-
-
 
 /**
  * @api {get} /person/personnel/:person_id Personnel for Patient
@@ -4008,7 +4065,7 @@ router.post("/vitals-main", async (req, res) => {
 router.get("/person/personnel/:person_id", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send("Invalid person_id. Should be integer.");
+    res.send("=> Invalid person_id. Should be integer.");
     return;
   }
   console.log("get personnel information for ID: " + person_id);
@@ -4017,7 +4074,6 @@ router.get("/person/personnel/:person_id", async (req, res) => {
   };
   res.send(await getPersonnel(binds));
 });
-
 
 /**
  * @api {get} /parent-info/:person_id Get Parent Info (dev)
@@ -4044,7 +4100,7 @@ router.get("/person/personnel/:person_id", async (req, res) => {
 router.get("/parent-info/:person_id", async (req, res) => {
   const person_id = req.params.person_id;
   console.log("person_id is: " + person_id);
-  res.send(await getParentInfo({person_id}));
+  res.send(await getParentInfo({ person_id }));
 });
 
 /**
@@ -4069,10 +4125,8 @@ router.get("/parent-info/:person_id", async (req, res) => {
 router.get("/critical-contingency/:person_id", async (req, res) => {
   const person_id = req.params.person_id;
   console.log("person_id is: " + person_id);
-  res.send(await getCriticalContingency({person_id}));
+  res.send(await getCriticalContingency({ person_id }));
 });
-
-
 
 /**
  * @api {get} /provider-info/:mrn Get Provider Info (dev)
@@ -4093,7 +4147,7 @@ router.get("/critical-contingency/:person_id", async (req, res) => {
 router.get("/provider-info/:mrn", async (req, res) => {
   const mrn = req.params.mrn;
   console.log("mrn is: " + mrn);
-  res.send(await getProviderInfo({mrn}));
+  res.send(await getProviderInfo({ mrn }));
 });
 
 /**
@@ -4118,7 +4172,7 @@ router.get("/provider-info/:mrn", async (req, res) => {
 router.get("/vascular-access/:mrn", async (req, res) => {
   const mrn = req.params.mrn;
   console.log("mrn is: " + mrn);
-  res.send(await getVessel({mrn}));
+  res.send(await getVessel({ mrn }));
 });
 
 /**
@@ -4146,7 +4200,7 @@ router.get("/vascular-access/:mrn", async (req, res) => {
 router.get("/airway/:person_id", async (req, res) => {
   const person_id = req.params.person_id;
   console.log("person_id is: " + person_id);
-  res.send(await getAirway({person_id}));
+  res.send(await getAirway({ person_id }));
 });
 
 /**
