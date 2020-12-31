@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-30 01:44:49
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-30 19:48:45
+ * @Last Modified time: 2020-12-30 20:36:26
  */
 
 const SYNAPSE_SERVER = "http://10.7.46.53:7001/images/";
@@ -123,7 +123,7 @@ const getXrayImageById = async (image_id) => {
     return REACT_BASE64;
   }
   await fetch(SYNAPSE_SERVER + "base64/" + image_id, {
-    headers: { Authorization: process.env.PHENOTYPING_API_TOKEN },
+    headers: { Authorization: process.env.SYNAPSE_API_TOKEN },
   })
     .then((res) => res.text())
     .then((json) => (data = json));
