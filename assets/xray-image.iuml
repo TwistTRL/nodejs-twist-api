@@ -1,30 +1,38 @@
 @startuml xray-image
 
-' skinparam componentStyle uml2
+skinparam componentStyle uml2
 
 database "HOSPITAL DB" as db
 
 package "SYNAPSE COMPUTER" as synapse #f1f8e9 {
     frame "X-Ray Images" as images {
-
+        interface "/Documents"
     }
 
     frame "10.7.46.53:7001" as imageAPI {
-        component "nodejs-twist-xray"
+        component "nodejs-twist-xray" as componentImageAPI
+        interface "/images/index" as imageIndex
+        interface "/images/base64/:id" as imageBase
+        componentImageAPI -[hidden]down- imageIndex
+        imageIndex -[hidden]down- imageBase
     }
 
-    images -right- imageAPI
+    images -- imageAPI
 }
 
 package "TWIST SERVER" as twist #e0f7fa {
     frame "twist:3333" as twistAPI {
-        component "nodejs-twist-api"
+        component "nodejs-twist-api" as componentTwistAPI
+        interface "/api/person-xray-image/:person_id" as apiPerson
+        interface "/api/xray-image/:image_id" as apiImage
+        componentTwistAPI -[hidden]down- apiPerson
+        apiPerson -[hidden]down- apiImage
     }
 
-    database Redis #fbe9e7 {
+    database "Redis Cache" as Redis #fbe9e7 {
     }
 
-    twistAPI == Redis
+    twistAPI ~down~ Redis
 }
 
 package "FRONT END COMPUTERS" as frontEnd #Plum {
@@ -33,10 +41,8 @@ package "FRONT END COMPUTERS" as frontEnd #Plum {
     }
 }
 
-db -right- images
+db -down- images : Horos
 imageAPI -down- twistAPI
 imageFE -up- twistAPI
-synapse -[hidden]down- twist
-frontEnd -[hidden]up- twist
 
 @enduml
