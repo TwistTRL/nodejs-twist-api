@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-30 01:44:49
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-30 19:19:48
+ * @Last Modified time: 2020-12-30 19:48:45
  */
 
 const SYNAPSE_SERVER = "http://10.7.46.53:7001/images/";
@@ -88,6 +88,8 @@ const getPersonXrayImageList = async (person_id) => {
     }
   });
   const pacs_id_list = [...pacs_id_set];
+
+  console.log('process.env.PHENOTYPING_API_TOKEN :>> ', process.env.PHENOTYPING_API_TOKEN);
 
   let image_dict;
   let ret;
