@@ -20,6 +20,7 @@
     "bisect-js": "github:TwistTRL/bisect-js",
     "connect-timeout": "^1.9.0",
     "cors": "^2.8.5",
+    "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "express-session": "^1.17.0",
     "ioredis": "^4.19.2",

@@ -89,12 +89,12 @@ const getPersonXrayImageList = async (person_id) => {
   });
   const pacs_id_list = [...pacs_id_set];
 
-  console.log('process.env.PHENOTYPING_API_TOKEN :>> ', process.env.PHENOTYPING_API_TOKEN);
+  console.log('process.env.SYNAPSE_API_TOKEN :>> ', process.env.SYNAPSE_API_TOKEN);
 
   let image_dict;
   let ret;
   await fetch(SYNAPSE_SERVER + "index", {
-    headers: { Authorization: process.env.PHENOTYPING_API_TOKEN },
+    headers: { Authorization: process.env.SYNAPSE_API_TOKEN },
   })
     .then((res) => res.json())
     .then((json) => (image_dict = json.image_dict));

@@ -2,6 +2,7 @@ console.log("~~~~~~~~~~~~~~~~~~~~");
 console.log("~~~   TWIST API  ~~~");
 console.log("~~~~~~~~~~~~~~~~~~~~");
 console.log("starting time: ", new Date().toString());
+require('dotenv').config();
 console.log("NODE_ENV :", process.env.NODE_ENV);
 console.log("HTTP_PORT :", process.env.HTTP_PORT);
 
