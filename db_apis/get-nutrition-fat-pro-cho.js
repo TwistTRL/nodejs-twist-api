@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-03-31 18:13:54
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-27 11:16:21
+ * @Last Modified time: 2021-01-05 17:11:00
  */
 
 // https://github.com/TwistTRL/nodejs-twist-utils/tree/master/nutrition
@@ -236,7 +236,7 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, arrIn
       //   DT_UNIX,  EVENT_CD,  VALUE
       if (row["EVENT_CD"] in IVF_TO_DEXTROSE) {
         let timestamp = Math.floor(row.DT_UNIX / 3600) * 3600;
-        let ivfValue = (row["VALUE"] * (IVF_TO_DEXTROSE[row["EVENT_CD"]] / 100)) / getWeight(timestamp, weightArr);
+        let ivfValue = (row["RESULT_VAL"] * (IVF_TO_DEXTROSE[row["EVENT_CD"]] / 100)) / getWeight(timestamp, weightArr);
         accValueToDict(ivfValue, timestamp, "cho_ivf", retDict);
       }
     }
