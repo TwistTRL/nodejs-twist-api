@@ -1,0 +1,35 @@
+@startuml synapse-structure
+
+' skinparam componentStyle uml2
+title synapse
+node "SYNAPSE COMPUTER" as synapse #LightGoldenRodYellow {
+
+    database Redis 
+
+    frame "Horos" as horos #White {
+        interface "/Documents"
+    }
+
+    frame "10.7.46.53:7001" as imageAPI {
+        component "nodejs-synapse-xray" as componentImageAPI
+        interface "/dicom/update" as dicomUpdate
+        interface "/dicom/:id" as dicomId
+        interface "/sync/index" as syncIndex
+        interface "/sync/:id" as syncId
+
+        componentImageAPI -[hidden]down- dicomUpdate
+        dicomUpdate -[hidden]down- dicomId
+        dicomId -[hidden]down- syncIndex
+        syncIndex -[hidden]down- syncId
+    }
+
+    Redis -down- imageAPI
+    imageAPI -up- horos
+
+    note right of dicomUpdate: update all dicom id to redis
+    note right of dicomId: get one dicom information
+    note right of syncIndex: post all dicom dictionary to TRLDSC2
+    note right of syncId: send one dicom to TRLDSC2
+}
+
+@enduml

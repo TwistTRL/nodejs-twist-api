@@ -2,11 +2,12 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-30 19:20:52
+ * @Last Modified time: 2021-01-07 12:48:31
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
 const path = require("path");
+const { pipeline } = require("stream");
 const router = new express.Router();
 const jwt = require("jsonwebtoken");
 
@@ -116,7 +117,7 @@ const {
   getCriticalContingency,
 } = require("../db_apis/critical-contingency/get-critical-contingency");
 
-const { getPersonXrayImageList, getXrayImageById } = require("../db_apis/xray/get-xray-images");
+const { getPersonXrayImageList, getXrayById } = require("../db_apis/xray/get-xray");
 
 // -- cache
 const { getRssCache } = require("../db_apis/cache/get-rss-cache");
@@ -3910,59 +3911,54 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 // --------- dev
 
 /**
- * @api {get} /person-xray-image/:person_id Xray image for Patient
+ * @api {get} /person-xray-image/:mrn Xray image for Patient
  * @apiVersion 0.0.1
  * @apiName get-xray-image-for-patient
  * @apiGroup DEV
  * @apiDescription Xray image for Patient
- * @apiParam {Number} person_id Patient unique ID.
+ * @apiParam {String} mrn Patient unique ID.
  * @apiSuccessExample Success-Response:
- *  {
-      "XrAbdomen_Ap_View__1111111": {
-          "FUJI_Basic_Text_SR_for_HL7_Radiological_Report_11111": [
-              {
-                  "image": "IM-0015-0001.jpg",
-                  "id": "2b46f26c-07d7-1111111"
-              },
-          ]
-      }
-    }
+ *  [
+ *     {
+          ID: 6,
+          PATIENT_NAME: 'MISTER^CT',
+          STUDY_ID: '40933',
+          STUDY_DESCRIPTION: 'CHEST',
+          BIRTH_DATE: null,
+          INSTITUTION: null,
+          ACCESSION_NUMBER: '0000000001',
+          REFERRING_PHYSICIAN: null,
+          ACQUISITION_DATE: '20010105',
+          BASE64_DATA: 'data:image/jpg;base64,...' 
+ *     }
+ *  ]
  *
  */
 router.get("/person-xray-image", async (req, res) => {
   res.send(null);
 });
 
-router.get("/person-xray-image/:person_id", async (req, res) => {
-  const person_id = parseInt(req.params.person_id);
-  console.log("person_id :>> ", person_id);
-  if (!Number.isInteger(person_id)) {
-    res.send(null);
-    return;
-  }
-
-  res.send(await getPersonXrayImageList(person_id));
+router.get("/person-xray-image/:mrn", async (req, res) => {
+  const mrn = req.params.mrn;
+  console.log("mrn :>> ", mrn);
+  res.send(await getPersonXrayImageList(mrn));
 });
 
 /**
- * @api {get} /xray-image/:image_id Xray image by ID
+ * @api {get} /person-xray-image/download/:id Xray image for Patient
  * @apiVersion 0.0.1
  * @apiName get-xray-image-by-id
  * @apiGroup DEV
- * @apiDescription Xray image by ID
- * @apiParam {String} image_id Image ID.
+ * @apiDescription Xray image by id
+ * @apiParam {String} id Image ID.
  * @apiSuccessExample Success-Response:
- *  data:image/jpg;base64,/9j/4AAQSkZJRgA...
+ *  file
  *
  */
-
-router.get("/xray-image", async (req, res) => {
-  res.send(await getXrayImageById("test"));
-});
-
-router.get("/xray-image/:image_id", async (req, res) => {
-  const image_id = req.params.image_id;
-  res.send(await getXrayImageById(image_id));
+router.get("/person-xray-image/download/:id", async (req, res) => {
+  const id = req.params.id;
+  console.log("id :>> ", id);
+  res.send(await getXrayById(id)); 
 });
 
 /**
