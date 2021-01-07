@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-30 01:44:49
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-07 12:55:22
+ * @Last Modified time: 2021-01-07 13:15:05
  */
 
 const TRLDSC2_SERVER = "http://10.7.46.137:7001/images/";
@@ -92,7 +92,7 @@ const getPersonXrayImageList = async (mrn) => {
 
 const getXrayById = async (id, type="jpg") => { 
   console.log('id :>> ', id);
-  if (image_id === "test") {
+  if (id === "test") {
     return REACT_BASE64;
   }
   const response = await fetch(`${TRLDSC2_SERVER}${type}/${id}`) 
