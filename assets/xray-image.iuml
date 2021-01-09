@@ -4,9 +4,9 @@
 
 title X-ray Image Data Flow
 
-database "HOSPITAL DB" as db
+database "HOSPITAL DB" as db #fbe9e7
 
-node "SYNAPSE COMPUTER" as synapse #LightGoldenRodYellow {
+node "SYNAPSE COMPUTER" as synapse #LightSkyBlue {
     frame "Horos" as horos {
         interface "/Documents"
     }
@@ -27,7 +27,7 @@ node "SYNAPSE COMPUTER" as synapse #LightGoldenRodYellow {
     horos -- imageAPI
 }
 
-node "TRLDSC2 SERVER" as trldsc2 #LightGoldenRodYellow {
+node "TRLDSC2 SERVER" as trldsc2 #LightGreen {
     frame "trldsc2:7001" as trldsc2API {
         component "nodejs-trldsc2-xray" as trldsc2ImageAPI
         interface "/dicom" as dicom
@@ -38,7 +38,7 @@ node "TRLDSC2 SERVER" as trldsc2 #LightGoldenRodYellow {
 }
 
 
-node "TWIST SERVER" as twist #e0f7fa {
+node "TWIST SERVER" as twist #LightGoldenRodYellow {
     frame "twist:3333" as twistAPI {
         component "nodejs-twist-api" as componentTwistAPI
         interface "/api/person-xray-image/:person_id" as apiPerson
@@ -53,7 +53,7 @@ node "TWIST SERVER" as twist #e0f7fa {
     twistAPI ~down~ Redis
 }
 
-database DWTST #LightYellow {
+database DWTST #fbe9e7 {
     frame dbCache {
         interface "xray-jpg" as xrayJpg
     }
