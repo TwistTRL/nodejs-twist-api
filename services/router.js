@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-11 12:59:53
+ * @Last Modified time: 2021-01-11 13:20:07
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -3919,18 +3919,17 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
  * @apiParam {String} mrn Patient unique ID.
  * @apiSuccessExample Success-Response:
  *  [
- *     {
-          ID: 6,
-          PATIENT_NAME: 'MISTER^CT',
-          STUDY_ID: '40933',
-          STUDY_DESCRIPTION: 'CHEST',
-          BIRTH_DATE: null,
-          INSTITUTION: null,
-          ACCESSION_NUMBER: '0000000001',
-          REFERRING_PHYSICIAN: null,
-          ACQUISITION_DATE: '20010105',
-          BASE64_DATA: 'data:image/jpg;base64,...' 
- *     }
+ *    {
+        "id": "1111_2222_3333", // mrn_accessionNumber_fileName
+        "patient_name": "...",
+        "study_id": "...",
+        "study_description": "XR-Chest 2 Views",
+        "institution": "Boston Childrens Hospital",
+        "accession_number": "2222",
+        "referring_physician": "....",
+        "acquisition_date": "20210108",
+        "thumbnailes": "/9j/4AAQSkZJRgABAQA...", // base64
+      }
  *  ]
  *
  */
@@ -3952,7 +3951,7 @@ router.get("/xray-image/mrn/:mrn", async (req, res) => {
  * @apiDescription Xray image jpg by id
  * @apiParam {String} id Image ID.
  * @apiSuccessExample Success-Response:
- *  file
+ *  /9j/4AAQSkZJRgAB...
  *
  */
 
@@ -3985,7 +3984,7 @@ router.get("/xray-image/dcm/:id", async (req, res) => {
   // const id = req.params.id;
   // console.log("id :>> ", id);
   // res.send(await getXrayDcm(id));
-  res.send("current not ready")
+  res.send("API current not ready")
 });
 
 /**
