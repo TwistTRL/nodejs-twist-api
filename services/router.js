@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-07 12:48:31
+ * @Last Modified time: 2021-01-11 12:59:53
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -117,7 +117,7 @@ const {
   getCriticalContingency,
 } = require("../db_apis/critical-contingency/get-critical-contingency");
 
-const { getPersonXrayImageList, getXrayById } = require("../db_apis/xray/get-xray");
+const { getPersonXrayImageList, getXrayJpg, getXrayDcm } = require("../db_apis/xray/get-xray");
 
 // -- cache
 const { getRssCache } = require("../db_apis/cache/get-rss-cache");
@@ -3911,7 +3911,7 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 // --------- dev
 
 /**
- * @api {get} /person-xray-image/:mrn Xray image for Patient
+ * @api {get} /xray-image/mrn/:mrn Xray image for Patient
  * @apiVersion 0.0.1
  * @apiName get-xray-image-for-patient
  * @apiGroup DEV
@@ -3934,31 +3934,58 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
  *  ]
  *
  */
-router.get("/person-xray-image", async (req, res) => {
+router.get("/xray-image/mrn", async (req, res) => {
   res.send(null);
 });
 
-router.get("/person-xray-image/:mrn", async (req, res) => {
+router.get("/xray-image/mrn/:mrn", async (req, res) => {
   const mrn = req.params.mrn;
   console.log("mrn :>> ", mrn);
   res.send(await getPersonXrayImageList(mrn));
 });
 
 /**
- * @api {get} /person-xray-image/download/:id Xray image for Patient
+ * @api {get} /xray-image/jpg/:id Xray image jpg
  * @apiVersion 0.0.1
- * @apiName get-xray-image-by-id
+ * @apiName get-xray-image-jpg
  * @apiGroup DEV
- * @apiDescription Xray image by id
+ * @apiDescription Xray image jpg by id
  * @apiParam {String} id Image ID.
  * @apiSuccessExample Success-Response:
  *  file
  *
  */
-router.get("/person-xray-image/download/:id", async (req, res) => {
+
+router.get("/xray-image/jpg", async (req, res) => {
+  const { REACT_BASE64 } = require("../db_apis/xray/base64-example");
+  res.send(REACT_BASE64);
+});
+
+router.get("/xray-image/jpg/:id", async (req, res) => {
   const id = req.params.id;
-  console.log("id :>> ", id);
-  res.send(await getXrayById(id)); 
+  const ret = await getXrayJpg(id);
+  if (!ret) {
+    ret = require("../db_apis/xray/base64-example").REACT_BASE64;
+  }
+  res.send(ret);
+});
+
+/**
+ * @api {get} /xray-image/dcm/:id Xray image dcm
+ * @apiVersion 0.0.1
+ * @apiName get-xray-image-dcm
+ * @apiGroup DEV
+ * @apiDescription Xray image dcm by id
+ * @apiParam {String} id Image ID.
+ * @apiSuccessExample Success-Response:
+ *  file
+ *
+ */
+router.get("/xray-image/dcm/:id", async (req, res) => {
+  // const id = req.params.id;
+  // console.log("id :>> ", id);
+  // res.send(await getXrayDcm(id));
+  res.send("current not ready")
 });
 
 /**

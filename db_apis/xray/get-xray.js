@@ -2,13 +2,15 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-30 01:44:49
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-07 13:15:05
+ * @Last Modified time: 2021-01-11 13:05:02
  */
 
 const TRLDSC2_SERVER = "http://10.7.46.137:7001/images/";
 
 const fetch = require("node-fetch");
 const database = require("../../services/database");
+// note: in /services/database.js, oracledb.fetchAsBuffer = [ oracledb.BLOB ];
+
 const { REACT_BASE64 } = require("./base64-example");
 
 const GET_PERSON_RADIOLOGY_SQL = `
@@ -48,24 +50,48 @@ WHERE CATALOG_CD IN
   66038968,
   66039050) 
   AND MRN = :mrn
-ORDER BY REQUEST_DT_TM_UTC`;
+ORDER BY REQUEST_DT_TM_UTC DESC`;
 
-
-const GET_XRAY_CACHE_SQL = `
-SELECT 
-  ID,
-  PATIENT_NAME,
-  STUDY_ID,
-  STUDY_DESCRIPTION,
-  BIRTH_DATE,
-  INSTITUTION,
-  ACCESSION_NUMBER,
-  REFERRING_PHYSICIAN,
-  ACQUISITION_DATE,
-  BASE64_DATA,
-  UPDT_UNIX  
-FROM API_CACHE_XRAY
+const GET_PERSON_XRAY_LIST_CACHE_SQL = `
+SELECT
+    ID,
+    MRN,
+    PATIENT_NAME,
+    STUDY_ID,
+    STUDY_DESCRIPTION,
+    BIRTH_DATE,
+    INSTITUTION,
+    ACCESSION_NUMBER,
+    REFERRING_PHYSICIAN,
+    UPDT_UNIX,
+    ACQUISITION_DATE,
+    FILE_THUMBNAILES
+FROM API_CACHE_XRAY_IMAGES
 WHERE MRN = :mrn
+`;
+
+const GET_XRAY_JPG_BY_ID_CACHE_SQL = `
+SELECT
+    ID,
+    MRN, 
+    ACCESSION_NUMBER,    
+    UPDT_UNIX,    
+    FILE_NAME,
+    FILE_JPG
+FROM API_CACHE_XRAY_IMAGES
+WHERE ID = :id
+`;
+
+const GET_XRAY_DCM_BY_ID_CACHE_SQL = `
+SELECT
+    ID,
+    MRN, 
+    ACCESSION_NUMBER,    
+    UPDT_UNIX,    
+    FILE_NAME,
+    FILE_DCM
+FROM API_CACHE_XRAY_IMAGES
+WHERE ID = :id
 `;
 
 
@@ -77,29 +103,68 @@ const getPersonXrayImageList = async (mrn) => {
 
   const getXrayCache = database.withConnection(
     async (conn, mrn) =>
-      await conn.execute(GET_XRAY_CACHE_SQL, { mrn }).then((res) => res.rows)
+      await conn.execute(GET_PERSON_XRAY_LIST_CACHE_SQL, { mrn }).then((res) => res.rows)
   );
 
   const person_radio = await getPersonRadiology(mrn);
-  const xray_cache = await getXrayCache(mrn);
+  const xray_list_cache = await getXrayCache(mrn);
 
-  console.log('person_radio :>> ', person_radio);
-  // console.log('xray_cache :>> ', xray_cache);
+  // console.log('person_radio :>> ', person_radio);
+  // console.log('xray_list_cache :>> ', xray_list_cache);
+
+  const ret = xray_list_cache.map(item => ({
+    id: item.ID,
+    patient_name: item.PATIENT_NAME,
+    study_id: item.STUDY_ID,
+    study_description: item.STUDY_DESCRIPTION,
+    institution: item.INSTITUTION,
+    accession_number: item.ACCESSION_NUMBER,
+    referring_physician: item.REFERRING_PHYSICIAN,
+    acquisition_date: item.ACQUISITION_DATE,
+    thumbnailes: item.FILE_THUMBNAILES ? item.FILE_THUMBNAILES.toString('base64') : null,
+  }))
+
   
-  // console.log('process.env.SYNAPSE_API_TOKEN :>> ', process.env.SYNAPSE_API_TOKEN);
-  return xray_cache;
+  return ret;
 };
 
 const getXrayById = async (id, type="jpg") => { 
   console.log('id :>> ', id);
-  if (id === "test") {
-    return REACT_BASE64;
+
+  const getXrayJpgByIdCache = database.withConnection(
+    async (conn, id) =>
+      await conn.execute(GET_XRAY_JPG_BY_ID_CACHE_SQL, { id }).then((res) => res.rows)
+  );
+
+  const getXrayDcmByIdCache = database.withConnection(
+    async (conn, id) =>
+      await conn.execute(GET_XRAY_DCM_BY_ID_CACHE_SQL, { id }).then((res) => res.rows)
+  );
+
+  let xray_id_cache;
+  let ret;
+  if (type === "dcm") {
+    xray_id_cache = await getXrayDcmByIdCache(id);
+    if (!xray_id_cache) {
+      return null;
+    }
+    ret = xray_id_cache[0].FILE_DCM;
+  } else {
+    xray_id_cache = await getXrayJpgByIdCache(id);
+    if (!xray_id_cache) {
+      return null;
+    }
+    ret = xray_id_cache[0].FILE_JPG.toString('base64');
   }
-  const response = await fetch(`${TRLDSC2_SERVER}${type}/${id}`) 
-  return await response.text();
+
+  return ret;
 };
+
+const getXrayJpg = async (id) => await getXrayById(id, "jpg");
+const getXrayDcm = async (id) => await getXrayById(id, "dcm");
 
 module.exports = {
   getPersonXrayImageList,
-  getXrayById,
+  getXrayJpg,
+  getXrayDcm,
 };

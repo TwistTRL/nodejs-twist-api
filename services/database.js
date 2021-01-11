@@ -6,6 +6,7 @@ const DatabaseError = require("../utils/errors").DatabaseError;
 // in our database, some date is UTC and some is EST
 // so fetch the date as String to avoid auto convertion
 oracledb.fetchAsString = [oracledb.DATE];
+oracledb.fetchAsBuffer = [ oracledb.BLOB ];
 
 async function initialize() {
   if (dbConfig.user && dbConfig.password) {
