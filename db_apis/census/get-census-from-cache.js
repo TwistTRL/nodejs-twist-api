@@ -74,7 +74,9 @@ const getCacheCensus = async (ts) => {
     }
   });
 
-  return Object.values(patient_dict);
+  // return Object.values(patient_dict);
+
+  
 
 };
 

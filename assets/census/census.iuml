@@ -1,0 +1,24 @@
+@startuml
+concise "Timeline" as TL
+
+@2021/01/11
+TL is {hidden}
+
+@2021/01/12
+TL is E #LightGreen
+
+@2021/01/13
+TL is Y #LightYellow
+@2021/01/14
+TL is T #LightPink
+@2021/01/15
+TL is {hidden}
+
+legend right
+    |Color| Days |
+    |<#LightGreen>| Ereyesterday |
+    |<#LightYellow>| Yesterday|
+    |<#LightPink>| Today |
+endlegend
+
+@enduml

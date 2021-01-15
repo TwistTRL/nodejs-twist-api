@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-11 13:20:07
+ * @Last Modified time: 2021-01-14 17:42:07
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -3967,6 +3967,25 @@ router.get("/xray-image/jpg/:id", async (req, res) => {
     ret = require("../db_apis/xray/base64-example").REACT_BASE64;
   }
   res.send(ret);
+});
+
+
+/**
+ * @api {get} /monitor/stat/:name server status
+ * @apiVersion 0.0.1
+ * @apiName get-server-stat
+ * @apiGroup DEV
+ * @apiDescription server status
+ * @apiParam {String} id Image ID.
+ * @apiSuccessExample Success-Response:
+ *  ...
+ *
+ */
+
+router.get("/monitor/stat/:name", async (req, res) => {
+  const name = req.params.name;
+  console.log('name :>> ', name);
+  res.send(checkServerStat(name));
 });
 
 /**

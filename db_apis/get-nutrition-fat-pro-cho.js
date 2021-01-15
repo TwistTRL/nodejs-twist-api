@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-03-31 18:13:54
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-05 17:11:00
+ * @Last Modified time: 2021-01-14 15:31:14
  */
 
 // https://github.com/TwistTRL/nodejs-twist-utils/tree/master/nutrition
@@ -157,11 +157,11 @@ async function inoutQuerySQLExecutor(conn, binds) {
 }
 
 function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, arrInout, weightArr) {
-  // console.log('arrTpnNutr.length :>> ', arrTpnNutr.length);
-  // console.log('arrTpnLipid.length :>> ', arrTpnLipid.length);
-  // console.log('arrEN.length :>> ', arrEN.length);
-  // console.log('arrDiluNutr.length :>> ', arrDiluNutr.length);
-  // console.log('arrInout.length :>> ', arrInout.length);
+  console.log('arrTpnNutr.length :>> ', arrTpnNutr.length);
+  console.log('arrTpnLipid.length :>> ', arrTpnLipid.length);
+  console.log('arrEN.length :>> ', arrEN.length);
+  console.log('arrDiluNutr.length :>> ', arrDiluNutr.length);
+  console.log('arrInout.length :>> ', arrInout.length);
   // get hour binned pro, fat, cho data
   let retDict = {};
 
