@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-23 15:32:32
+ * @Last Modified time: 2021-01-15 09:01:45
  */
 
 const moment = require("moment");
@@ -12,6 +12,7 @@ const { getCensusCacheData } = require("../cache/get-census-cache");
 const getCacheCensus = async (ts) => {
   const patient_dict = {};
   const censusData = await getCensusCacheData();
+  // console.log('censusData :>> ', censusData);
   censusData.forEach((element) => {
     if (element.PERSON_ID in patient_dict) {
       if (element.NAME_FULL_FORMATTED) {
@@ -74,7 +75,7 @@ const getCacheCensus = async (ts) => {
     }
   });
 
-  // return Object.values(patient_dict);
+  return Object.values(patient_dict);
 
   
 
