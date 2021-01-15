@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-06 10:31:08
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-22 21:23:44
+ * @Last Modified time: 2021-01-15 09:35:08
  */
 
 //~~~~~~~~~~ REDIS SETTINGS ~~~~~~~~
@@ -13,8 +13,8 @@ const REDIS_PORT = 6379;
 const USE_CACHE = true; 
 
 // redis cache expire after this time in seconds
-const TWO_HOURS = 7200;
-const REDIS_EXPIRE_TIME = process.env.NODE_ENV === "development" ? 120 : TWO_HOURS; 
+const SEVEN_MINUTES = 420;
+const REDIS_EXPIRE_TIME = process.env.NODE_ENV === "development" ? 120 : SEVEN_MINUTES; 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 const Redis = require("ioredis");
