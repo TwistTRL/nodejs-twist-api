@@ -9,12 +9,15 @@ oracledb.fetchAsString = [oracledb.DATE];
 oracledb.fetchAsBuffer = [oracledb.BLOB];
 
 async function initialize() {
-  if (dbConfig.user && dbConfig.password) {
-    console.log("dbConfig :>> ", dbConfig);
-    await oracledb.createPool(dbConfig);
-    oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
-  } else {
-    throw new Error("user or password is null");
+  try {
+    if (dbConfig.user && dbConfig.password) {
+      await oracledb.createPool(dbConfig);
+      oracledb.outFormat = oracledb.OUT_FORMAT_OBJECT;
+    } else {
+      throw new Error("user or password is null");
+    }
+  } catch (error) {
+    throw new Error(error);
   }
 }
 
