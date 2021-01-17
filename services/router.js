@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-14 17:42:07
+ * @Last Modified time: 2021-01-17 01:38:48
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -314,7 +314,22 @@ router.get("/phenotyping/step2/:mrn", async (req, res) => {
                 "START_UNIX": 1607644800,
                 "END_UNIX": 1607688000
             },
-        ]
+        ],
+
+        // one latest xray thumbnailes
+        "XRAY_THUMBNAILES": {
+            "ID": "22222_123123_4567",
+            "PATIENT_NAME": "SANTIAGO^BABYGIRL",
+            "STUDY_ID": "123123",
+            "STUDY_DESCRIPTION": "XR Chest",
+            "INSTITUTION": "Boston Children's Hospital",
+            "ACCESSION_NUMBER": "123123",
+            "REFERRING_PHYSICIAN": "BRIGHAM AND WOMEN'S^HOSPITAL^AND WOMEN'S",
+            "UPDT_UNIX": 1610862670,
+            "STUDY_TIME": "203244",
+            "STUDY_DATE": "20210109",
+            "FILE_THUMBNAILES": "/9j/4AAQSkZJR..." //base64
+        }
       },
   ]
  */

@@ -2,31 +2,50 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-15 09:01:45
+ * @Last Modified time: 2021-01-17 01:33:40
  */
 
-const moment = require("moment");
-
 const { getCensusCacheData } = require("../cache/get-census-cache");
+const { getAdtCensusXray } = require("../xray/get-xray-for-census");
 
 const getCacheCensus = async (ts) => {
   const patient_dict = {};
   const censusData = await getCensusCacheData();
+  const xrayDict = await getAdtCensusXray(Math.floor(Date.now() / 1000));
   // console.log('censusData :>> ', censusData);
+  // console.log('xrayDict :>> ', xrayDict);
   censusData.forEach((element) => {
     if (element.PERSON_ID in patient_dict) {
       if (element.NAME_FULL_FORMATTED) {
         patient_dict[element.PERSON_ID].PERSONNEL.push({
-          NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED, 
-          CONTACT_NUM: element.CONTACT_NUM, 
-          ASSIGN_TYPE: element.ASSIGN_TYPE, 
-          TEAM_ASSIGN_TYPE: element.TEAM_ASSIGN_TYPE, 
-          START_UNIX: element.START_UNIX, 
+          NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED,
+          CONTACT_NUM: element.CONTACT_NUM,
+          ASSIGN_TYPE: element.ASSIGN_TYPE,
+          TEAM_ASSIGN_TYPE: element.TEAM_ASSIGN_TYPE,
+          START_UNIX: element.START_UNIX,
           END_UNIX: element.END_UNIX,
-        })
+        });
       }
-
     } else {
+      // latest one xray image
+      const XRAY_THUMBNAILES =
+        element.PERSON_ID in xrayDict
+          ? {
+              ID: xrayDict[element.PERSON_ID].ID,
+              PATIENT_NAME: xrayDict[element.PERSON_ID].PATIENT_NAME,
+              STUDY_ID: xrayDict[element.PERSON_ID].STUDY_ID,
+              STUDY_DESCRIPTION: xrayDict[element.PERSON_ID].STUDY_DESCRIPTION,
+              INSTITUTION: xrayDict[element.PERSON_ID].INSTITUTION,
+              ACCESSION_NUMBER: xrayDict[element.PERSON_ID].ACCESSION_NUMBER,
+              REFERRING_PHYSICIAN: xrayDict[element.PERSON_ID].REFERRING_PHYSICIAN,
+              UPDT_UNIX: 1610862670,
+              STUDY_TIME: xrayDict[element.PERSON_ID].STUDY_TIME,
+              STUDY_DATE: xrayDict[element.PERSON_ID].STUDY_DATE,
+              FILE_THUMBNAILES: xrayDict[element.PERSON_ID].FILE_THUMBNAILES
+                ? xrayDict[element.PERSON_ID].FILE_THUMBNAILES.toString("base64")
+                : null,
+            }
+          : null;
       patient_dict[element.PERSON_ID] = {
         PERSON_ID: element.PERSON_ID,
         MRN: element.MRN,
@@ -63,22 +82,24 @@ const getCacheCensus = async (ts) => {
         ECMO_UNIX: element.ECMO_UNIX,
         TEAM: element.TEAM,
         CHIEF_COMPLAINT: element.CHIEF_COMPLAINT,
-        PERSONNEL: element.name_full_formatted ? [{
-          NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED, 
-          CONTACT_NUM: element.CONTACT_NUM, 
-          ASSIGN_TYPE: element.ASSIGN_TYPE, 
-          TEAM_ASSIGN_TYPE: element.TEAM_ASSIGN_TYPE, 
-          START_UNIX: element.START_UNIX, 
-          END_UNIX: element.END_UNIX,
-        }] : [],
+        PERSONNEL: element.name_full_formatted
+          ? [
+              {
+                NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED,
+                CONTACT_NUM: element.CONTACT_NUM,
+                ASSIGN_TYPE: element.ASSIGN_TYPE,
+                TEAM_ASSIGN_TYPE: element.TEAM_ASSIGN_TYPE,
+                START_UNIX: element.START_UNIX,
+                END_UNIX: element.END_UNIX,
+              },
+            ]
+          : [],
+        XRAY_THUMBNAILES,
       };
     }
   });
 
   return Object.values(patient_dict);
-
-  
-
 };
 
 module.exports = {

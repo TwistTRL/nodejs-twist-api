@@ -66,18 +66,20 @@ package "FRONT END COMPUTERS" as frontEnd #Plum {
 }
 
 
-synapse -[hidden]- trldsc2
+synapse -[hidden]right- trldsc2
 trldsc2 -[hidden]- twist
 twist -[hidden]- frontEnd
-' DWTST -[hidden]- twist
+
+DWTST -[hidden]-- frontEnd
 
 db -down- horos
 imageAPI -- trldsc2API
-trldsc2API -- twistAPI
+trldsc2API ~~ twistAPI
+twistAPI --dbCache
 trldsc2API -up- dbCache
 twistAPI -- imageFE
 
 ' note right of synapse : image storage
-note right of trldsc2 : image storage
+' note right of trldsc2 : image storage
 
 @enduml

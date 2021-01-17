@@ -1,12 +1,11 @@
 /*
- * @Author: Peng Zeng 
- * @Date: 2021-01-14 18:03:53 
+ * @Author: Peng Zeng
+ * @Date: 2021-01-14 18:03:53
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-14 22:39:33
+ * @Last Modified time: 2021-01-17 01:10:40
  */
 
-
-const TRLDSC2_SERVER = "http://10.7.46.137:7001/images/";
+// const TRLDSC2_SERVER = "http://10.7.46.137:7001/images/";
 
 const fetch = require("node-fetch");
 const database = require("../../services/database");
@@ -26,8 +25,10 @@ SELECT
     REFERRING_PHYSICIAN,
     UPDT_UNIX,
     ACQUISITION_DATE,
+    STUDY_TIME,
+    STUDY_DATE,
     FILE_THUMBNAILES
-FROM API_CACHE_XRAY_IMAGES
+FROM API_CACHE_XRAY
 JOIN CHB_MRN USING (MRN)
 JOIN PERSON USING (PERSON_ID)
 JOIN ADT USING (PERSON_ID)
@@ -37,49 +38,53 @@ WHERE :timestamp BETWEEN START_UNIX AND END_UNIX
   AND NURSE_UNIT_DISP != 'Emergency Department'
 `;
 
-
-
-const getAdtCensusXray = async (timestamp) => { 
+const getAdtCensusXray = async (timestamp) => {
   const getData = database.withConnection(
     async (conn, timestamp) =>
       await conn.execute(GET_ADT_CENSUS_XRAY_SQL, { timestamp }).then((res) => res.rows)
   );
 
-  const xrayData = await getData(timestamp);
-  console.log('xrayData :>> ', xrayData);  
-
-  const personDict = {};
-  xrayData.forEach(element => {
-    const mrn = element.mrn;
-    if (mrn in personDict) {
-      personDict[mrn].push(element);
-    } else {
-      personDict[mrn] = [element];
-    }
-  });
-  
-  const mrnWithLatestXrayList = Object.keys(personDict).map(recordsForMrn => {
-    const sortedRecords = recordsForMrn.sort((a,b) => {
-      if (a.STUDY_DATE === b.STUDY_DATE) {
-        return b.STUDY_TIME - a.STUDY_TIME
-      } else {
-        return b.STUDY_DATE - a.STUDY_DATE
-      }      
-    })
+  const getLatestRecordByDescription = (sortedRecords) => {
     for (const record of sortedRecords) {
-      if (record.STUDY_DESCRIPTION.toUpperCase().includes("CHEST") || record.STUDY_DESCRIPTION.toUpperCase().includes("BABY")) {
+      if (
+        record.STUDY_DESCRIPTION.toUpperCase().includes("CHEST") ||
+        record.STUDY_DESCRIPTION.toUpperCase().includes("BABYGRAM")
+      ) {
         return record;
       }
     }
     return sortedRecords[0];
-  })
+  };
 
-    // TODO:
+  const xrayData = await getData(timestamp);
+  // console.log('xrayData :>> ', xrayData);
 
+  const personDict = {};
+  const personWithLatestXrayDict = {};
 
-  return mrnWithLatestXrayList;
+  xrayData.forEach((element) => {
+    const person_id = element.PERSON_ID;
+    if (person_id in personDict) {
+      personDict[person_id].push(element);
+    } else {
+      personDict[person_id] = [element];
+    }
+  });
+
+  for (const person_id in personDict) {
+    const sortedRecords = personDict[person_id].sort((a, b) => {
+      if (a.STUDY_DATE === b.STUDY_DATE) {
+        return b.STUDY_TIME - a.STUDY_TIME;
+      } else {
+        return b.STUDY_DATE - a.STUDY_DATE;
+      }
+    });
+
+    personWithLatestXrayDict[person_id] = getLatestRecordByDescription(sortedRecords);
+  }
+
+  return personWithLatestXrayDict;
 };
-
 
 module.exports = {
   getAdtCensusXray,

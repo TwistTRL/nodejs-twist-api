@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-30 01:44:49
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-11 13:05:02
+ * @Last Modified time: 2021-01-17 00:58:48
  */
 
 const TRLDSC2_SERVER = "http://10.7.46.137:7001/images/";
@@ -65,8 +65,10 @@ SELECT
     REFERRING_PHYSICIAN,
     UPDT_UNIX,
     ACQUISITION_DATE,
+    STUDY_TIME,
+    STUDY_DATE,
     FILE_THUMBNAILES
-FROM API_CACHE_XRAY_IMAGES
+FROM API_CACHE_XRAY
 WHERE MRN = :mrn
 `;
 
@@ -78,7 +80,7 @@ SELECT
     UPDT_UNIX,    
     FILE_NAME,
     FILE_JPG
-FROM API_CACHE_XRAY_IMAGES
+FROM API_CACHE_XRAY
 WHERE ID = :id
 `;
 
@@ -90,7 +92,7 @@ SELECT
     UPDT_UNIX,    
     FILE_NAME,
     FILE_DCM
-FROM API_CACHE_XRAY_IMAGES
+FROM API_CACHE_XRAY
 WHERE ID = :id
 `;
 
