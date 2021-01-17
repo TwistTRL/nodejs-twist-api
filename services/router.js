@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-17 01:38:48
+ * @Last Modified time: 2021-01-17 01:56:29
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -126,6 +126,10 @@ const { getMedCache } = require("../db_apis/cache/get-med-cache");
 // --- write to database
 
 const { getPatientsByLocation } = require("../db_apis/adt/get-patients-by-location");
+
+// other server
+
+const {checkServerStat} = require("../db_apis/xray/monitor-xray");
 
 // >>------------------------------------------------------------------------>>
 // apidoc folder is a static files folder
@@ -3991,7 +3995,7 @@ router.get("/xray-image/jpg/:id", async (req, res) => {
  * @apiName get-server-stat
  * @apiGroup DEV
  * @apiDescription server status
- * @apiParam {String} id Image ID.
+ * @apiParam {String='trldsc2', 'synapse'} name server name.
  * @apiSuccessExample Success-Response:
  *  ...
  *
@@ -4000,7 +4004,7 @@ router.get("/xray-image/jpg/:id", async (req, res) => {
 router.get("/monitor/stat/:name", async (req, res) => {
   const name = req.params.name;
   console.log('name :>> ', name);
-  res.send(checkServerStat(name));
+  res.send(await checkServerStat(name));
 });
 
 /**
