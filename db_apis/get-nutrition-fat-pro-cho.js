@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-03-31 18:13:54
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-14 15:31:14
+ * @Last Modified time: 2021-01-17 17:36:55
  */
 
 // https://github.com/TwistTRL/nodejs-twist-utils/tree/master/nutrition
@@ -157,11 +157,12 @@ async function inoutQuerySQLExecutor(conn, binds) {
 }
 
 function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, arrInout, weightArr) {
-  console.log('arrTpnNutr.length :>> ', arrTpnNutr.length);
-  console.log('arrTpnLipid.length :>> ', arrTpnLipid.length);
-  console.log('arrEN.length :>> ', arrEN.length);
-  console.log('arrDiluNutr.length :>> ', arrDiluNutr.length);
-  console.log('arrInout.length :>> ', arrInout.length);
+  // console.log('arrTpnNutr.length :>> ', arrTpnNutr.length);
+  // console.log('arrTpnLipid.length :>> ', arrTpnLipid.length);
+  // console.log('arrEN.length :>> ', arrEN.length);
+  // console.log('arrDiluNutr.length :>> ', arrDiluNutr.length);
+  // console.log('arrInout.length :>> ', arrInout.length);
+  // console.log('weightArr :>> ', weightArr);
   // get hour binned pro, fat, cho data
   let retDict = {};
 
@@ -289,6 +290,8 @@ function _calculateRawRecords(arrTpnNutr, arrTpnLipid, arrEN, arrDiluNutr, arrIn
       }
     }
   }
+
+  // console.log('retDict :>> ', retDict);
 
   let retArr = [];
   for (let timestamp in retDict) {

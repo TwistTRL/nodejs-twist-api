@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-17 01:56:29
+ * @Last Modified time: 2021-01-17 18:29:54
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -21,6 +21,7 @@ const { getAdtCensus } = require("../db_apis/census/get-census-from-adt");
 const { getCacheCensus } = require("../db_apis/census/get-census-from-cache");
 const { getCensusInit } = require("../db_apis/census/get-census-init");
 const { getCensusTeam } = require("../db_apis/census/get-census-team");
+const { getCensus3DaysCache } = require("../db_apis/census/get-census-three-days-cache");
 
 const { getCensus } = require("../db_apis/cross_tables/get-census");
 const { getRadiology } = require("../db_apis/get-radiology");
@@ -409,6 +410,29 @@ router.get("/census-team/:person_id", async (req, res) => {
     parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
   console.log("timestamp is: " + timestamp);
   getApiFromRedis(res, getCensusTeam, { person_id, timestamp }, "interface-team-census");
+});
+
+/**
+ * @api {get} /census-days-cache/:person_id Census 3 days cache
+ * @apiVersion 0.0.1
+ * @apiName get-census-days-cache
+ * @apiGroup Census
+ * @apiParam {Number} person_id Patient ID.
+ * @apiSuccessExample Success-Response:
+ *  {
+      fluid: {},
+      lines: {},
+      infusions: {},
+      intermittent: {},
+      ecmo: [],
+      rss: [],
+    }
+ */
+
+router.get("/census-days-cache/:person_id", async (req, res) => {
+  const person_id = Number(req.params.person_id);
+  console.log("person_id is: " + person_id);
+  getApiFromRedis(res, getCensus3DaysCache, person_id, "interface-census-days");
 });
 
 /**
