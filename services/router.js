@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-17 18:29:54
+ * @Last Modified time: 2021-01-19 12:33:01
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -330,9 +330,7 @@ router.get("/phenotyping/step2/:mrn", async (req, res) => {
             "INSTITUTION": "Boston Children's Hospital",
             "ACCESSION_NUMBER": "123123",
             "REFERRING_PHYSICIAN": "BRIGHAM AND WOMEN'S^HOSPITAL^AND WOMEN'S",
-            "UPDT_UNIX": 1610862670,
-            "STUDY_TIME": "203244",
-            "STUDY_DATE": "20210109",
+            "STUDY_TIMESTAMP": 1610960011, 
             "FILE_THUMBNAILES": "/9j/4AAQSkZJR..." //base64
         }
       },
