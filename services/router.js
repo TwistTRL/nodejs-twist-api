@@ -2,12 +2,12 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-19 12:33:01
+ * @Last Modified time: 2021-01-21 14:00:42
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
 const path = require("path");
-const { pipeline } = require("stream");
+const { pipeline, PassThrough } = require("stream");
 const router = new express.Router();
 const jwt = require("jsonwebtoken");
 
@@ -4041,10 +4041,15 @@ router.get("/monitor/stat/:name", async (req, res) => {
  *
  */
 router.get("/xray-image/dcm/:id", async (req, res) => {
-  // const id = req.params.id;
-  // console.log("id :>> ", id);
-  // res.send(await getXrayDcm(id));
-  res.send("API current not ready")
+  const id = req.params.id;
+  console.log("id :>> ", id);
+  const dcmBuff = await getXrayDcm(id);
+  const pass = new PassThrough();
+  pass.end(dcmBuff);
+
+  res.set('Content-disposition', 'attachment; filename=' + id + '.dcm');
+  res.set('Content-Type', 'multipart/mixed');
+  pass.pipe(res);
 });
 
 /**

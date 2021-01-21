@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-30 01:44:49
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-17 00:58:48
+ * @Last Modified time: 2021-01-21 14:00:09
  */
 
 const TRLDSC2_SERVER = "http://10.7.46.137:7001/images/";
