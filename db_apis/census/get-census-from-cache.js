@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-19 12:30:06
+ * @Last Modified time: 2021-01-21 10:16:25
  */
 
 const { getCensusCacheData } = require("../cache/get-census-cache");
@@ -16,10 +16,6 @@ const getCacheCensus = async (ts) => {
   // console.log('censusData :>> ', censusData);
   // console.log('xrayDict :>> ', xrayDict);
   censusData.forEach((element) => {
-    if (!(element.PERSON_ID in xrayDict)) {
-      // this person_id has no recent xray
-      return;
-    }
     if (element.PERSON_ID in patient_dict) {
       if (element.NAME_FULL_FORMATTED) {
         patient_dict[element.PERSON_ID].PERSONNEL.push({
@@ -32,25 +28,31 @@ const getCacheCensus = async (ts) => {
         });
       }
     } else {
+      let XRAY_THUMBNAILES;
       // get timestamp for this xray study
-      const study_time = xrayDict[element.PERSON_ID].STUDY_TIME; //YYYYMMDD
-      const study_date = xrayDict[element.PERSON_ID].STUDY_DATE; //hhmmss
-      const STUDY_TIMESTAMP = moment(study_date + study_time, "YYYYMMDDhhmmss").unix();
+      if (!(element.PERSON_ID in xrayDict)) {
+        // this person_id has no recent xray
+        XRAY_THUMBNAILES = null;
+      } else {
+        const study_time = xrayDict[element.PERSON_ID].STUDY_TIME; //YYYYMMDD
+        const study_date = xrayDict[element.PERSON_ID].STUDY_DATE; //hhmmss
+        const STUDY_TIMESTAMP = moment(study_date + study_time, "YYYYMMDDhhmmss").unix();
 
-      // latest one xray image
-      const XRAY_THUMBNAILES = {
-        ID: xrayDict[element.PERSON_ID].ID,
-        PATIENT_NAME: xrayDict[element.PERSON_ID].PATIENT_NAME,
-        STUDY_ID: xrayDict[element.PERSON_ID].STUDY_ID,
-        STUDY_DESCRIPTION: xrayDict[element.PERSON_ID].STUDY_DESCRIPTION,
-        INSTITUTION: xrayDict[element.PERSON_ID].INSTITUTION,
-        ACCESSION_NUMBER: xrayDict[element.PERSON_ID].ACCESSION_NUMBER,
-        REFERRING_PHYSICIAN: xrayDict[element.PERSON_ID].REFERRING_PHYSICIAN,
-        STUDY_TIMESTAMP,
-        FILE_THUMBNAILES: xrayDict[element.PERSON_ID].FILE_THUMBNAILES
-          ? xrayDict[element.PERSON_ID].FILE_THUMBNAILES.toString("base64")
-          : null,
-      };
+        // latest one xray image
+        XRAY_THUMBNAILES = {
+          ID: xrayDict[element.PERSON_ID].ID,
+          PATIENT_NAME: xrayDict[element.PERSON_ID].PATIENT_NAME,
+          STUDY_ID: xrayDict[element.PERSON_ID].STUDY_ID,
+          STUDY_DESCRIPTION: xrayDict[element.PERSON_ID].STUDY_DESCRIPTION,
+          INSTITUTION: xrayDict[element.PERSON_ID].INSTITUTION,
+          ACCESSION_NUMBER: xrayDict[element.PERSON_ID].ACCESSION_NUMBER,
+          REFERRING_PHYSICIAN: xrayDict[element.PERSON_ID].REFERRING_PHYSICIAN,
+          STUDY_TIMESTAMP,
+          FILE_THUMBNAILES: xrayDict[element.PERSON_ID].FILE_THUMBNAILES
+            ? xrayDict[element.PERSON_ID].FILE_THUMBNAILES.toString("base64")
+            : null,
+        };
+      }
 
       patient_dict[element.PERSON_ID] = {
         PERSON_ID: element.PERSON_ID,
