@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-21 10:58:07
+ * @Last Modified time: 2021-01-21 12:12:08
  */
 
 const { getCensusCacheData } = require("../cache/get-census-cache");
@@ -39,7 +39,7 @@ const getCacheCensus = async (ts) => {
         const STUDY_TIMESTAMP = moment(study_date + study_time, "YYYYMMDDhhmmss").unix();
 
         // only send xray in last 24 hours
-        if (STUDY_TIMESTAMP - moment().unix() > 24 * 60 * 60) {
+        if (moment().unix() - STUDY_TIMESTAMP > 24 * 60 * 60) {
           XRAY_THUMBNAILES = null;
         } else {
           // latest one xray image
@@ -118,5 +118,3 @@ const getCacheCensus = async (ts) => {
 module.exports = {
   getCacheCensus,
 };
-
-// TODO: xray-thumbnails last 24 hours only
