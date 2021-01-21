@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-21 10:16:25
+ * @Last Modified time: 2021-01-21 10:58:07
  */
 
 const { getCensusCacheData } = require("../cache/get-census-cache");
@@ -38,20 +38,25 @@ const getCacheCensus = async (ts) => {
         const study_date = xrayDict[element.PERSON_ID].STUDY_DATE; //hhmmss
         const STUDY_TIMESTAMP = moment(study_date + study_time, "YYYYMMDDhhmmss").unix();
 
-        // latest one xray image
-        XRAY_THUMBNAILES = {
-          ID: xrayDict[element.PERSON_ID].ID,
-          PATIENT_NAME: xrayDict[element.PERSON_ID].PATIENT_NAME,
-          STUDY_ID: xrayDict[element.PERSON_ID].STUDY_ID,
-          STUDY_DESCRIPTION: xrayDict[element.PERSON_ID].STUDY_DESCRIPTION,
-          INSTITUTION: xrayDict[element.PERSON_ID].INSTITUTION,
-          ACCESSION_NUMBER: xrayDict[element.PERSON_ID].ACCESSION_NUMBER,
-          REFERRING_PHYSICIAN: xrayDict[element.PERSON_ID].REFERRING_PHYSICIAN,
-          STUDY_TIMESTAMP,
-          FILE_THUMBNAILES: xrayDict[element.PERSON_ID].FILE_THUMBNAILES
-            ? xrayDict[element.PERSON_ID].FILE_THUMBNAILES.toString("base64")
-            : null,
-        };
+        // only send xray in last 24 hours
+        if (STUDY_TIMESTAMP - moment().unix() > 24 * 60 * 60) {
+          XRAY_THUMBNAILES = null;
+        } else {
+          // latest one xray image
+          XRAY_THUMBNAILES = {
+            ID: xrayDict[element.PERSON_ID].ID,
+            PATIENT_NAME: xrayDict[element.PERSON_ID].PATIENT_NAME,
+            STUDY_ID: xrayDict[element.PERSON_ID].STUDY_ID,
+            STUDY_DESCRIPTION: xrayDict[element.PERSON_ID].STUDY_DESCRIPTION,
+            INSTITUTION: xrayDict[element.PERSON_ID].INSTITUTION,
+            ACCESSION_NUMBER: xrayDict[element.PERSON_ID].ACCESSION_NUMBER,
+            REFERRING_PHYSICIAN: xrayDict[element.PERSON_ID].REFERRING_PHYSICIAN,
+            STUDY_TIMESTAMP,
+            FILE_THUMBNAILES: xrayDict[element.PERSON_ID].FILE_THUMBNAILES
+              ? xrayDict[element.PERSON_ID].FILE_THUMBNAILES.toString("base64")
+              : null,
+          };
+        }
       }
 
       patient_dict[element.PERSON_ID] = {
@@ -113,3 +118,5 @@ const getCacheCensus = async (ts) => {
 module.exports = {
   getCacheCensus,
 };
+
+// TODO: xray-thumbnails last 24 hours only
