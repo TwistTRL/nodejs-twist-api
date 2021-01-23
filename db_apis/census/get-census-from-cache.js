@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-21 12:12:08
+ * @Last Modified time: 2021-01-23 07:35:14
  */
 
 const { getCensusCacheData } = require("../cache/get-census-cache");
@@ -16,6 +16,12 @@ const getCacheCensus = async (ts) => {
   // console.log('censusData :>> ', censusData);
   // console.log('xrayDict :>> ', xrayDict);
   censusData.forEach((element) => {
+    if (element.MRN === '5577310') {
+      console.log('5577310 element :>> ', element);
+    }
+
+
+
     if (element.PERSON_ID in patient_dict) {
       if (element.NAME_FULL_FORMATTED) {
         patient_dict[element.PERSON_ID].PERSONNEL.push({
@@ -95,7 +101,7 @@ const getCacheCensus = async (ts) => {
         ECMO_UNIX: element.ECMO_UNIX,
         TEAM: element.TEAM,
         CHIEF_COMPLAINT: element.CHIEF_COMPLAINT,
-        PERSONNEL: element.name_full_formatted
+        PERSONNEL: element.NAME_FULL_FORMATTED
           ? [
               {
                 NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED,
