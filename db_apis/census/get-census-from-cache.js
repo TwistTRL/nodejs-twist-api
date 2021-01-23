@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-23 07:35:14
+ * @Last Modified time: 2021-01-23 09:09:06
  */
 
 const { getCensusCacheData } = require("../cache/get-census-cache");
@@ -16,14 +16,8 @@ const getCacheCensus = async (ts) => {
   // console.log('censusData :>> ', censusData);
   // console.log('xrayDict :>> ', xrayDict);
   censusData.forEach((element) => {
-    if (element.MRN === '5577310') {
-      console.log('5577310 element :>> ', element);
-    }
-
-
-
     if (element.PERSON_ID in patient_dict) {
-      if (element.NAME_FULL_FORMATTED) {
+      if (element.NAME_FULL_FORMATTED && element.NAME_FULL_FORMATTED !== "None") {
         patient_dict[element.PERSON_ID].PERSONNEL.push({
           NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED,
           CONTACT_NUM: element.CONTACT_NUM,
@@ -101,7 +95,7 @@ const getCacheCensus = async (ts) => {
         ECMO_UNIX: element.ECMO_UNIX,
         TEAM: element.TEAM,
         CHIEF_COMPLAINT: element.CHIEF_COMPLAINT,
-        PERSONNEL: element.NAME_FULL_FORMATTED
+        PERSONNEL: element.NAME_FULL_FORMATTED && element.NAME_FULL_FORMATTED !== "None"
           ? [
               {
                 NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED,
