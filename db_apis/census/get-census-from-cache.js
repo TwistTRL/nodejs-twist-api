@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-23 09:09:06
+ * @Last Modified time: 2021-01-23 12:32:31
  */
 
 const { getCensusCacheData } = require("../cache/get-census-cache");
@@ -18,14 +18,38 @@ const getCacheCensus = async (ts) => {
   censusData.forEach((element) => {
     if (element.PERSON_ID in patient_dict) {
       if (element.NAME_FULL_FORMATTED && element.NAME_FULL_FORMATTED !== "None") {
-        patient_dict[element.PERSON_ID].PERSONNEL.push({
-          NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED,
-          CONTACT_NUM: element.CONTACT_NUM,
-          ASSIGN_TYPE: element.ASSIGN_TYPE,
-          TEAM_ASSIGN_TYPE: element.TEAM_ASSIGN_TYPE,
-          START_UNIX: element.START_UNIX,
-          END_UNIX: element.END_UNIX,
-        });
+        // replace older record with new record if they have the same personnel name, contact number and assign type,
+        // so the front end won't display two same personnel records
+        let isPersonnelInArray = false;
+        for (const [index, personnel_item] of patient_dict[element.PERSON_ID].PERSONNEL.entries()) {
+          if (
+            personnel_item.NAME_FULL_FORMATTED === element.NAME_FULL_FORMATTED &&
+            personnel_item.CONTACT_NUM === element.CONTACT_NUM &&
+            personnel_item.ASSIGN_TYPE == element.ASSIGN_TYPE
+          ) {
+            patient_dict[element.PERSON_ID].PERSONNEL.splice(index, 1, {
+              NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED,
+              CONTACT_NUM: element.CONTACT_NUM,
+              ASSIGN_TYPE: element.ASSIGN_TYPE,
+              TEAM_ASSIGN_TYPE: element.TEAM_ASSIGN_TYPE,
+              START_UNIX: element.START_UNIX,
+              END_UNIX: element.END_UNIX,
+            });
+            isPersonnelInArray = true;
+            break;
+          }
+        }
+
+        if (!isPersonnelInArray) {
+          patient_dict[element.PERSON_ID].PERSONNEL.push({
+            NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED,
+            CONTACT_NUM: element.CONTACT_NUM,
+            ASSIGN_TYPE: element.ASSIGN_TYPE,
+            TEAM_ASSIGN_TYPE: element.TEAM_ASSIGN_TYPE,
+            START_UNIX: element.START_UNIX,
+            END_UNIX: element.END_UNIX,
+          });
+        }
       }
     } else {
       let XRAY_THUMBNAILES;
@@ -95,18 +119,19 @@ const getCacheCensus = async (ts) => {
         ECMO_UNIX: element.ECMO_UNIX,
         TEAM: element.TEAM,
         CHIEF_COMPLAINT: element.CHIEF_COMPLAINT,
-        PERSONNEL: element.NAME_FULL_FORMATTED && element.NAME_FULL_FORMATTED !== "None"
-          ? [
-              {
-                NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED,
-                CONTACT_NUM: element.CONTACT_NUM,
-                ASSIGN_TYPE: element.ASSIGN_TYPE,
-                TEAM_ASSIGN_TYPE: element.TEAM_ASSIGN_TYPE,
-                START_UNIX: element.START_UNIX,
-                END_UNIX: element.END_UNIX,
-              },
-            ]
-          : [],
+        PERSONNEL:
+          element.NAME_FULL_FORMATTED && element.NAME_FULL_FORMATTED !== "None"
+            ? [
+                {
+                  NAME_FULL_FORMATTED: element.NAME_FULL_FORMATTED,
+                  CONTACT_NUM: element.CONTACT_NUM,
+                  ASSIGN_TYPE: element.ASSIGN_TYPE,
+                  TEAM_ASSIGN_TYPE: element.TEAM_ASSIGN_TYPE,
+                  START_UNIX: element.START_UNIX,
+                  END_UNIX: element.END_UNIX,
+                },
+              ]
+            : [],
         XRAY_THUMBNAILES,
       };
     }
