@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-21 14:00:42
+ * @Last Modified time: 2021-01-25 00:16:56
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -342,18 +342,18 @@ router.get("/census/:timestamp", async (req, res) => {
     parseInt(Math.floor(req.params.timestamp / 60) * 60) ||
     parseInt(Math.floor(Date.now() / 1000 / 60) * 60);
   if (req.get("no-cache")) {
-    getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
+    getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census", 240);
   } else {
-    getApiFromRedis(res, getCacheCensus, timestamp, "interface-cache-census");
+    getApiFromRedis(res, getCacheCensus, timestamp, "interface-cache-census", 120);
   }
 });
 
 router.get("/census", async (req, res) => {
   const timestamp = parseInt(parseInt(Math.floor(Date.now() / 1000 / 60) * 60));
   if (req.get("no-cache")) {
-    getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census");
+    getApiFromRedis(res, getAdtCensus, timestamp, "interface-adt-census", 240);
   } else {
-    getApiFromRedis(res, getCacheCensus, timestamp, "interface-cache-census");
+    getApiFromRedis(res, getCacheCensus, timestamp, "interface-cache-census", 120);
   }
 });
 

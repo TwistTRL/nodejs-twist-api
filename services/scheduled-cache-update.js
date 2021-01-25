@@ -6,9 +6,9 @@ const schedule = require("node-schedule");
 const initialize = async () => {
   const startTime = new Date(Date.now() + 10 * 1000); // start after 10 sec
 
-  // every 5 minutes
-  const updateCensusSchedule = schedule.scheduleJob({ start: startTime, rule: "*/5 * * * *" }, async () => {
-    const dtunix = parseInt(Math.floor(Date.now() / 1000 / 60 / 5) * 60 * 5); // in 5 minutes
+  // every 3 minutes
+  const updateCensusSchedule = schedule.scheduleJob({ start: startTime, rule: "*/3 * * * *" }, async () => {
+    const dtunix = parseInt(Math.floor(Date.now() / 1000 / 60 / 3) * 60 * 3); // in 3 minutes
     console.log(`🔄 scheduled updating census at unix time ${dtunix}`);
     console.time(`update census at ${dtunix}`);
 
