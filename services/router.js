@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-25 00:16:56
+ * @Last Modified time: 2021-01-25 17:45:45
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -119,6 +119,8 @@ const {
 } = require("../db_apis/critical-contingency/get-critical-contingency");
 
 const { getPersonXrayImageList, getXrayJpg, getXrayDcm } = require("../db_apis/xray/get-xray");
+const { getPatientInfoForXray } = require("../db_apis/xray/get-patient-info-for-xray");
+
 
 // -- cache
 const { getRssCache } = require("../db_apis/cache/get-rss-cache");
@@ -4008,6 +4010,44 @@ router.get("/xray-image/jpg/:id", async (req, res) => {
     ret = require("../db_apis/xray/base64-example").REACT_BASE64;
   }
   res.send(ret);
+});
+
+
+/**
+ * @api {post} /xray/patient Xray Patient Info
+ * @apiVersion 0.0.1
+ * @apiName get-xray-patient
+ * @apiGroup ND-Project
+ * @apiDescription Xray image jpg by id
+ * @apiParam {String} mrn Patient MRN.
+ * @apiParam {Array} xray_ts_array Array of Xray timestamp
+ * @apiParamExample {json} Example of request xray patient data
+        {
+          "mrn": "11111111",
+          "xray_ts_array": [15000000,15100000]
+        }
+ * @apiSuccessExample Success-Response:
+ *      {
+          birthTimestamp: patientInfo.BIRTH_UNIX_TS,
+          deceasedTimestamp: patientInfo.DECEASED_UNIX_TS,
+          sex: patientInfo.SEX,
+          rssForXray,
+        }
+ *
+ */
+
+router.post("/xray/patient", async (req, res) => {
+  const query = req.body;
+  try {
+    const toSend = await getPatientInfoForXray(query);
+    res.send(toSend);
+    return;
+  } catch (e) {
+    console.log(new Date());
+    console.log(e);
+    res.status(400);
+    res.send(e.toString());
+  }
 });
 
 
