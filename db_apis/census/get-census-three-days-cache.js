@@ -2,12 +2,13 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-17 18:06:49
+ * @Last Modified time: 2021-01-25 21:08:59
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
 const moment = require("moment");
 const database = require("../../services/database");
+const { getPersonFromPersonId } = require("../person/get-person-info");
 
 // Variable	Day before yesterday	Yesterday	Today
 
@@ -17,6 +18,8 @@ const database = require("../../services/database");
 // ECMO_VAD	last entry in window	Last entry in window	Last entry in window
 //   Drug_infusions	last entry in window	Last entry in window	Last entry in window
 //   Drug_intermittent and counts	sum for window	sum for window	sum for window
+
+// each day start: Xray starts from midnight, others start from 7AM
 
 const GET_3DAYS_LINES_SQL = `
 SELECT 
@@ -76,6 +79,7 @@ const GET_3DAYS_RSS_SQL = (ereyesterday_start) => `
 SELECT  
   RST,
   RSS,
+  INO_DOSE,
   EVENT_END_DT_TM_UNIX
 FROM RSS_UPDATED
 WHERE PERSON_ID = :person_id
@@ -83,11 +87,41 @@ WHERE PERSON_ID = :person_id
 ORDER BY EVENT_END_DT_TM_UNIX
 `;
 
+const GET_2DAYS_XRAY_SQL = (date_string) => `
+SELECT
+  ID,
+  ACCESSION_NUMBER,
+  FILE_JPG,
+  FILE_NAME,
+  MRN,
+  STUDY_DATE,
+  STUDY_DESCRIPTION,
+  STUDY_ID,
+  STUDY_TIME
+FROM API_CACHE_XRAY 
+WHERE MRN = :mrn
+AND STUDY_DATE >= ${date_string}
+`;
+
 const getCensus3DaysCache = async (person_id) => {
   const today_start =
     moment().hour() >= 7 ? moment().hour(7).unix() : moment().hour(7).unix() - 24 * 60 * 60;
   const yesterday_start = today_start - 24 * 60 * 60;
   const ereyesterday_start = yesterday_start - 24 * 60 * 60;
+
+  const today_month_string =
+    moment().month() + 1 < 10 ? "0" + (moment().month() + 1) : (moment().month() + 1).toString();
+  const xray_today_date =
+    moment().year().toString() + today_month_string + moment().date().toString();
+
+  const xray_yesterday = moment().subtract(1, "days");
+  const yesterday_month_string =
+    xray_yesterday.month() + 1 < 10
+      ? "0" + (xray_yesterday.month() + 1)
+      : (xray_yesterday.month() + 1).toString();
+
+  const xray_yesterday_date =
+    xray_yesterday.year().toString() + yesterday_month_string + xray_yesterday.date().toString();
 
   const getLines3Days = database.withConnection(
     async (conn, person_id) =>
@@ -115,6 +149,41 @@ const getCensus3DaysCache = async (person_id) => {
         .execute(GET_3DAYS_RSS_SQL(ereyesterday_start), { person_id })
         .then((res) => res.rows)
   );
+
+  const getXray2Days = database.withConnection(
+    async (conn, mrn) =>
+      await conn.execute(GET_2DAYS_XRAY_SQL(xray_yesterday_date), { mrn }).then((res) => res.rows)
+  );
+
+  //xray
+  const personInfo = await getPersonFromPersonId({person_id});
+  console.log('personInfo :>> ', personInfo);
+  const mrns = personInfo.MRNS;
+  if (!mrns.length) {
+    console.warn("error personInfo :>> ", personInfo);
+    return null;
+  }
+  const mrn = mrns[0].MRN;
+  const getXray = await getXray2Days(mrn);
+  const getXrayToday = getXray.filter(item => item.STUDY_DATE.toString() === xray_today_date).map(item => ({
+    id: item.ID,
+    accession_number: item.ACCESSION_NUMBER,
+    mrn: item.MRN,
+    study_description: item.STUDY_DESCRIPTION,
+    study_id: item.STUDY_ID,
+    study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),  
+    jpg: item.FILE_JPG.toString('base64'),
+  }));
+  const getXrayYesterday = getXray.filter(item => item.STUDY_DATE.toString() === xray_yesterday_date).map(item => ({
+    id: item.ID,
+    accession_number: item.ACCESSION_NUMBER,
+    mrn: item.MRN,
+    study_description: item.STUDY_DESCRIPTION,
+    study_id: item.STUDY_ID,
+    study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),  
+    jpg: item.FILE_JPG.toString('base64'),
+  }));
+
 
   // fluid in out
   const resolution = 24 * 60 * 60; // 1 day
@@ -234,6 +303,11 @@ const getCensus3DaysCache = async (person_id) => {
     }
   }
 
+  const xray = {
+    today: getXrayToday,
+    yesterday: getXrayYesterday,
+  }
+
   const fluid = {
     today: getFluidToday,
     yesterday: getFluidYesterday,
@@ -261,6 +335,7 @@ const getCensus3DaysCache = async (person_id) => {
   const rss = await getRSS3Days(person_id);
 
   return {
+    xray,
     fluid,
     lines,
     infusions,

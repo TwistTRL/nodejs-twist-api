@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-25 17:45:45
+ * @Last Modified time: 2021-01-25 21:20:24
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -416,16 +416,43 @@ router.get("/census-team/:person_id", async (req, res) => {
  * @api {get} /census-days-cache/:person_id Census 3 days cache
  * @apiVersion 0.0.1
  * @apiName get-census-days-cache
+ * @apiDescription xray 2 days, start from midnight
+ others 3 days, start from 7AM
  * @apiGroup Census
  * @apiParam {Number} person_id Patient ID.
  * @apiSuccessExample Success-Response:
  *  {
-      fluid: {},
+ *    "xray": {
+            "today": [
+                {
+                    "id": "111111_222222_33333",
+                    "accession_number": "222222",
+                    "mrn": "111111",
+                    "study_description": "XR-Chest 1 View",
+                    "study_id": "234334",
+                    "study_timestamp": 1611595866,
+                    "jpg": "/9j/4AAQS..."
+                }
+            ],
+            "yesterday": []
+      },
+      fluid: {
+        "today": [
+          {
+            "1611576554": [
+              {
+                //...In-Out Tooltip V2
+              }
+            ]
+          }
+        ],
+        // ... "yesterday", "ereyesterday"
+      },
       lines: {},
       infusions: {},
       intermittent: {},
-      ecmo: [],
-      rss: [],
+      ecmo: [],// start from ereyesterday 7AM
+      rss: [], // start from ereyesterday 7AM
     }
  */
 
