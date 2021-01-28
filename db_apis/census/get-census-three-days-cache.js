@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-25 21:08:59
+ * @Last Modified time: 2021-01-28 11:30:07
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -20,6 +20,8 @@ const { getPersonFromPersonId } = require("../person/get-person-info");
 //   Drug_intermittent and counts	sum for window	sum for window	sum for window
 
 // each day start: Xray starts from midnight, others start from 7AM
+
+// TODO: Cache tables for this API
 
 const GET_3DAYS_LINES_SQL = `
 SELECT 
@@ -91,7 +93,7 @@ const GET_2DAYS_XRAY_SQL = (date_string) => `
 SELECT
   ID,
   ACCESSION_NUMBER,
-  FILE_JPG,
+  FILE_THUMBNAILES,
   FILE_NAME,
   MRN,
   STUDY_DATE,
@@ -102,6 +104,7 @@ FROM API_CACHE_XRAY
 WHERE MRN = :mrn
 AND STUDY_DATE >= ${date_string}
 `;
+
 
 const getCensus3DaysCache = async (person_id) => {
   const today_start =
@@ -172,7 +175,7 @@ const getCensus3DaysCache = async (person_id) => {
     study_description: item.STUDY_DESCRIPTION,
     study_id: item.STUDY_ID,
     study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),  
-    jpg: item.FILE_JPG.toString('base64'),
+    thumbnailes: item.FILE_THUMBNAILES.toString('base64'),
   }));
   const getXrayYesterday = getXray.filter(item => item.STUDY_DATE.toString() === xray_yesterday_date).map(item => ({
     id: item.ID,
@@ -181,7 +184,7 @@ const getCensus3DaysCache = async (person_id) => {
     study_description: item.STUDY_DESCRIPTION,
     study_id: item.STUDY_ID,
     study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),  
-    jpg: item.FILE_JPG.toString('base64'),
+    thumbnailes: item.FILE_THUMBNAILES.toString('base64'),
   }));
 
 
