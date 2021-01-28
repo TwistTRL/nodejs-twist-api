@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-28 13:28:54
+ * @Last Modified time: 2021-01-28 13:32:34
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -175,7 +175,7 @@ const getCensus3DaysCache = async (person_id) => {
     study_description: item.STUDY_DESCRIPTION,
     study_id: item.STUDY_ID,
     study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),  
-    thumbnails: item.FILE_THUMBNAILS.toString('base64'),
+    thumbnails: item.FILE_THUMBNAILES.toString('base64'),
   }));
   const getXrayYesterday = getXray.filter(item => item.STUDY_DATE.toString() === xray_yesterday_date).map(item => ({
     id: item.ID,
@@ -184,7 +184,7 @@ const getCensus3DaysCache = async (person_id) => {
     study_description: item.STUDY_DESCRIPTION,
     study_id: item.STUDY_ID,
     study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),  
-    thumbnails: item.FILE_THUMBNAILS.toString('base64'),
+    thumbnails: item.FILE_THUMBNAILES.toString('base64'),
   }));
 
 
