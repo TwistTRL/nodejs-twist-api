@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-25 21:20:24
+ * @Last Modified time: 2021-01-28 13:29:43
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -431,7 +431,7 @@ router.get("/census-team/:person_id", async (req, res) => {
                     "study_description": "XR-Chest 1 View",
                     "study_id": "234334",
                     "study_timestamp": 1611595866,
-                    "jpg": "/9j/4AAQS..."
+                    "thumbnails": "/9j/4AAQS..."
                 }
             ],
             "yesterday": []
