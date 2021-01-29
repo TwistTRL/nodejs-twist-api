@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-05 13:17:07
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-22 21:08:09
+ * @Last Modified time: 2021-01-29 09:01:54
  */
 
 const moment = require("moment");
@@ -10,6 +10,7 @@ const moment = require("moment");
 const { getCensusData } = require("../../database_access/census/census");
 const { getDiagnosisDisplay } = require("../diagnosis_display/get-disease-display");
 const { getChiefComplaint } = require("./get-census-chief-complaint");
+const { getCensusInfusions } = require("./get-census-infusion");
 
 // will replace it by mapping
 const getAssignType = (assignType) => {
@@ -112,7 +113,7 @@ const TEAM_DICT = {
   "Team C": "C",
 };
 
-const getSingelPatientInfo = async (element, chiefComplaintDict) => ({
+const getSingelPatientInfo = async (element, chiefComplaintDict, censusInfusionsDict) => ({
   PERSON_ID: element.PERSON_ID,
   MRN: element.MRN,
   FIRST_NAME: element.PATIENT_FIRST_NAME,
@@ -148,6 +149,7 @@ const getSingelPatientInfo = async (element, chiefComplaintDict) => ({
   ECMO_UNIX: element.ECMO_UNIX,
   TEAM: getTeam(element.TEAM),
   CHIEF_COMPLAINT: chiefComplaintDict[element.PERSON_ID] ? chiefComplaintDict[element.PERSON_ID].RESULT_VAL : null,
+  INFUSIONS: censusInfusionsDict[element.MRN],
 });
 
 async function getAdtCensus(timestamp) {
@@ -157,6 +159,18 @@ async function getAdtCensus(timestamp) {
   }
   const censusData = await getCensusData({ timestamp });
   const chiefComplaintDict = await getChiefComplaint({timestamp});
+
+  const cutoff_timestamp = timestamp - 8 * 60 * 60;
+  const censusInfusionsData = await getCensusInfusions({ timestamp, cutoff_timestamp });
+  const censusInfusionsDict = {};
+
+  censusInfusionsData.forEach(element => {
+    if (!(element.MRN in censusInfusionsDict) || element.END_UNIX > censusInfusionsDict[element.MRN].END_UNIX) {
+      censusInfusionsDict[element.MRN] = element;
+    }    
+  });
+  // console.log('censusInfusionsDict :>> ', censusInfusionsDict);
+
   // console.log('chiefComplaintDict :>> ', chiefComplaintDict);
 
   let patientDict = {};
@@ -174,7 +188,7 @@ async function getAdtCensus(timestamp) {
         patientDict[element.MRN]["PERSONNEL"].push(personnelInfo);
       }
     } else {
-      patientDict[element.MRN] = await getSingelPatientInfo(element, chiefComplaintDict);
+      patientDict[element.MRN] = await getSingelPatientInfo(element, chiefComplaintDict, censusInfusionsDict);
       if (element.PERSONNEL_NAME) {
         patientDict[element.MRN]["PERSONNEL"] = [personnelInfo];
       } else {
