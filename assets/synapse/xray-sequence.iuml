@@ -1,0 +1,49 @@
+@startuml sequence
+title XRAY IMAGES FLOW
+
+database "Hospital DB" as HD
+participant "Horos" as Horos #LightSkyBlue
+participant "SYNAPSE Server" as SS #LightSkyBlue
+database "SYNAPSE Redis" as SRedis #LightSkyBlue
+participant "TRLDSC2" as TR #LightGreen
+database "TRLDSC2 Redis" as TRedis #LightGreen
+database "DWTST" as DWTST #fbe9e7
+
+== Data from Hospital to SYNAPSE ==
+
+HD -> Horos : every 1 minutes
+...
+== SYNAPSE parse dicom ==
+
+Horos -> SS : every 17 minutes
+activate SS
+SS -> SS : parse dicom
+
+SS -> SRedis : set redis
+deactivate SS
+
+SRedis -> SS
+
+== Post to TRLDSC2 ==
+SS -> TR : check connection
+TR -> SS : ack connection
+
+SS -> TR : POST map of dicom files id
+TR -> SS : GET dicom file by id
+SS -> TR : dicom files
+
+activate TR
+
+TR -> TR : convert to jpg
+TR -> TRedis : set redis
+deactivate TR
+TRedis -> TR
+
+TR -> DWTST : upload to database
+activate TR
+DWTST -> TR
+deactivate TR
+TR -> SS : Post done
+
+
+@enduml
