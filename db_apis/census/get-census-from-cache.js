@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-23 12:32:31
+ * @Last Modified time: 2021-02-01 10:09:39
  */
 
 const { getCensusCacheData } = require("../cache/get-census-cache");
@@ -133,6 +133,15 @@ const getCacheCensus = async (ts) => {
               ]
             : [],
         XRAY_THUMBNAILES,
+        INFUSIONS: element.DRUG
+          ? {
+              DRUG: element.DRUG,
+              END_UNIX: element.INFUSIONS_END_UNIX,
+              INFUSION_RATE: element.INFUSION_RATE,
+              INFUSION_RATE_UNITS: element.INFUSION_RATE_UNITS,
+              RXCUI: element.RXCUI,
+            }
+          : null,
       };
     }
   });
