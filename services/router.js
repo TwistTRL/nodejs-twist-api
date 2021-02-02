@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-28 13:29:43
+ * @Last Modified time: 2021-02-01 22:00:07
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -309,18 +309,36 @@ router.get("/phenotyping/step2/:mrn", async (req, res) => {
 
         // chief complaint
         "CHIEF_COMPLAINT": "bleeding from fistula- fistulogram",
+        
+        // latest drug infusions in most recent 8 hours 
+        "INFUSIONS": [
+          {
+            "DRUG": "milrinone",
+            "END_UNIX": 1612192112,
+            "INFUSION_RATE": 0.5,
+            "INFUSION_RATE_UNITS": "mcg/kg/min",
+            "RXCUI": 52769
+          },
+          {
+            "DRUG": "EPINEPHrine",
+            "END_UNIX": 1612192110,
+            "INFUSION_RATE": 0.02,
+            "INFUSION_RATE_UNITS": "mcg/kg/min",
+            "RXCUI": 3992
+          },
+        ]
 
         // personnel for patient at this timestamp
         "PERSONNEL": [
           {
-                "NAME_FULL_FORMATTED": "Last_name, First_name",
-                "CONTACT_NUM": "222222",
-                // original assign type
-                "ASSIGN_TYPE": "COVERINGATTENDING",
-                "TEAM_ASSIGN_TYPE": "ATTEND",
-                "START_UNIX": 1607644800,
-                "END_UNIX": 1607688000
-            },
+            "NAME_FULL_FORMATTED": "Last_name, First_name",
+            "CONTACT_NUM": "222222",
+            // original assign type
+            "ASSIGN_TYPE": "COVERINGATTENDING",
+            "TEAM_ASSIGN_TYPE": "ATTEND",
+            "START_UNIX": 1607644800,
+            "END_UNIX": 1607688000
+          },
         ],
 
         // one latest xray thumbnailes
@@ -335,6 +353,7 @@ router.get("/phenotyping/step2/:mrn", async (req, res) => {
             "STUDY_TIMESTAMP": 1610960011, 
             "FILE_THUMBNAILES": "/9j/4AAQSkZJR..." //base64
         }
+
       },
   ]
  */

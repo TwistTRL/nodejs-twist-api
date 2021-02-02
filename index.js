@@ -59,6 +59,8 @@ async function startup() {
   if (process.env.NODE_ENV === "production") {
     initializeCensus();
   }
+  // initializeCensus();
+
 }
 
 const initializeCensus = async () => {

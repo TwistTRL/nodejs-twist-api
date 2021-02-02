@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-28 13:32:34
+ * @Last Modified time: 2021-02-01 22:25:18
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -40,19 +40,29 @@ WHERE PERSON_ID = :person_id
 AND INSERT_DTM >= SYSDATE - 72 / 24
 ORDER BY INSERT_DTM DESC`;
 
-const GET_3DAYS_DRUG_INFUSIONS_SQL = `
-SELECT 
-  START_UNIX,
-  END_UNIX,
-  DRUG,
-  RXCUI,
-  INFUSION_RATE,
-  INFUSION_RATE_UNITS,
-  DOSING_WEIGHT
+// const GET_3DAYS_DRUG_INFUSIONS_SQL = `
+// SELECT 
+//   START_UNIX,
+//   END_UNIX,
+//   DRUG,
+//   RXCUI,
+//   INFUSION_RATE,
+//   INFUSION_RATE_UNITS,
+//   DOSING_WEIGHT
+// FROM DRUG_INFUSIONS
+// WHERE PERSON_ID = :person_id
+// AND START_UTC >= SYSDATE - 72 / 24
+// ORDER BY START_UNIX DESC`;
+
+const GET_INFUSIONS_DURING_TIME_SQL =`
+SELECT
+  DRUG, END_UNIX, INFUSION_RATE, INFUSION_RATE_UNITS, RXCUI, DOSING_WEIGHT 
 FROM DRUG_INFUSIONS
 WHERE PERSON_ID = :person_id
-AND START_UTC >= SYSDATE - 72 / 24
-ORDER BY START_UNIX DESC`;
+  AND END_UNIX >= :lower_timestamp
+  AND END_UNIX < :upper_timestamp
+ORDER BY END_UNIX DESC
+`;
 
 const GET_3DAYS_DRUG_INTERMITTENT_SQL = `
 SELECT 
@@ -127,13 +137,19 @@ const getCensus3DaysCache = async (person_id) => {
     xray_yesterday.year().toString() + yesterday_month_string + xray_yesterday.date().toString();
 
   const getLines3Days = database.withConnection(
-    async (conn, person_id) =>
-      await conn.execute(GET_3DAYS_LINES_SQL, { person_id }).then((res) => res.rows)
+    async (conn, person_id) => {
+      await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
+      return await conn.execute(GET_3DAYS_LINES_SQL, { person_id }).then((res) => res.rows);
+    }
   );
-  const getInfusions3Days = database.withConnection(
-    async (conn, person_id) =>
-      await conn.execute(GET_3DAYS_DRUG_INFUSIONS_SQL, { person_id }).then((res) => res.rows)
-  );
+  // const getInfusions3Days = database.withConnection(
+  //   async (conn, person_id) =>
+  //     await conn.execute(GET_3DAYS_DRUG_INFUSIONS_SQL, { person_id }).then((res) => res.rows)
+  // );
+  const getLatestInfusionsDuringTime = database.withConnection(
+    async (conn, { person_id, lower_timestamp, upper_timestamp }) =>
+      await conn.execute(GET_INFUSIONS_DURING_TIME_SQL, { person_id, lower_timestamp, upper_timestamp }).then((res) => res.rows)
+  );  
   const getIntermittent3Days = database.withConnection(
     async (conn, person_id) =>
       await conn.execute(GET_3DAYS_DRUG_INTERMITTENT_SQL, { person_id }).then((res) => res.rows)
@@ -158,7 +174,7 @@ const getCensus3DaysCache = async (person_id) => {
       await conn.execute(GET_2DAYS_XRAY_SQL(xray_yesterday_date), { mrn }).then((res) => res.rows)
   );
 
-  //xray
+  // ------ xray
   const personInfo = await getPersonFromPersonId({person_id});
   console.log('personInfo :>> ', personInfo);
   const mrns = personInfo.MRNS;
@@ -188,7 +204,7 @@ const getCensus3DaysCache = async (person_id) => {
   }));
 
 
-  // fluid in out
+  // ------ fluid in out
   const resolution = 24 * 60 * 60; // 1 day
   const fluidTodayInput = {
     person_id,
@@ -213,7 +229,7 @@ const getCensus3DaysCache = async (person_id) => {
   const getFluidYesterday = await getInOutTooltipQueryV2(fluidYesterdayInput);
   const getFluidEreyesterday = await getInOutTooltipQueryV2(fluidEreyesterdayInput);
 
-  // lines
+  // ------ lines
   const linesData = await getLines3Days(person_id);
   let getLinesToday;
   let getLinesYesterday;
@@ -244,38 +260,27 @@ const getCensus3DaysCache = async (person_id) => {
     }
   }
 
-  // infusions
-  const infusionsData = await getInfusions3Days(person_id);
-  let getInfusionsToday;
-  let getInfusionsYesterday;
-  let getInfusionsEreyesterday;
-
-  for (const row of infusionsData) {
-    const rowUnixTime = row.START_UNIX;
-    if (rowUnixTime < ereyesterday_start) {
-      break;
-    }
-    if (!getInfusionsToday) {
-      if (rowUnixTime >= today_start) {
-        getInfusionsToday = row;
-        continue;
+  // ------ infusions
+  const getInfusionsLatestRecordEachDrug = (arr) => {
+    if (!arr || !arr.length) {
+      return [];
+    }    
+    const drugDict = {};
+    arr.forEach(item => {
+      if (!(item.RXCUI in drugDict)) {
+        drugDict[item.RXCUI] = item;
+      } else if (item.END_UNIX > drugDict[item.RXCUI].END_UNIX) {
+        drugDict[item.RXCUI] = item;
       }
-    }
-    if (!getInfusionsYesterday) {
-      if (rowUnixTime >= yesterday_start && rowUnixTime < today_start) {
-        getInfusionsYesterday = row;
-        continue;
-      }
-    }
-    if (!getInfusionsEreyesterday) {
-      if (rowUnixTime >= ereyesterday_start && rowUnixTime < yesterday_start) {
-        getInfusionsEreyesterday = row;
-        continue;
-      }
-    }
+    }); 
+    return Object.values(drugDict);
   }
 
-  // intermittent
+  const getInfusionsToday = getInfusionsLatestRecordEachDrug(await getLatestInfusionsDuringTime({ person_id, upper_timestamp: moment().unix(), lower_timestamp: today_start }));
+  const getInfusionsYesterday = getInfusionsLatestRecordEachDrug(await getLatestInfusionsDuringTime({ person_id, upper_timestamp: today_start, lower_timestamp: yesterday_start }));
+  const getInfusionsEreyesterday = getInfusionsLatestRecordEachDrug(await getLatestInfusionsDuringTime({ person_id, upper_timestamp: yesterday_start, lower_timestamp: ereyesterday_start }));
+
+  // ------ intermittent
   const intermittentData = await getIntermittent3Days(person_id);
   let getIntermittentToday;
   let getIntermittentYesterday;

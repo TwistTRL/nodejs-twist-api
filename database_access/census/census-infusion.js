@@ -2,7 +2,7 @@
  * @Author: Peng Zeng 
  * @Date: 2020-12-10 18:52:12 
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-28 22:09:19
+ * @Last Modified time: 2021-02-01 19:28:43
  */
 
 
@@ -14,9 +14,9 @@ const database = require("../../services/database");
 
 
 // see db_relations/drug-category-relations
-const SQL_GET_INFUSIONS_8HOURS =`
+const SQL_GET_INFUSIONS =`
 SELECT
-  MRN, DRUG, DRUG_INFUSIONS.END_UNIX, INFUSION_RATE, INFUSION_RATE_UNITS, RXCUI 
+  PERSON_ID, DRUG, DRUG_INFUSIONS.END_UNIX, INFUSION_RATE, INFUSION_RATE_UNITS, RXCUI 
 FROM ADT
 JOIN PERSON USING (PERSON_ID)
 JOIN SEX_CODE USING (SEX_CD)
@@ -26,12 +26,12 @@ WHERE :timestamp BETWEEN ADT.START_UNIX AND ADT.END_UNIX
   AND (DECEASED_UNIX_TS IS NULL OR :timestamp BETWEEN BIRTH_UNIX_TS AND DECEASED_UNIX_TS)
   AND NURSE_UNIT_DISP != 'Emergency Department'
   AND DRUG_INFUSIONS.END_UNIX > :cutoff_timestamp
-ORDER BY PERSON_ID, DRUG_INFUSIONS.END_UNIX DESC
+-- ORDER BY PERSON_ID, DRUG_INFUSIONS.END_UNIX DESC
 `;
 
 
 async function getInfusionsSqlExecutor(conn, binds) {
-  const result = await conn.execute(SQL_GET_INFUSIONS_8HOURS, binds).then(ret => ret.rows);
+  const result = await conn.execute(SQL_GET_INFUSIONS, binds).then(ret => ret.rows);
   return result;
 }
 

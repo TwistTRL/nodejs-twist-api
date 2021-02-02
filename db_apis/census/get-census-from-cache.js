@@ -2,17 +2,32 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-01 10:09:39
+ * @Last Modified time: 2021-02-01 21:50:25
  */
 
 const { getCensusCacheData } = require("../cache/get-census-cache");
 const { getAdtCensusXray } = require("../xray/get-xray-for-census");
+const { getAdtCensusInfusionsCache } = require("../cache/get-infusions-for-census-cache");
+
 const moment = require("moment");
+
+const getInfusions = (infusionRecord) =>
+  infusionRecord
+    ? infusionRecord.map((item) => ({
+        DRUG: item.DRUG,
+        END_UNIX: item.END_UNIX,
+        INFUSION_RATE: item.INFUSION_RATE,
+        INFUSION_RATE_UNITS: item.INFUSION_RATE_UNITS,
+        RXCUI: item.RXCUI,
+      }))
+    : [];
 
 const getCacheCensus = async (ts) => {
   const patient_dict = {};
   const censusData = await getCensusCacheData();
   const xrayDict = await getAdtCensusXray(Math.floor(Date.now() / 1000));
+  const personWithInfusionsDict = await getAdtCensusInfusionsCache();
+  // console.log('personWithInfusionsDict :>> ', personWithInfusionsDict);
   // console.log('censusData :>> ', censusData);
   // console.log('xrayDict :>> ', xrayDict);
   censusData.forEach((element) => {
@@ -119,6 +134,7 @@ const getCacheCensus = async (ts) => {
         ECMO_UNIX: element.ECMO_UNIX,
         TEAM: element.TEAM,
         CHIEF_COMPLAINT: element.CHIEF_COMPLAINT,
+        INFUSIONS: getInfusions(personWithInfusionsDict[element.PERSON_ID]),
         PERSONNEL:
           element.NAME_FULL_FORMATTED && element.NAME_FULL_FORMATTED !== "None"
             ? [
@@ -133,15 +149,6 @@ const getCacheCensus = async (ts) => {
               ]
             : [],
         XRAY_THUMBNAILES,
-        INFUSIONS: element.DRUG
-          ? {
-              DRUG: element.DRUG,
-              END_UNIX: element.INFUSIONS_END_UNIX,
-              INFUSION_RATE: element.INFUSION_RATE,
-              INFUSION_RATE_UNITS: element.INFUSION_RATE_UNITS,
-              RXCUI: element.RXCUI,
-            }
-          : null,
       };
     }
   });

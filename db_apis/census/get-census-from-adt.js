@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-05 13:17:07
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-29 09:01:54
+ * @Last Modified time: 2021-02-01 21:27:48
  */
 
 const moment = require("moment");
@@ -102,7 +102,7 @@ const getTeam = (team) => {
     return team.split(" ")[1];
   }
   return team;
-}
+};
 
 const TEAM_DICT = {
   "Team 3": "3",
@@ -112,6 +112,17 @@ const TEAM_DICT = {
   "Team 2": "2",
   "Team C": "C",
 };
+
+const getInfusions = (infusionRecord) =>
+  infusionRecord
+    ? infusionRecord.map((item) => ({
+        DRUG: item.DRUG,
+        END_UNIX: item.END_UNIX,
+        INFUSION_RATE: item.INFUSION_RATE,
+        INFUSION_RATE_UNITS: item.INFUSION_RATE_UNITS,
+        RXCUI: item.RXCUI,
+      }))
+    : [];
 
 const getSingelPatientInfo = async (element, chiefComplaintDict, censusInfusionsDict) => ({
   PERSON_ID: element.PERSON_ID,
@@ -148,8 +159,10 @@ const getSingelPatientInfo = async (element, chiefComplaintDict, censusInfusions
   ECMO_VAD_SCORE: element.ECMO_VAD_SCORE,
   ECMO_UNIX: element.ECMO_UNIX,
   TEAM: getTeam(element.TEAM),
-  CHIEF_COMPLAINT: chiefComplaintDict[element.PERSON_ID] ? chiefComplaintDict[element.PERSON_ID].RESULT_VAL : null,
-  INFUSIONS: censusInfusionsDict[element.MRN],
+  CHIEF_COMPLAINT: chiefComplaintDict[element.PERSON_ID]
+    ? chiefComplaintDict[element.PERSON_ID].RESULT_VAL
+    : null,
+  INFUSIONS: getInfusions(censusInfusionsDict[element.PERSON_ID]),
 });
 
 async function getAdtCensus(timestamp) {
@@ -158,18 +171,32 @@ async function getAdtCensus(timestamp) {
     timestamp = Math.floor(Date.now() / 1000);
   }
   const censusData = await getCensusData({ timestamp });
-  const chiefComplaintDict = await getChiefComplaint({timestamp});
+  const chiefComplaintDict = await getChiefComplaint({ timestamp });
 
   const cutoff_timestamp = timestamp - 8 * 60 * 60;
   const censusInfusionsData = await getCensusInfusions({ timestamp, cutoff_timestamp });
-  const censusInfusionsDict = {};
+  const infusionsDict = {};
 
-  censusInfusionsData.forEach(element => {
-    if (!(element.MRN in censusInfusionsDict) || element.END_UNIX > censusInfusionsDict[element.MRN].END_UNIX) {
-      censusInfusionsDict[element.MRN] = element;
-    }    
+  censusInfusionsData.forEach((element) => {
+    if (!(element.PERSON_ID in infusionsDict)) {
+      infusionsDict[element.PERSON_ID] = {};
+      infusionsDict[element.PERSON_ID][element.RXCUI] = element;
+    } else {
+      if (!(element.RXCUI in infusionsDict[element.PERSON_ID])) {
+        infusionsDict[element.PERSON_ID][element.RXCUI] = element;
+      } else {
+        if (element.END_UNIX > infusionsDict[element.PERSON_ID][element.RXCUI].END_UNIX) {
+          infusionsDict[element.PERSON_ID][element.RXCUI] = element;
+        }
+      }
+    }
   });
-  // console.log('censusInfusionsDict :>> ', censusInfusionsDict);
+
+  const censusInfusionsDict = {};
+  for (const person_id in infusionsDict) {
+    censusInfusionsDict[person_id] = Object.values(infusionsDict[person_id]);
+  }
+  // console.log('infusionsDict :>> ', infusionsDict);
 
   // console.log('chiefComplaintDict :>> ', chiefComplaintDict);
 
@@ -188,7 +215,11 @@ async function getAdtCensus(timestamp) {
         patientDict[element.MRN]["PERSONNEL"].push(personnelInfo);
       }
     } else {
-      patientDict[element.MRN] = await getSingelPatientInfo(element, chiefComplaintDict, censusInfusionsDict);
+      patientDict[element.MRN] = await getSingelPatientInfo(
+        element,
+        chiefComplaintDict,
+        censusInfusionsDict
+      );
       if (element.PERSONNEL_NAME) {
         patientDict[element.MRN]["PERSONNEL"] = [personnelInfo];
       } else {
