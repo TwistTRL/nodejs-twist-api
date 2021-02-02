@@ -2,13 +2,14 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-01 22:25:18
+ * @Last Modified time: 2021-02-02 14:47:28
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
 const moment = require("moment");
 const database = require("../../services/database");
 const { getPersonFromPersonId } = require("../person/get-person-info");
+const { getWeight } = require("../get-weight");
 
 // Variable	Day before yesterday	Yesterday	Today
 
@@ -41,7 +42,7 @@ AND INSERT_DTM >= SYSDATE - 72 / 24
 ORDER BY INSERT_DTM DESC`;
 
 // const GET_3DAYS_DRUG_INFUSIONS_SQL = `
-// SELECT 
+// SELECT
 //   START_UNIX,
 //   END_UNIX,
 //   DRUG,
@@ -54,7 +55,7 @@ ORDER BY INSERT_DTM DESC`;
 // AND START_UTC >= SYSDATE - 72 / 24
 // ORDER BY START_UNIX DESC`;
 
-const GET_INFUSIONS_DURING_TIME_SQL =`
+const GET_INFUSIONS_DURING_TIME_SQL = `
 SELECT
   DRUG, END_UNIX, INFUSION_RATE, INFUSION_RATE_UNITS, RXCUI, DOSING_WEIGHT 
 FROM DRUG_INFUSIONS
@@ -115,7 +116,6 @@ WHERE MRN = :mrn
 AND STUDY_DATE >= ${date_string}
 `;
 
-
 const getCensus3DaysCache = async (person_id) => {
   const today_start =
     moment().hour() >= 7 ? moment().hour(7).unix() : moment().hour(7).unix() - 24 * 60 * 60;
@@ -124,8 +124,9 @@ const getCensus3DaysCache = async (person_id) => {
 
   const today_month_string =
     moment().month() + 1 < 10 ? "0" + (moment().month() + 1) : (moment().month() + 1).toString();
-  const xray_today_date =
-    moment().year().toString() + today_month_string + moment().date().toString();
+  const today_date_string =
+    moment().date() < 10 ? "0" + moment().date() : moment().date().toString();
+  const xray_today_date = moment().year().toString() + today_month_string + today_date_string;
 
   const xray_yesterday = moment().subtract(1, "days");
   const yesterday_month_string =
@@ -136,20 +137,20 @@ const getCensus3DaysCache = async (person_id) => {
   const xray_yesterday_date =
     xray_yesterday.year().toString() + yesterday_month_string + xray_yesterday.date().toString();
 
-  const getLines3Days = database.withConnection(
-    async (conn, person_id) => {
-      await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
-      return await conn.execute(GET_3DAYS_LINES_SQL, { person_id }).then((res) => res.rows);
-    }
-  );
+  const getLines3Days = database.withConnection(async (conn, person_id) => {
+    await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
+    return await conn.execute(GET_3DAYS_LINES_SQL, { person_id }).then((res) => res.rows);
+  });
   // const getInfusions3Days = database.withConnection(
   //   async (conn, person_id) =>
   //     await conn.execute(GET_3DAYS_DRUG_INFUSIONS_SQL, { person_id }).then((res) => res.rows)
   // );
   const getLatestInfusionsDuringTime = database.withConnection(
     async (conn, { person_id, lower_timestamp, upper_timestamp }) =>
-      await conn.execute(GET_INFUSIONS_DURING_TIME_SQL, { person_id, lower_timestamp, upper_timestamp }).then((res) => res.rows)
-  );  
+      await conn
+        .execute(GET_INFUSIONS_DURING_TIME_SQL, { person_id, lower_timestamp, upper_timestamp })
+        .then((res) => res.rows)
+  );
   const getIntermittent3Days = database.withConnection(
     async (conn, person_id) =>
       await conn.execute(GET_3DAYS_DRUG_INTERMITTENT_SQL, { person_id }).then((res) => res.rows)
@@ -174,9 +175,39 @@ const getCensus3DaysCache = async (person_id) => {
       await conn.execute(GET_2DAYS_XRAY_SQL(xray_yesterday_date), { mrn }).then((res) => res.rows)
   );
 
+  // ------ weight
+  const weight = {
+    today: null,
+    yesterday: null,
+    ereyesterday: null,
+  };
+
+  const weightArr = await getWeight(person_id).then((arr) => arr.reverse());
+  if (weightArr.length) {
+    weight.today = weightArr[0].WEIGHT;
+    for (const curWeight of weightArr) {
+      if (!weight.yesterday) {
+        if (curWeight.DT_UNIX < yesterday_start) {
+          weight.yesterday = curWeight.WEIGHT;
+          if (curWeight.DT_UNIX < ereyesterday_start) {
+            weight.ereyesterday = curWeight.WEIGHT;
+            break;
+          }
+        }
+      } else if (!weight.ereyesterday) {
+        if (curWeight.DT_UNIX < ereyesterday_start) {
+          weight.ereyesterday = curWeight.WEIGHT;
+          break;
+        }
+      } else {
+        break;
+      }
+    }
+  }
+
   // ------ xray
-  const personInfo = await getPersonFromPersonId({person_id});
-  console.log('personInfo :>> ', personInfo);
+  const personInfo = await getPersonFromPersonId({ person_id });
+  console.log("personInfo :>> ", personInfo);
   const mrns = personInfo.MRNS;
   if (!mrns.length) {
     console.warn("error personInfo :>> ", personInfo);
@@ -184,25 +215,31 @@ const getCensus3DaysCache = async (person_id) => {
   }
   const mrn = mrns[0].MRN;
   const getXray = await getXray2Days(mrn);
-  const getXrayToday = getXray.filter(item => item.STUDY_DATE.toString() === xray_today_date).map(item => ({
-    id: item.ID,
-    accession_number: item.ACCESSION_NUMBER,
-    mrn: item.MRN,
-    study_description: item.STUDY_DESCRIPTION,
-    study_id: item.STUDY_ID,
-    study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),  
-    thumbnails: item.FILE_THUMBNAILES.toString('base64'),
-  }));
-  const getXrayYesterday = getXray.filter(item => item.STUDY_DATE.toString() === xray_yesterday_date).map(item => ({
-    id: item.ID,
-    accession_number: item.ACCESSION_NUMBER,
-    mrn: item.MRN,
-    study_description: item.STUDY_DESCRIPTION,
-    study_id: item.STUDY_ID,
-    study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),  
-    thumbnails: item.FILE_THUMBNAILES.toString('base64'),
-  }));
-
+  console.log("getXray :>> ", getXray);
+  console.log("xray_today_date :>> ", xray_today_date);
+  const getXrayToday = getXray
+    .filter((item) => item.STUDY_DATE.toString() === xray_today_date)
+    .map((item) => ({
+      id: item.ID,
+      accession_number: item.ACCESSION_NUMBER,
+      mrn: item.MRN,
+      study_description: item.STUDY_DESCRIPTION,
+      study_id: item.STUDY_ID,
+      study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),
+      thumbnails: item.FILE_THUMBNAILES.toString("base64"),
+    }));
+  console.log("getXrayToday :>> ", getXrayToday);
+  const getXrayYesterday = getXray
+    .filter((item) => item.STUDY_DATE.toString() === xray_yesterday_date)
+    .map((item) => ({
+      id: item.ID,
+      accession_number: item.ACCESSION_NUMBER,
+      mrn: item.MRN,
+      study_description: item.STUDY_DESCRIPTION,
+      study_id: item.STUDY_ID,
+      study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),
+      thumbnails: item.FILE_THUMBNAILES.toString("base64"),
+    }));
 
   // ------ fluid in out
   const resolution = 24 * 60 * 60; // 1 day
@@ -264,21 +301,39 @@ const getCensus3DaysCache = async (person_id) => {
   const getInfusionsLatestRecordEachDrug = (arr) => {
     if (!arr || !arr.length) {
       return [];
-    }    
+    }
     const drugDict = {};
-    arr.forEach(item => {
+    arr.forEach((item) => {
       if (!(item.RXCUI in drugDict)) {
         drugDict[item.RXCUI] = item;
       } else if (item.END_UNIX > drugDict[item.RXCUI].END_UNIX) {
         drugDict[item.RXCUI] = item;
       }
-    }); 
+    });
     return Object.values(drugDict);
-  }
+  };
 
-  const getInfusionsToday = getInfusionsLatestRecordEachDrug(await getLatestInfusionsDuringTime({ person_id, upper_timestamp: moment().unix(), lower_timestamp: today_start }));
-  const getInfusionsYesterday = getInfusionsLatestRecordEachDrug(await getLatestInfusionsDuringTime({ person_id, upper_timestamp: today_start, lower_timestamp: yesterday_start }));
-  const getInfusionsEreyesterday = getInfusionsLatestRecordEachDrug(await getLatestInfusionsDuringTime({ person_id, upper_timestamp: yesterday_start, lower_timestamp: ereyesterday_start }));
+  const getInfusionsToday = getInfusionsLatestRecordEachDrug(
+    await getLatestInfusionsDuringTime({
+      person_id,
+      upper_timestamp: moment().unix(),
+      lower_timestamp: today_start,
+    })
+  );
+  const getInfusionsYesterday = getInfusionsLatestRecordEachDrug(
+    await getLatestInfusionsDuringTime({
+      person_id,
+      upper_timestamp: today_start,
+      lower_timestamp: yesterday_start,
+    })
+  );
+  const getInfusionsEreyesterday = getInfusionsLatestRecordEachDrug(
+    await getLatestInfusionsDuringTime({
+      person_id,
+      upper_timestamp: yesterday_start,
+      lower_timestamp: ereyesterday_start,
+    })
+  );
 
   // ------ intermittent
   const intermittentData = await getIntermittent3Days(person_id);
@@ -314,7 +369,7 @@ const getCensus3DaysCache = async (person_id) => {
   const xray = {
     today: getXrayToday,
     yesterday: getXrayYesterday,
-  }
+  };
 
   const fluid = {
     today: getFluidToday,
@@ -343,6 +398,7 @@ const getCensus3DaysCache = async (person_id) => {
   const rss = await getRSS3Days(person_id);
 
   return {
+    weight,
     xray,
     fluid,
     lines,

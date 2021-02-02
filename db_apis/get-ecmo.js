@@ -1,18 +1,12 @@
 /*
  * @Author: Peng 
  * @Date: 2020-03-27 10:26:44 
- * @Last Modified by: Peng
- * @Last Modified time: 2020-03-27 18:01:22
+ * @Last Modified by: Peng Zeng
+ * @Last Modified time: 2021-02-02 10:37:55
  */
 
 const database = require("../services/database");
-const isValidJson = require("../utils/isJson");
-const InputInvalidError = require("../utils/errors").InputInvalidError;
-
-const PERSON_ID = "person_id";
-const FROM = "from";
-const TO = "to";
-var timeLable = 0;
+let timeLable = 0;
 
 const SQL_GET_ECMO = `
 SELECT
