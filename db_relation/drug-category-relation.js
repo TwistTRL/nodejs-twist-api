@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2019-12-27 12:54:04
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-26 06:52:02
+ * @Last Modified time: 2021-02-02 16:06:20
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -109,10 +109,15 @@ MEDICATION_CATEGORY_STRUCTURE.forEach(catObj => {
 
 // console.log('MEDICATION_CATEGORY_STRUCTURE :', MEDICATION_CATEGORY_STRUCTURE);
 
+// cat order: CV, FEN, COAG, PSN, then alphabetical
+const PRIOR_CAT_LIST = ["CV", "FEN", "COAG", "PSN"];
+const CAT_ORDER_LIST = [...PRIOR_CAT_LIST, ...CAT_LIST.filter(item => !PRIOR_CAT_LIST.includes(item))];
+
 const FLUID_SETTINGS = {
   RXCUI_LIST,
   DRUG_LIST,
   CAT_LIST,
+  CAT_ORDER_LIST,
   RXCUI_BY_CAT_ORDER_DICT,
   RXCUI_TO_CAT_DICT,
   DRUG_BY_CAT_ORDER_DICT,
@@ -136,6 +141,7 @@ module.exports = {
   RXCUI_LIST,
   DRUG_LIST,
   CAT_LIST,
+  CAT_ORDER_LIST,
   RXCUI_BY_CAT_ORDER_DICT,
   RXCUI_TO_CAT_DICT,
   DRUG_BY_CAT_ORDER_DICT,

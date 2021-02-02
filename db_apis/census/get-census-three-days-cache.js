@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-02 14:47:28
+ * @Last Modified time: 2021-02-02 16:31:43
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -10,6 +10,8 @@ const moment = require("moment");
 const database = require("../../services/database");
 const { getPersonFromPersonId } = require("../person/get-person-info");
 const { getWeight } = require("../get-weight");
+const {    RXCUI_BY_CAT_ORDER_DICT, CAT_ORDER_LIST,
+  RXCUI_TO_CAT_DICT} = require("../../db_relation/drug-category-relation");
 
 // Variable	Day before yesterday	Yesterday	Today
 
@@ -62,7 +64,7 @@ FROM DRUG_INFUSIONS
 WHERE PERSON_ID = :person_id
   AND END_UNIX >= :lower_timestamp
   AND END_UNIX < :upper_timestamp
-ORDER BY END_UNIX DESC
+-- ORDER BY END_UNIX DESC
 `;
 
 const GET_3DAYS_DRUG_INTERMITTENT_SQL = `
@@ -304,13 +306,51 @@ const getCensus3DaysCache = async (person_id) => {
     }
     const drugDict = {};
     arr.forEach((item) => {
+      const possibleCatArr = RXCUI_TO_CAT_DICT[item.RXCUI].sort((a,b) => CAT_ORDER_LIST.indexOf(a) - CAT_ORDER_LIST.indexOf(b));
+      if (!possibleCatArr || !possibleCatArr.length) {
+        console.warn('wrong catogery for :>> ', item);
+        return;
+      }
+
+      if (possibleCatArr.length > 1) {
+        console.log('this drug has two cats :>> ', item);
+      }
+      
+      const cat = possibleCatArr[0];
+
       if (!(item.RXCUI in drugDict)) {
-        drugDict[item.RXCUI] = item;
+        drugDict[item.RXCUI] = {CATEGORY: cat, ...item};
       } else if (item.END_UNIX > drugDict[item.RXCUI].END_UNIX) {
-        drugDict[item.RXCUI] = item;
+        drugDict[item.RXCUI] = {CATEGORY: cat, ...item};
       }
     });
-    return Object.values(drugDict);
+
+    const drugCatDict = {};
+    Object.values(drugDict).forEach(item => {
+      const cat = item.CATEGORY;
+      if (cat in drugCatDict) {
+        drugCatDict[cat].push(item);
+      } else {
+        drugCatDict[cat] = [item];
+      }
+    });
+
+    let ret = [];
+    CAT_ORDER_LIST.forEach(cat => {
+      if (cat in drugCatDict) {
+        const curCatDrugs = drugCatDict[cat].sort((a,b) => RXCUI_BY_CAT_ORDER_DICT[cat].indexOf(a) - RXCUI_BY_CAT_ORDER_DICT[cat].indexOf(b))
+        ret = [...ret, ...curCatDrugs];
+      }
+    })
+    return ret;
+  //   {
+  //     "DRUG": "nitroprusside",
+  //     "END_UNIX": 1612246199,
+  //     "INFUSION_RATE": 0.25,
+  //     "INFUSION_RATE_UNITS": "mcg/kg/min",
+  //     "RXCUI": 7476,
+  //     "DOSING_WEIGHT": 16.4
+  // },
   };
 
   const getInfusionsToday = getInfusionsLatestRecordEachDrug(
