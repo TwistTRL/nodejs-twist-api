@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-02 16:31:43
+ * @Last Modified time: 2021-02-03 13:37:27
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -10,8 +10,11 @@ const moment = require("moment");
 const database = require("../../services/database");
 const { getPersonFromPersonId } = require("../person/get-person-info");
 const { getWeight } = require("../get-weight");
-const {    RXCUI_BY_CAT_ORDER_DICT, CAT_ORDER_LIST,
-  RXCUI_TO_CAT_DICT} = require("../../db_relation/drug-category-relation");
+const {
+  RXCUI_BY_CAT_ORDER_DICT,
+  CAT_ORDER_LIST,
+  RXCUI_TO_CAT_DICT,
+} = require("../../db_relation/drug-category-relation");
 
 // Variable	Day before yesterday	Yesterday	Today
 
@@ -136,8 +139,11 @@ const getCensus3DaysCache = async (person_id) => {
       ? "0" + (xray_yesterday.month() + 1)
       : (xray_yesterday.month() + 1).toString();
 
+  const yesterday_date_string =
+    xray_yesterday.date() < 10 ? "0" + xray_yesterday.date() : xray_yesterday.date().toString();
+
   const xray_yesterday_date =
-    xray_yesterday.year().toString() + yesterday_month_string + xray_yesterday.date().toString();
+    xray_yesterday.year().toString() + yesterday_month_string + yesterday_date_string;
 
   const getLines3Days = database.withConnection(async (conn, person_id) => {
     await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
@@ -306,27 +312,29 @@ const getCensus3DaysCache = async (person_id) => {
     }
     const drugDict = {};
     arr.forEach((item) => {
-      const possibleCatArr = RXCUI_TO_CAT_DICT[item.RXCUI].sort((a,b) => CAT_ORDER_LIST.indexOf(a) - CAT_ORDER_LIST.indexOf(b));
+      const possibleCatArr = RXCUI_TO_CAT_DICT[item.RXCUI].sort(
+        (a, b) => CAT_ORDER_LIST.indexOf(a) - CAT_ORDER_LIST.indexOf(b)
+      );
       if (!possibleCatArr || !possibleCatArr.length) {
-        console.warn('wrong catogery for :>> ', item);
+        console.warn("wrong catogery for :>> ", item);
         return;
       }
 
       if (possibleCatArr.length > 1) {
-        console.log('this drug has two cats :>> ', item);
+        console.log("this drug has two cats :>> ", item);
       }
-      
+
       const cat = possibleCatArr[0];
 
       if (!(item.RXCUI in drugDict)) {
-        drugDict[item.RXCUI] = {CATEGORY: cat, ...item};
+        drugDict[item.RXCUI] = { CATEGORY: cat, ...item };
       } else if (item.END_UNIX > drugDict[item.RXCUI].END_UNIX) {
-        drugDict[item.RXCUI] = {CATEGORY: cat, ...item};
+        drugDict[item.RXCUI] = { CATEGORY: cat, ...item };
       }
     });
 
     const drugCatDict = {};
-    Object.values(drugDict).forEach(item => {
+    Object.values(drugDict).forEach((item) => {
       const cat = item.CATEGORY;
       if (cat in drugCatDict) {
         drugCatDict[cat].push(item);
@@ -336,21 +344,24 @@ const getCensus3DaysCache = async (person_id) => {
     });
 
     let ret = [];
-    CAT_ORDER_LIST.forEach(cat => {
+    CAT_ORDER_LIST.forEach((cat) => {
       if (cat in drugCatDict) {
-        const curCatDrugs = drugCatDict[cat].sort((a,b) => RXCUI_BY_CAT_ORDER_DICT[cat].indexOf(a) - RXCUI_BY_CAT_ORDER_DICT[cat].indexOf(b))
+        const curCatDrugs = drugCatDict[cat].sort(
+          (a, b) =>
+            RXCUI_BY_CAT_ORDER_DICT[cat].indexOf(a) - RXCUI_BY_CAT_ORDER_DICT[cat].indexOf(b)
+        );
         ret = [...ret, ...curCatDrugs];
       }
-    })
+    });
     return ret;
-  //   {
-  //     "DRUG": "nitroprusside",
-  //     "END_UNIX": 1612246199,
-  //     "INFUSION_RATE": 0.25,
-  //     "INFUSION_RATE_UNITS": "mcg/kg/min",
-  //     "RXCUI": 7476,
-  //     "DOSING_WEIGHT": 16.4
-  // },
+    //   {
+    //     "DRUG": "nitroprusside",
+    //     "END_UNIX": 1612246199,
+    //     "INFUSION_RATE": 0.25,
+    //     "INFUSION_RATE_UNITS": "mcg/kg/min",
+    //     "RXCUI": 7476,
+    //     "DOSING_WEIGHT": 16.4
+    // },
   };
 
   const getInfusionsToday = getInfusionsLatestRecordEachDrug(
