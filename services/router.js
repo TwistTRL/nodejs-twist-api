@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-05 11:11:37
+ * @Last Modified time: 2021-02-05 11:18:41
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -508,9 +508,9 @@ router.get("/census-team/:person_id", async (req, res) => {
           }
       ],
       "cacheRange": [
-        1612354184,
+        1612353600,
         1612541388
-      ]
+      ] // [the day before yesterday 7 AM EST, now]
     }
  */
 

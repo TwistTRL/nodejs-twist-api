@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-05 11:08:50
+ * @Last Modified time: 2021-02-05 11:16:31
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -139,7 +139,7 @@ ORDER BY START_UNIX
 
 const getCensus3DaysCache = async (person_id) => {
   const today_start =
-    moment().hour() >= 7 ? moment().hour(7).unix() : moment().hour(7).unix() - 24 * 60 * 60;
+    moment().hour() >= 7 ? moment().hour(7).minute(0).second(0).unix() : moment().hour(7).minute(0).second(0).unix() - 24 * 60 * 60;
   const yesterday_start = today_start - 24 * 60 * 60;
   const ereyesterday_start = yesterday_start - 24 * 60 * 60;
 
