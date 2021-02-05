@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-01 22:00:07
+ * @Last Modified time: 2021-02-05 11:06:10
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -471,7 +471,37 @@ router.get("/census-team/:person_id", async (req, res) => {
       infusions: {},
       intermittent: {},
       ecmo: [],// start from ereyesterday 7AM
-      rss: [], // start from ereyesterday 7AM
+      rss: [
+        {
+            "ID": 1,
+            "RST": "PCV",
+            "RSS": 48.98022598870057,
+            "INO_DOSE": 20,
+            "TIME": 162000000
+        },
+      ], // start from ereyesterday 7AM
+      locations: [
+        {
+            "NURSE_UNIT_DISP": "08 South",
+            "ROOM_DISP": "8110",
+            "LOCATION_BED": "CICU18",
+            "START_UNIX": 160000000,
+            "END_UNIX": 161000000,
+        },
+        {
+            "NURSE_UNIT_DISP": "08 South",
+            "ROOM_DISP": "8115",
+            "LOCATION_BED": "CICU23",
+            "START_UNIX": 161000000,
+            "END_UNIX": 162000000,
+        }
+      ],
+      "paralytics": [
+          {
+              "start": 161100000,
+              "end": 161200000
+          }
+      ]
     }
  */
 

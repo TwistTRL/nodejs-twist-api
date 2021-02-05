@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-03 13:37:27
+ * @Last Modified time: 2021-02-05 10:58:54
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -10,6 +10,7 @@ const moment = require("moment");
 const database = require("../../services/database");
 const { getPersonFromPersonId } = require("../person/get-person-info");
 const { getWeight } = require("../get-weight");
+const { getParalyticsDrugByTime } = require("../get_drug");
 const {
   RXCUI_BY_CAT_ORDER_DICT,
   CAT_ORDER_LIST,
@@ -95,13 +96,15 @@ ORDER BY VALID_FROM_DT_TM`;
 
 const GET_3DAYS_RSS_SQL = (ereyesterday_start) => `
 SELECT  
+  ROWNUM AS ID,
+  PERSON_ID,
   RST,
   RSS,
   INO_DOSE,
-  EVENT_END_DT_TM_UNIX
+  EVENT_END_DT_TM_UNIX AS TIME
 FROM RSS_UPDATED
 WHERE PERSON_ID = :person_id
-  AND EVENT_END_DT_TM_UNIX > ${ereyesterday_start}
+  AND EVENT_END_DT_TM_UNIX >= ${ereyesterday_start}
 ORDER BY EVENT_END_DT_TM_UNIX
 `;
 
@@ -120,6 +123,19 @@ FROM API_CACHE_XRAY
 WHERE MRN = :mrn
 AND STUDY_DATE >= ${date_string}
 `;
+
+const GET_3DAYS_LOCATION_SQL = (ereyesterday_start) => `
+SELECT 
+  NURSE_UNIT_DISP,
+  ROOM_DISP,
+  LOCATION_BED,
+  START_UNIX,
+  END_UNIX
+FROM ADT
+WHERE PERSON_ID = :person_id
+  AND END_UNIX >= ${ereyesterday_start}
+ORDER BY START_UNIX
+`
 
 const getCensus3DaysCache = async (person_id) => {
   const today_start =
@@ -175,6 +191,13 @@ const getCensus3DaysCache = async (person_id) => {
     async (conn, person_id) =>
       await conn
         .execute(GET_3DAYS_RSS_SQL(ereyesterday_start), { person_id })
+        .then((res) => res.rows)
+  );
+
+  const getLocation3Days = database.withConnection(
+    async (conn, person_id) =>
+      await conn
+        .execute(GET_3DAYS_LOCATION_SQL(ereyesterday_start), { person_id })
         .then((res) => res.rows)
   );
 
@@ -447,6 +470,8 @@ const getCensus3DaysCache = async (person_id) => {
 
   const ecmo = await getECMO3Days(person_id);
   const rss = await getRSS3Days(person_id);
+  const locations = await getLocation3Days(person_id);
+  const paralytics = await getParalyticsDrugByTime({person_id, end_unix: ereyesterday_start})
 
   return {
     weight,
@@ -457,6 +482,8 @@ const getCensus3DaysCache = async (person_id) => {
     intermittent,
     ecmo,
     rss,
+    locations,
+    paralytics,
   };
 };
 

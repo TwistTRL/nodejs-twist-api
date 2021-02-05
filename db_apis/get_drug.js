@@ -86,6 +86,26 @@ async function getOrangeDrugSqlExecutor(conn,binds){
   return jsonString;
 }
 
+async function getParalyticsDrugByTimeSqlExecutor(conn,binds){
+  console.time('getParalyticsDrugByTime');
+  let SQL_Orange_Infusions = ``;
+
+  ORANGE_DRUG_LIST.forEach(function(item) {
+    SQL_Orange_Infusions += ` OR DRUG = '` + item + `'`; 
+  });
+
+  let SQL_ORANGE = SQL_ORANGE_INFUSIONS_PART1 + SQL_Orange_Infusions + `) AND PERSON_ID = :person_id
+    AND END_UNIX > :end_unix
+  ORDER BY START_UNIX, DRUG`;
+
+  console.log('SQL_ORANGE :>> ', SQL_ORANGE);
+
+  let drugRecords = await conn.execute(SQL_ORANGE, binds);    
+  let jsonString = calculateOrangeDrugRecords(drugRecords);
+  console.timeEnd('getParalyticsDrugByTime');
+  return jsonString;
+}
+
 
 async function getIntermittentSqlExecutor(conn,binds){
   console.time('getDrugIntermittent');
@@ -192,7 +212,7 @@ function calculateIntermittentRecords(drugRecords) {
 const getDrugInfusions = database.withConnection(getInfusionsSqlExecutor);
 const getDrugIntermittent = database.withConnection(getIntermittentSqlExecutor);
 const getOrangeDrug = database.withConnection(getOrangeDrugSqlExecutor);
-
+const getParalyticsDrugByTime = database.withConnection(getParalyticsDrugByTimeSqlExecutor);
 
 
 /**
@@ -206,5 +226,6 @@ const getOrangeDrug = database.withConnection(getOrangeDrugSqlExecutor);
 module.exports = {
   getDrugInfusions,
   getOrangeDrug,
-  getDrugIntermittent
+  getDrugIntermittent,
+  getParalyticsDrugByTime,
 };
