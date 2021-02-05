@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-05 11:06:10
+ * @Last Modified time: 2021-02-05 11:11:37
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -470,7 +470,12 @@ router.get("/census-team/:person_id", async (req, res) => {
       lines: {},
       infusions: {},
       intermittent: {},
-      ecmo: [],// start from ereyesterday 7AM
+      ecmo: [
+        {
+            "VALID_FROM_DT_TM": 1608600770000000000,
+            "ECMO_VAD_SCORE": 95.81395348837209
+        },
+      ],// start from ereyesterday 7AM
       rss: [
         {
             "ID": 1,
@@ -501,6 +506,10 @@ router.get("/census-team/:person_id", async (req, res) => {
               "start": 161100000,
               "end": 161200000
           }
+      ],
+      "cacheRange": [
+        1612354184,
+        1612541388
       ]
     }
  */

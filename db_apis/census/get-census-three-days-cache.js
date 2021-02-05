@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-05 10:58:54
+ * @Last Modified time: 2021-02-05 11:08:50
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -472,6 +472,7 @@ const getCensus3DaysCache = async (person_id) => {
   const rss = await getRSS3Days(person_id);
   const locations = await getLocation3Days(person_id);
   const paralytics = await getParalyticsDrugByTime({person_id, end_unix: ereyesterday_start})
+  const cacheRange = [ereyesterday_start, moment().unix()];
 
   return {
     weight,
@@ -484,6 +485,7 @@ const getCensus3DaysCache = async (person_id) => {
     rss,
     locations,
     paralytics,
+    cacheRange,
   };
 };
 
