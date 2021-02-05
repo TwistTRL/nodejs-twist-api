@@ -78,8 +78,12 @@ async function getRespiratorySupportVariableSqlExecutor(conn,binds){
   for (let row of arr) {
     for (let property in row){
       let num = row[property];
+      if (num === null) {
+        row[property] = undefined;
+        continue;
+      }
 
-      if (property == "RSS" || num == null || isNaN(num) || Number.isInteger(num)) {
+      if (property == "RSS" || isNaN(num) || Number.isInteger(num)) {
         continue;
       }
 

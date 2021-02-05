@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-05 11:16:31
+ * @Last Modified time: 2021-02-05 15:00:07
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -16,6 +16,7 @@ const {
   CAT_ORDER_LIST,
   RXCUI_TO_CAT_DICT,
 } = require("../../db_relation/drug-category-relation");
+const { getRespiratorySupportVariable } = require("../get_respiratory_support_variables");
 
 // Variable	Day before yesterday	Yesterday	Today
 
@@ -138,6 +139,7 @@ ORDER BY START_UNIX
 `
 
 const getCensus3DaysCache = async (person_id) => {
+  const now_unix = moment().unix();
   const today_start =
     moment().hour() >= 7 ? moment().hour(7).minute(0).second(0).unix() : moment().hour(7).minute(0).second(0).unix() - 24 * 60 * 60;
   const yesterday_start = today_start - 24 * 60 * 60;
@@ -187,12 +189,12 @@ const getCensus3DaysCache = async (person_id) => {
         .then((res) => res.rows)
   );
 
-  const getRSS3Days = database.withConnection(
-    async (conn, person_id) =>
-      await conn
-        .execute(GET_3DAYS_RSS_SQL(ereyesterday_start), { person_id })
-        .then((res) => res.rows)
-  );
+  // const getRSS3Days = database.withConnection(
+  //   async (conn, person_id) =>
+  //     await conn
+  //       .execute(GET_3DAYS_RSS_SQL(ereyesterday_start), { person_id })
+  //       .then((res) => res.rows)
+  // );
 
   const getLocation3Days = database.withConnection(
     async (conn, person_id) =>
@@ -390,7 +392,7 @@ const getCensus3DaysCache = async (person_id) => {
   const getInfusionsToday = getInfusionsLatestRecordEachDrug(
     await getLatestInfusionsDuringTime({
       person_id,
-      upper_timestamp: moment().unix(),
+      upper_timestamp: now_unix,
       lower_timestamp: today_start,
     })
   );
@@ -469,10 +471,10 @@ const getCensus3DaysCache = async (person_id) => {
   };
 
   const ecmo = await getECMO3Days(person_id);
-  const rss = await getRSS3Days(person_id);
+  const rss = await getRespiratorySupportVariable({person_id, from_: ereyesterday_start, to_: now_unix});
   const locations = await getLocation3Days(person_id);
   const paralytics = await getParalyticsDrugByTime({person_id, end_unix: ereyesterday_start})
-  const cacheRange = [ereyesterday_start, moment().unix()];
+  const cacheRange = [ereyesterday_start, now_unix];
 
   return {
     weight,
