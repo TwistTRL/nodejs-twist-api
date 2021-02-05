@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-05 15:00:07
+ * @Last Modified time: 2021-02-05 16:27:52
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -136,12 +136,14 @@ FROM ADT
 WHERE PERSON_ID = :person_id
   AND END_UNIX >= ${ereyesterday_start}
 ORDER BY START_UNIX
-`
+`;
 
 const getCensus3DaysCache = async (person_id) => {
   const now_unix = moment().unix();
   const today_start =
-    moment().hour() >= 7 ? moment().hour(7).minute(0).second(0).unix() : moment().hour(7).minute(0).second(0).unix() - 24 * 60 * 60;
+    moment().hour() >= 7
+      ? moment().hour(7).minute(0).second(0).unix()
+      : moment().hour(7).minute(0).second(0).unix() - 24 * 60 * 60;
   const yesterday_start = today_start - 24 * 60 * 60;
   const ereyesterday_start = yesterday_start - 24 * 60 * 60;
 
@@ -260,7 +262,8 @@ const getCensus3DaysCache = async (person_id) => {
       study_id: item.STUDY_ID,
       study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),
       thumbnails: item.FILE_THUMBNAILES.toString("base64"),
-    }));
+    }))
+    .sort((a, b) => b.study_timestamp - a.study_timestamp);
   console.log("getXrayToday :>> ", getXrayToday);
   const getXrayYesterday = getXray
     .filter((item) => item.STUDY_DATE.toString() === xray_yesterday_date)
@@ -272,7 +275,8 @@ const getCensus3DaysCache = async (person_id) => {
       study_id: item.STUDY_ID,
       study_timestamp: moment(item.STUDY_DATE + item.STUDY_TIME, "YYYYMMDDhhmmss").unix(),
       thumbnails: item.FILE_THUMBNAILES.toString("base64"),
-    }));
+    }))
+    .sort((a, b) => b.study_timestamp - a.study_timestamp);
 
   // ------ fluid in out
   const resolution = 24 * 60 * 60; // 1 day
@@ -471,9 +475,13 @@ const getCensus3DaysCache = async (person_id) => {
   };
 
   const ecmo = await getECMO3Days(person_id);
-  const rss = await getRespiratorySupportVariable({person_id, from_: ereyesterday_start, to_: now_unix});
+  const rss = await getRespiratorySupportVariable({
+    person_id,
+    from_: ereyesterday_start,
+    to_: now_unix,
+  });
   const locations = await getLocation3Days(person_id);
-  const paralytics = await getParalyticsDrugByTime({person_id, end_unix: ereyesterday_start})
+  const paralytics = await getParalyticsDrugByTime({ person_id, end_unix: ereyesterday_start });
   const cacheRange = [ereyesterday_start, now_unix];
 
   return {
