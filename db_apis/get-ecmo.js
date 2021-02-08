@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-03-27 10:26:44
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-08 12:04:42
+ * @Last Modified time: 2021-02-08 16:19:19
  */
 
 const database = require("../services/database");
@@ -128,41 +128,33 @@ const getECMO = async (binds) => {
   let countNullMode = 0;
 
   arrECMO.forEach((element) => {
-    const mode = element.MODE_1;
-    if (!ECMO_DICT[mode]) {
+    const modes = Object.keys(ECMO_DICT).filter(
+      (basic_mode) => element.MODE_1 && element.MODE_1.includes(basic_mode)
+    );
+
+    if (!modes.length) {
       countNullMode++;
       return;
     }
 
-    // LVAD_VOLUME: {
-    //   'ECMO/VAD MODE str.contains': 'Berlin BiVAD',
-    //   SECTION: 'ECMO_RIGHT',
-    //   TWIST_TABLE_NAME: 'ECMO_VAD',
-    //   RSS_COLUMN: 'LVAD_VOLUME',
-    //   DISPLAY_ORDER: 1,
-    //   DISPLAY_NAME: 'LVAD pump volume',
-    //   DISPLAY_UNITS: 'mL'
-    // },
-
-    const rows = Object.keys(ECMO_DICT[mode])
-
-    const ecmo_data = Object.keys(ECMO_DICT[mode])
-      .map((item) => ({
-        name: ECMO_DICT[mode][item].RSS_COLUMN,
-        value: element[item],
-        section: ECMO_DICT[mode][item].SECTION,
-        display_order: ECMO_DICT[mode][item].DISPLAY_ORDER,
-        display_name: ECMO_DICT[mode][item].DISPLAY_NAME,
-        display_units: ECMO_DICT[mode][item].DISPLAY_UNITS,
-      }))
-      .filter(item => item.name !== "MODE_1" && item.value !== null)
-      .sort((a, b) => a.display_order - b.display_order);
-
-    ret.push({
-      time: element.TIME,
-      ecmo_score: element.ECMO_VAD_SCORE,
-      ecmo_data
-    });
+    for (const mode of modes) {
+      const ecmo_data = Object.keys(ECMO_DICT[mode])
+        .map((item) => ({
+          name: ECMO_DICT[mode][item].RSS_COLUMN,
+          value: element[item],
+          section: ECMO_DICT[mode][item].SECTION,
+          display_order: ECMO_DICT[mode][item].DISPLAY_ORDER,
+          display_name: ECMO_DICT[mode][item].DISPLAY_NAME,
+          display_units: ECMO_DICT[mode][item].DISPLAY_UNITS,
+        }))
+        .filter((item) => item.value !== null)
+        .sort((a, b) => a.display_order - b.display_order);
+      ret.push({
+        time: element.TIME,
+        ecmo_score: element.ECMO_VAD_SCORE,
+        ecmo_data,
+      });
+    }
   });
 
   console.log("countNullMode :>> ", countNullMode);
