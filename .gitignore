@@ -7,6 +7,9 @@ recycle/
 config/ipList.txt
 docs/apidoc
 docs/apidoc2
+docs/issues.md
+docs/*.md
+docs/*
 docs/files/*
 !docs/files/index.html
 !docs/files/index.css

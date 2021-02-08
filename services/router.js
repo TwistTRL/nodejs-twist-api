@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-05 11:18:41
+ * @Last Modified time: 2021-02-08 11:41:35
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -3080,19 +3080,19 @@ router.get("/person/:person_id/microbiology", async (req, res) => {
  * @apiSuccessExample Success-Response:
  *  [
       {
-          "VALID_FROM_DT_TM": 1530000000,
-          "ECMO_FLOW": ".6",
-          "ECMO_FLOW_NORM": 100,
-          "LVAD_FILLING": null,
-          "LVAD_EJECTION": null,
-          "LVAD_RATE": null,
-          "LVAD_VOLUME": null,
-          "RVAD_RATE": null,
-          "VAD_CI": null,
-          "VAD_CO": null,
-          "WEIGHT": 3,
-          "ECMO_VAD_SCORE": 100
-      },
+          "time": "2007-04-29T12:00:00Z",
+          "ecmo_score": null,
+          "ecmo_data": [
+              {
+                  "name": "LVAD_RATE",
+                  "value": 70,
+                  "section": "ECMO_RIGHT",
+                  "display_order": 2,
+                  "display_name": "LVAD beat rate",
+                  "display_units": "beats/min"
+              },
+          ]
+      }
     ]
  *
  */

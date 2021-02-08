@@ -1,0 +1,39 @@
+@startuml
+
+title TWIST REALTIME UPDATE
+
+package "Main Record" as MR {
+    frame "Blood Pressure" as bp{
+
+    }
+
+    frame "Heart Rate" as hr{
+
+    }
+
+    frame "Fluid" as fl{
+
+    }
+}
+
+
+package "New Record" as NR {
+    frame "New Blood Pressure" as nbp{
+
+    }
+
+    frame "New Heart Rate" as nhr{
+
+    }
+
+    frame "New Fluid" as nfl{
+
+    }
+}
+
+bp -- nbp
+hr -- nhr
+fl -- nfl
+
+
+@enduml

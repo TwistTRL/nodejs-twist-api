@@ -1,36 +1,16 @@
 /*
- * @Author: Peng 
- * @Date: 2020-03-27 10:26:44 
+ * @Author: Peng
+ * @Date: 2020-03-27 10:26:44
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-05 15:14:54
+ * @Last Modified time: 2021-02-08 12:04:42
  */
 
 const database = require("../services/database");
-let timeLable = 0;
-
-
-// TODO: ECMO_VAD_SCORE => ECMO_VAD
-
-// const SQL_GET_ECMO = `
-// SELECT
-//   VALID_FROM_DT_TM,
-//   ECMO_FLOW,
-//   ECMO_FLOW_NORM,
-//   LVAD_FILLING,
-//   LVAD_EJECTION,
-//   LVAD_RATE,
-//   LVAD_VOLUME,
-//   RVAD_RATE,
-//   VAD_CI,
-//   VAD_CO,
-//   WEIGHT,
-//   ECMO_VAD_SCORE
-// FROM ECMO_VAD_VARIABLE
-// WHERE PERSON_ID = :person_id
-// ORDER BY VALID_FROM_DT_TM`;
+const { ECMO_DICT } = require("../db_relation/ecmo-db-relation");
 
 const GET_ECMO_SQL = `
 SELECT
+  MODE_1,
   LVAD_VOLUME,
   LVAD_RATE,
   LVAD_SP,
@@ -40,34 +20,6 @@ SELECT
   LVAD_EJECTION,
   LVAD_DEPOS,
   LVAD_DEPOS2,
-  RVAD_VOLUME,
-  RVAD_RATE,
-  RVAD_SP,
-  RVAD_DP,
-  RVAD_STM,
-  RVAD_FILLING,
-  RVAD_EJECTION,
-  RVAD_DEPOS,
-  RVAD_DEPOS2,
-  BERLIN_OUT_DEPOS,
-  BERLIN_OUT_DEPOS2,
-  BERLIN_CLOT,
-  BERLIN_CLOT2,
-  BERLIN_NOTE,
-  LVAD_VOLUME,
-  LVAD_RATE,
-  LVAD_SP,
-  LVAD_DP,
-  LVAD_STM,
-  LVAD_FILLING,
-  LVAD_EJECTION,
-  LVAD_DEPOS,
-  LVAD_DEPOS2,
-  BERLIN_OUT_DEPOS,
-  BERLIN_OUT_DEPOS2,
-  BERLIN_CLOT,
-  BERLIN_CLOT2,
-  BERLIN_NOTE,
   RVAD_VOLUME,
   RVAD_RATE,
   RVAD_SP,
@@ -123,13 +75,6 @@ SELECT
   QUAD_FLOW,
   QUAD_NOTES,
   QUAD_SWEEP,
-  ECMO_SERVO,
-  ECMO_PREP1,
-  ECMO_POSTP1,
-  ECMO_POSTP2,
-  ECMO_PREP2,
-  ECMO_SVO2,
-  ECMO_SVO22,
   RTF_FLOW_MEAS,
   RTF_IN_DEPOS,
   RTF_NOTES,
@@ -167,44 +112,64 @@ WHERE PERSON_ID = :person_id
 ORDER BY EVENT_END_DT_TM_UTC
 `;
 
-async function ecmoQuerySQLExecutor(conn, binds) {
-  let timestampLable = timeLable++;
-  console.log("~~SQL for ECMO all time: ", GET_ECMO_SQL);
-  console.time("getECMO-sql" + timestampLable);
-  await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
-  let rawRecord = await conn.execute(GET_ECMO_SQL, binds);
-  console.timeEnd("getECMO-sql" + timestampLable);
-  return rawRecord.rows;
-}
+// MODE_1 then column, send all of the data from that table, including display name, display units, display order, and section.
+const getECMO = async (binds) => {
+  const getEcmoQuery = database.withConnection(async (conn, binds) => {
+    await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
+    return await conn.execute(GET_ECMO_SQL, binds).then((res) => res.rows);
+  });
 
-function _calculateRawRecords(arrECMO) {
-  let ret = [];
-  if (arrECMO && arrECMO.length) {
-    console.log("ECMO record size :", arrECMO.length);
-    for (let row of arrECMO) {
-      //example row = {"VALID_FROM_DT_TM": 1500000000, "ECMO_VAD_SCORE": 90}
-      if (row["ECMO_VAD_SCORE"] !== null) {
-        for (const key in row) {
-          if (row[key] === null) {
-            row[key] = undefined;
-          }
-        }
-        ret.push(row);
-      }
+  const now = Date.now();
+  console.time("get-ECMO-sql" + now);
+  let arrECMO = await getEcmoQuery(binds);
+  console.timeEnd("get-ECMO-sql" + now);
+
+  const ret = [];
+  let countNullMode = 0;
+
+  arrECMO.forEach((element) => {
+    const mode = element.MODE_1;
+    if (!ECMO_DICT[mode]) {
+      countNullMode++;
+      return;
     }
-  }
-  return ret;
-}
 
-const getECMO = database.withConnection(async function(
-  conn,
-  binds
-) {
-  let rawResult = await ecmoQuerySQLExecutor(conn, binds);
-  let result = _calculateRawRecords(rawResult);
-  return result;
-});
+    // LVAD_VOLUME: {
+    //   'ECMO/VAD MODE str.contains': 'Berlin BiVAD',
+    //   SECTION: 'ECMO_RIGHT',
+    //   TWIST_TABLE_NAME: 'ECMO_VAD',
+    //   RSS_COLUMN: 'LVAD_VOLUME',
+    //   DISPLAY_ORDER: 1,
+    //   DISPLAY_NAME: 'LVAD pump volume',
+    //   DISPLAY_UNITS: 'mL'
+    // },
+
+    const rows = Object.keys(ECMO_DICT[mode])
+
+    const ecmo_data = Object.keys(ECMO_DICT[mode])
+      .map((item) => ({
+        name: ECMO_DICT[mode][item].RSS_COLUMN,
+        value: element[item],
+        section: ECMO_DICT[mode][item].SECTION,
+        display_order: ECMO_DICT[mode][item].DISPLAY_ORDER,
+        display_name: ECMO_DICT[mode][item].DISPLAY_NAME,
+        display_units: ECMO_DICT[mode][item].DISPLAY_UNITS,
+      }))
+      .filter(item => item.name !== "MODE_1" && item.value !== null)
+      .sort((a, b) => a.display_order - b.display_order);
+
+    ret.push({
+      time: element.TIME,
+      ecmo_score: element.ECMO_VAD_SCORE,
+      ecmo_data
+    });
+  });
+
+  console.log("countNullMode :>> ", countNullMode);
+
+  return ret;
+};
 
 module.exports = {
-  getECMO
+  getECMO,
 };
