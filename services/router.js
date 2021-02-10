@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-08 11:41:35
+ * @Last Modified time: 2021-02-09 20:46:06
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -106,6 +106,8 @@ const { getOperativeDisplay } = require("../db_apis/diagnosis_display/get-operat
 const { getDisplayLine } = require("../db_apis/diagnosis_display/get-display-line");
 const { getVerticalBarDisplay } = require("../db_apis/diagnosis_display/get-verticalbar-timeline");
 const { getProceduralNote } = require("../db_apis/diagnosis_display/get-procedural-note");
+
+const { getNotes } = require("../db_apis/notes/get-notes");
 
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
@@ -4037,6 +4039,20 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 });
 
 // --------- dev
+
+/**
+ * @api {get} /notes/test Notes Test
+ * @apiVersion 0.0.1
+ * @apiName get-notes
+ * @apiGroup DEV
+ * @apiDescription Notes Test
+ * @apiSuccessExample Success-Response:
+ *  -------
+ *
+ */
+router.get("/notes/test", async (req, res) => {
+  res.send(await getNotes());
+});
 
 /**
  * @api {get} /xray-image/mrn/:mrn Xray image for Patient
