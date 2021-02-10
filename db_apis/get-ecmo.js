@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-03-27 10:26:44
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-08 16:19:19
+ * @Last Modified time: 2021-02-10 11:27:36
  */
 
 const database = require("../services/database");
@@ -119,10 +119,18 @@ const getECMO = async (binds) => {
     return await conn.execute(GET_ECMO_SQL, binds).then((res) => res.rows);
   });
 
+  console.log('binds :>> ', binds);
+
   const now = Date.now();
   console.time("get-ECMO-sql" + now);
   let arrECMO = await getEcmoQuery(binds);
   console.timeEnd("get-ECMO-sql" + now);
+
+  // console.log('arrECMO :>> ', arrECMO);
+  if (!arrECMO) {
+    console.log('arrECMO :>> ', arrECMO);
+    return [];
+  }
 
   const ret = [];
   let countNullMode = 0;
