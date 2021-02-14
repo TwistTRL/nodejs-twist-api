@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-09 20:46:06
+ * @Last Modified time: 2021-02-14 01:58:13
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -4041,17 +4041,47 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 // --------- dev
 
 /**
- * @api {get} /notes/test Notes Test
+ * @api {get} /notes/:person_id Notes for Patient
  * @apiVersion 0.0.1
- * @apiName get-notes
+ * @apiName get-notes-person
  * @apiGroup DEV
- * @apiDescription Notes Test
+ * @apiDescription Notes for Patient
+ * @apiParam {String} person_id Patient ID.
  * @apiSuccessExample Success-Response:
- *  -------
+ *  [
+ *    {
+ *        ENCNTR_ID,
+          EVENT_CD,
+          EVENT_CLASS_CD,
+          EVENT_DISP,
+          EVENT_END_DT_TM,
+          EVENT_ID,
+          EVENT_TAG,
+          EVENT_TITLE_TEXT,
+          FORMAT,
+          PARENT_EVENT_ID,
+          PERFORMED_DT_TM,
+          PERFORMED_PRSNL,
+          VALID_FROM_DT_TM,
+          VALID_UNTIL_DT_TM,
+          VERIFIED_DT_TM,
+          VERIFIED_PRSNL,
+          NOTES: "..."
+      }
+    ]
  *
  */
-router.get("/notes/test", async (req, res) => {
-  res.send(await getNotes());
+router.get("/notes/:person_id", async (req, res) => {
+  const person_id = parseInt(req.params.person_id);
+  if (!Number.isInteger(person_id)) {
+    res.send("=> Invalid person_id. Should be integer.");
+    return;
+  }
+  console.log("get notes for ID: " + person_id);
+  const binds = {
+    person_id,
+  };
+  res.send(await getNotes(binds));
 });
 
 /**
