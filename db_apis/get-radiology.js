@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-05-04 17:16:28
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-05 15:03:00
+ * @Last Modified time: 2021-02-18 17:33:04
  */
 
 const database = require("../services/database");
@@ -33,8 +33,11 @@ async function radiologyQuerySQLExecutor(conn, person_id) {
   if (rawRecord && rawRecord.rows) {
     console.log('radiology image records length :>> ', rawRecord.rows.length);
     return rawRecord.rows.map((row) => {
-      let location = CATALOG_CD_DICT[row.CATALOG_CD].location;
-      let study_type = CATALOG_CD_DICT[row.CATALOG_CD].study_type;
+      if (!CATALOG_CD_DICT[row.CATALOG_CD]) {
+        console.log('CATALOG_CD_DICT[row.CATALOG_CD] null:>> ', row.CATALOG_CD);
+      }
+      let location = CATALOG_CD_DICT[row.CATALOG_CD] ? CATALOG_CD_DICT[row.CATALOG_CD].location : null;
+      let study_type = CATALOG_CD_DICT[row.CATALOG_CD] ? CATALOG_CD_DICT[row.CATALOG_CD].study_type : null;
       let order_id = row.ORDER_ID;
       let catalog_cd = row.CATALOG_CD;
       let display = row.DISPLAY;
