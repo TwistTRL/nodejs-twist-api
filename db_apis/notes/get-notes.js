@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2021-02-09 20:27:10
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-14 11:43:36
+ * @Last Modified time: 2021-02-18 14:21:20
  */
 
 /**
@@ -61,7 +61,7 @@ const getNotes = async (binds) => {
 
   const ret = [];
   for (const element of notesData) {
-    let notes;
+    let notes = "";
     // COMPRESSION_CD is 727(non-compressed) or 728
     if (element.COMPRESSION_CD === 727) {
       notes = element.BLOB_CONTENTS.toString();
@@ -76,12 +76,17 @@ const getNotes = async (binds) => {
       const jarPath = path.join(__dirname, "LZW.jar");
       const jarClassName = "LZW";
 
-      const result = child_process.spawnSync("java", ["-cp", jarPath, jarClassName, arrString]);
-      notes = result.stdout.toString();
-      if (!notes.length) {
-        notes = result.stderr.toString();
-        console.log("notes error :>> ", notes);
-      }
+      const result = child_process.spawn("java", ["-cp", jarPath, jarClassName, arrString]);
+
+      for await (const data of result.stdout) {
+        notes += data;
+      };
+
+      // notes = result.stdout.toString();
+      // if (!notes.length) {
+      //   notes = result.stderr.toString();
+      //   console.log("notes error :>> ", notes);
+      // }
 
       // if (notes.includes("{\\rtf1")) {
       //   parseRTF.string('notes', (err, doc) => {
