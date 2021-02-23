@@ -179,7 +179,6 @@ API documentation: web browser `twist:3333/api/`
 
 ## TODO list
 
-- [x] API Redis cache layer
 - [ ] Database cache table update
 - [ ] Census page
 

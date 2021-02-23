@@ -1,0 +1,56 @@
+@startuml
+' skinparam componentStyle uml2
+
+title X-ray Image Data Flow
+
+database "HOSPITAL DB" as db #fbe9e7
+
+node "SYNAPSE COMPUTER" as synapse #LightSkyBlue {
+    frame "Horos" as horos {
+        interface "/Documents"
+    }
+
+    frame "10.7.46.53:7001" as imageAPI {
+        component "nodejs-synapse-xray" as componentImageAPI
+    }
+
+    horos -- imageAPI
+}
+
+node "TRLDSC2 SERVER" as trldsc2 #LightGreen {
+    frame "trldsc2:7001" as trldsc2API {
+        component "nodejs-trldsc2-xray" as trldsc2ImageAPI  
+    }
+}
+
+
+node "TWIST SERVER" as twist #LightGoldenRodYellow {
+    frame "twist:3333" as twistAPI {
+        component "nodejs-twist-api" as componentTwistAPI
+    }
+
+}
+
+database DWTST #fbe9e7 {
+    frame "API_CACHE_XRAY" as dbCache {
+        interface jpg
+        interface dcm
+    }
+}
+
+package "FRONT END COMPUTERS" as frontEnd #Plum {
+    frame "_" as imageFE {
+        component "react-xray-image-example"
+    }
+}
+
+
+db -down- horos
+imageAPI -- trldsc2API
+trldsc2API -down- dbCache
+dbCache -down- twistAPI 
+twistAPI -- imageFE
+
+note left of imageAPI : filter xray dicom
+note left of trldsc2API : convert to jpg
+@enduml
