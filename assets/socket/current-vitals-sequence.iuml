@@ -1,0 +1,24 @@
+@startuml sequence
+title TODO: Current Vitals Socket Sequence
+
+participant "Client 1" as C1
+participant "Client 2" as C2
+participant "Client 3" as C3
+participant "Server" as SR #LightSkyBlue
+database "DWTST" as DWTST #LightGreen
+
+== basic connection ==
+C1 -> SR : person_id = 001
+SR -> C1 : vitals
+SR -> C1 : vitals
+
+== multiple connection ==
+SR -> C1 : vitals
+C2 -> SR : person_id = 001
+SR -> C1 : vitals
+SR -> C2 : vitals
+SR -> C1 : vitals
+SR -> C2 : vitals
+
+
+@enduml

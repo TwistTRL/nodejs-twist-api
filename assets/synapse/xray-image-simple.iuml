@@ -3,9 +3,9 @@
 
 title X-ray Image Data Flow
 
-database "HOSPITAL DB" as db #fbe9e7
+database "HOSPITAL (SYNAPSE) DB " as db #fbe9e7
 
-node "SYNAPSE COMPUTER" as synapse #LightSkyBlue {
+node "TRL SYNAPSE COMPUTER" as synapse #LightSkyBlue {
     frame "Horos" as horos {
         interface "/Documents"
     }

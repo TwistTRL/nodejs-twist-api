@@ -2,9 +2,11 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-05 15:20:14
+ * @Last Modified time: 2021-02-28 21:16:46
  */
+
 const express = require("express");
+const http = require("http");
 const timeout = require("connect-timeout");
 const webServerConfig = require("../config/web-server-config.js");
 const rootRouter = require("./router");
@@ -18,6 +20,8 @@ const bodyParser = require("body-parser");
 
 var httpServer;
 
+const {initializeSocket} = require("./socket/init-socket");
+
 const app = express();
 const users = require("../config/users").items;
 const ipListPath = path.join(__dirname, "../config/ipList.txt");
@@ -25,6 +29,8 @@ const accessTokenSecret = process.env.TWIST_API_TOKEN_SECRET || "youraccesstoken
 
 const FRONT_END_ADDRESS = "http://twist:4000/";
 const API_ADDRESS = "http://twist:3333/api/";
+
+const { getRealtimeVitals } = require("../db_apis/realtime-vitals/get-realtime-vitals");
 
 const findUser = (name, password) => {
   return users.find((item) => {
@@ -59,7 +65,6 @@ function initialize() {
     app.use(haltOnTimedout);
 
     app.use(bodyParser.urlencoded({ extended: false }));
-
 
     app.get("/login", function (req, res) {
       console.log("reaching /login, req.headers.referer :>> ", req.headers.referer);
@@ -131,7 +136,7 @@ function initialize() {
         console.log("redirect to login");
         if (req.headers.referer === FRONT_END_ADDRESS) {
           isBacktoFrontend = true;
-        } else if (req.headers.referer !== API_ADDRESS){
+        } else if (req.headers.referer !== API_ADDRESS) {
           isBacktoFrontend = false;
         }
 
@@ -141,21 +146,20 @@ function initialize() {
       next();
     });
 
-
     // Mount the router at /api so all its routes start with /api
     app.use("/api", rootRouter);
     app.use(haltOnTimedout);
 
     // catch undefined routes and respond with 404
-    app.use(function(req, res, next) {
-      res.status(404).send("Sorry can't find that!")
+    app.use(function (req, res, next) {
+      res.status(404).send("Sorry can't find that!");
     });
 
     // catch server errors and respond with 500
     app.use(function (err, req, res, next) {
-      console.error(err.stack)
-      res.status(500).send('Something broke!')
-    })
+      console.error(err.stack);
+      res.status(500).send("Something broke!");
+    });
 
     function haltOnTimedout(req, res, next) {
       if (!req.timedout) {
@@ -165,7 +169,12 @@ function initialize() {
       }
     }
 
-    httpServer = app.listen(webServerConfig.port);
+    httpServer = http.createServer(app);
+
+    console.log("initialize Socket...");
+    initializeSocket(httpServer);
+
+    httpServer.listen(webServerConfig.port);
 
     httpServer.on("listening", () => {
       console.log(`Web server listening on localhost:${webServerConfig.port}`);
