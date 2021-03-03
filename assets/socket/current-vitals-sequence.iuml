@@ -1,24 +1,72 @@
 @startuml sequence
-title TODO: Current Vitals Socket Sequence
+title Current Vitals Socket Sequence Multiple Clients
 
-participant "Client 1" as C1
-participant "Client 2" as C2
-participant "Client 3" as C3
+participant "Client 11" as C1
+participant "Client 12" as C2
+participant "Client 31" as C3
 participant "Server" as SR #LightSkyBlue
 database "DWTST" as DWTST #LightGreen
 
-== basic connection ==
-C1 -> SR : person_id = 001
-SR -> C1 : vitals
-SR -> C1 : vitals
+== C11 connection ==
+C1 -> SR : person_id = 001, client.id = C11
+note over SR : id_array: [001]
+SR -> DWTST : person_id in id_array
+activate DWTST
+DWTST -> SR : vitals data
+deactivate DWTST
+SR -> C1 : io.to(001).emit("currentVitals", vitals["001"])
 
-== multiple connection ==
-SR -> C1 : vitals
-C2 -> SR : person_id = 001
-SR -> C1 : vitals
-SR -> C2 : vitals
-SR -> C1 : vitals
-SR -> C2 : vitals
+== C12 connection ==
+C2 -> SR : person_id = 001, client.id = C12
+note over SR : id_array: [001]
+SR -> DWTST : person_id in id_array
+activate DWTST
+DWTST -> SR : vitals data
+deactivate DWTST
+SR -> C1 : io.to(001).emit("currentVitals", vitals["001"])
+SR -> C2 : io.to(001).emit("currentVitals", vitals["001"])
+
+== C31 connection ==
+C3 -> SR : person_id = 003, client.id = C31
+note over SR : id_array: [001, 003]
+SR -> DWTST : person_id in id_array
+activate DWTST
+DWTST -> SR : vitals data
+deactivate DWTST
+SR -> C1 : io.to(001).emit("currentVitals", vitals["001"])
+SR -> C2 : io.to(001).emit("currentVitals", vitals["001"])
+SR -> C3 : io.to(003).emit("currentVitals", vitals["003"])
+
+
+== refresh every 5 seconds ==
+SR -> SR : 5 seconds
+SR -> DWTST : person_id in id_array
+activate DWTST
+DWTST -> SR : vitals data
+deactivate DWTST
+SR -> C1 : io.to(001).emit("currentVitals", vitals["001"])
+SR -> C2 : io.to(001).emit("currentVitals", vitals["001"])
+SR -> C3 : io.to(003).emit("currentVitals", vitals["003"])
+...
+
+== C11 disconnect ==
+...
+C1 -> SR : disconnect person_id = 001, client.id = C11
+SR -> SR
+note over SR : id_array: [001, 003]
+SR -> DWTST : person_id in id_array
+activate DWTST
+DWTST -> SR : vitals data
+deactivate DWTST
+SR -> C2 : io.to(001).emit("currentVitals", vitals["001"])
+SR -> C3 : io.to(003).emit("currentVitals", vitals["003"])
+
+== All disconnect ==
+...
+note over SR : id_array: []
+SR ->x DWTST : empty id_array
+
+
 
 
 @enduml

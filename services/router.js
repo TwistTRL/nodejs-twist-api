@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-14 01:58:13
+ * @Last Modified time: 2021-03-03 12:09:00
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -107,7 +107,7 @@ const { getDisplayLine } = require("../db_apis/diagnosis_display/get-display-lin
 const { getVerticalBarDisplay } = require("../db_apis/diagnosis_display/get-verticalbar-timeline");
 const { getProceduralNote } = require("../db_apis/diagnosis_display/get-procedural-note");
 
-const { getNotes } = require("../db_apis/notes/get-notes");
+const { getNotesForPatientId, getNotesContentsForEventId } = require("../db_apis/notes/get-notes");
 
 const { getLines, getLinesCounter } = require("../db_apis/lines/get_lines");
 const { getLinesTooltips } = require("../db_apis/lines/get_lines_tooltips");
@@ -4046,7 +4046,7 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
  * @apiName get-notes-person
  * @apiGroup DEV
  * @apiDescription Notes for Patient
- * @apiParam {String} person_id Patient ID.
+ * @apiParam {Number} person_id Patient ID.
  * @apiSuccessExample Success-Response:
  *  [
  *    {
@@ -4058,7 +4058,7 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
           EVENT_ID,
           EVENT_TAG,
           EVENT_TITLE_TEXT,
-          FORMAT,
+          FORMAT, //480629133 (xml), 125 (rtf), 114 (string)
           PARENT_EVENT_ID,
           PERFORMED_DT_TM,
           PERFORMED_PRSNL,
@@ -4066,7 +4066,6 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
           VALID_UNTIL_DT_TM,
           VERIFIED_DT_TM,
           VERIFIED_PRSNL,
-          NOTES: "..."
       }
     ]
  *
@@ -4074,14 +4073,45 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
 router.get("/notes/:person_id", async (req, res) => {
   const person_id = parseInt(req.params.person_id);
   if (!Number.isInteger(person_id)) {
-    res.send("=> Invalid person_id. Should be integer.");
+    res.send("Error: Invalid person_id. Should be integer.");
     return;
   }
   console.log("get notes for ID: " + person_id);
   const binds = {
     person_id,
   };
-  res.send(await getNotes(binds));
+  res.send(await getNotesForPatientId(binds));
+});
+
+/**
+ * @api {get} /notes-contents/:event_id Notes for Event
+ * @apiVersion 0.0.1
+ * @apiName get-notes-event
+ * @apiGroup DEV
+ * @apiDescription Notes for Event
+ * @apiParam {String} event_id Event ID.
+ * @apiSuccessExample Success-Response:
+ *  [
+      {
+          "FORMAT": 480629133,
+          "EVENT_END_DT_TM": "2020-12-05T18:34:21Z",
+          "UPDT_DT_TM_CB": "2020-12-05T20:33:03Z",
+          "NOTES": "<?xml ...",
+      },
+    ]
+ *
+ */
+router.get("/notes-contents/:event_id", async (req, res) => {
+  const event_id = parseInt(req.params.event_id);
+  if (!Number.isInteger(event_id)) {
+    res.send("Error: Invalid event_id. Should be integer.");
+    return;
+  }
+  console.log("get notes for event_id: " + event_id);
+  const binds = {
+    event_id,
+  };
+  res.send(await getNotesContentsForEventId(binds));
 });
 
 /**

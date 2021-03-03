@@ -2,7 +2,7 @@
  * @Author: Lingyu
  * @Date: unknown
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-28 21:16:46
+ * @Last Modified time: 2021-03-02 11:28:27
  */
 
 const express = require("express");
@@ -21,6 +21,7 @@ const bodyParser = require("body-parser");
 var httpServer;
 
 const {initializeSocket} = require("./socket/init-socket");
+const {initializeSocketCqn} = require("./socket/init-socket-cqn");
 
 const app = express();
 const users = require("../config/users").items;
@@ -29,8 +30,6 @@ const accessTokenSecret = process.env.TWIST_API_TOKEN_SECRET || "youraccesstoken
 
 const FRONT_END_ADDRESS = "http://twist:4000/";
 const API_ADDRESS = "http://twist:3333/api/";
-
-const { getRealtimeVitals } = require("../db_apis/realtime-vitals/get-realtime-vitals");
 
 const findUser = (name, password) => {
   return users.find((item) => {
@@ -172,7 +171,12 @@ function initialize() {
     httpServer = http.createServer(app);
 
     console.log("initialize Socket...");
+
+    //socket option 1. every 5 seconds query
     initializeSocket(httpServer);
+
+    //socket option 2. oracle Continuous Query Notifications, for infrequently updated tables
+    // initializeSocketCqn(httpServer);
 
     httpServer.listen(webServerConfig.port);
 

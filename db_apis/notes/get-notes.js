@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2021-02-09 20:27:10
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-18 14:21:20
+ * @Last Modified time: 2021-03-03 12:08:23
  */
 
 /**
@@ -44,23 +44,44 @@ FROM NOTES
 WHERE PERSON_ID = :person_id
 `;
 
-const getNotes = async (binds) => {
-  const getNotesData = database.withConnection(async (conn) => {
+const GET_NOTES_CONTENTS_SQL = `
+SELECT
+  BLOB_CONTENTS,
+  BLOB_LENGTH,
+  BLOB_SEQ_NUM,
+  COMPRESSION_CD,
+  "FORMAT",
+  EVENT_END_DT_TM,
+  UPDT_DT_TM_CB
+FROM NOTES
+WHERE EVENT_ID = :event_id
+ORDER BY EVENT_END_DT_TM, UPDT_DT_TM_CB DESC
+`;
+
+/**
+ *
+ * @param {Object} binds = {event_id}
+ *
+ * Using LZW.jar java to do LZW compression/decompression
+ */
+
+const getNotesContentsForEventId = async (binds) => {
+  const getNotesContentsData = database.withConnection(async (conn) => {
     await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
-    return await conn.execute(GET_NOTES_SQL, binds).then((res) => res.rows);
+    return conn.execute(GET_NOTES_CONTENTS_SQL, binds).then((res) => res.rows);
   });
 
-  const notesData = await getNotesData();
-  // console.log('notesData :>> ', notesData);
-  if (!notesData.length) {
-    console.log("no notes data");
-    return [];
+  const notesContentsData = await getNotesContentsData();
+  if (notesContentsData.length !== 1) {
+    console.warn("notesContentsData length !== 1: ");
+    if (!notesContentsData.length) {
+      return null;
+    }
   }
 
-  console.log("notesData.length :>> ", notesData.length);
-
   const ret = [];
-  for (const element of notesData) {
+  for (const element of notesContentsData) {
+    console.log("element :>> ", element);
     let notes = "";
     // COMPRESSION_CD is 727(non-compressed) or 728
     if (element.COMPRESSION_CD === 727) {
@@ -80,21 +101,36 @@ const getNotes = async (binds) => {
 
       for await (const data of result.stdout) {
         notes += data;
-      };
-
-      // notes = result.stdout.toString();
-      // if (!notes.length) {
-      //   notes = result.stderr.toString();
-      //   console.log("notes error :>> ", notes);
-      // }
-
-      // if (notes.includes("{\\rtf1")) {
-      //   parseRTF.string('notes', (err, doc) => {
-      //     console.log('doc :>> ', doc);
-      //     console.log('err :>> ', err);
-      //   })
-      // }
+      }
     }
+
+    ret.push({
+      FORMAT: element.FORMAT,
+      EVENT_END_DT_TM: element.EVENT_END_DT_TM,
+      UPDT_DT_TM_CB: element.UPDT_DT_TM_CB,
+      NOTES: notes,
+    });
+  }
+  return ret;
+};
+
+const getNotesForPatientId = async (binds) => {
+  const getNotesData = database.withConnection(async (conn) => {
+    await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS"Z"'`);
+    return await conn.execute(GET_NOTES_SQL, binds).then((res) => res.rows);
+  });
+
+  const notesData = await getNotesData();
+  // console.log('notesData :>> ', notesData);
+  if (!notesData.length) {
+    console.log("no notes data");
+    return [];
+  }
+
+  console.log("notesData.length :>> ", notesData.length);
+
+  const ret = [];
+  for (const element of notesData) {
     ret.push({
       ENCNTR_ID: element.ENCNTR_ID,
       EVENT_CD: element.EVENT_CD,
@@ -112,7 +148,7 @@ const getNotes = async (binds) => {
       VALID_UNTIL_DT_TM: element.VALID_UNTIL_DT_TM,
       VERIFIED_DT_TM: element.VERIFIED_DT_TM,
       VERIFIED_PRSNL: element.VERIFIED_PRSNL,
-      NOTES: notes,
+      // NOTES: notes,
     });
   }
 
@@ -120,5 +156,6 @@ const getNotes = async (binds) => {
 };
 
 module.exports = {
-  getNotes,
+  getNotesForPatientId,
+  getNotesContentsForEventId,
 };

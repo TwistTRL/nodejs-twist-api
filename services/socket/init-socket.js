@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2021-02-28 20:36:11
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-28 22:08:09
+ * @Last Modified time: 2021-03-02 22:24:04
  */
 
 const socketIo = require("socket.io");
@@ -28,34 +28,35 @@ const initializeSocket = (httpServer) => {
     }
   };
 
+  // temp auth
+  io.use((socket, next) => {
+    const token = socket.handshake.auth.token;
+    if (token === process.env.SOCKET_IO_TOKEN) {
+      next();
+    } else {
+      next(new Error("token incorrect"));
+    }
+    // ...
+  });
+
   io.on("connection", (client) => {
     client.on("newClient", (personId) => {
-      console.log("New client connected");
-      console.log("client.id :>> ", client.id);
+      console.log(`client.id ${client.id} connected`);
       console.log("personId :>> ", personId);
       clientIdObj[client.id] = personId;
-
       if (!(personId in personIdObj)) {
         personIdObj[personId] = new Set();
       }
-
       personIdObj[personId].add(client.id);
-
-      //   if (!client.rooms.has(personId)) {
-      //     // getRealtimeVitals(personId);
-      //   }
-
       client.join(personId);
 
       if (!interval) {
-        interval = setInterval(intervalQuery, 5000);
+        interval = setInterval(intervalQuery, 2500);
       }
     });
 
     client.on("disconnect", () => {
-      console.log("client.id :>> ", client.id);
-      console.log("Client disconnected");
-
+      console.log(`client.id ${client.id} disconnected`);
       const curPersonId = clientIdObj[client.id];
       delete clientIdObj[client.id];
       personIdObj[curPersonId].delete(client.id);
@@ -63,10 +64,11 @@ const initializeSocket = (httpServer) => {
         delete personIdObj[curPersonId];
       }
 
-    //   console.log("clientIdObj :>> ", clientIdObj);
-    //   console.log("personIdObj :>> ", personIdObj);
+      // console.log("clientIdObj :>> ", clientIdObj);
+      // console.log("personIdObj :>> ", personIdObj);
 
-      if (!personIdObj.size) {
+      if (Object.entries(personIdObj).length === 0) {
+        console.log("clear interval");
         clearInterval(interval);
         interval = false;
       }
