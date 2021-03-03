@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-11-11 08:30:20
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-11 12:25:23
+ * @Last Modified time: 2021-03-03 17:19:37
  */
 
 const database = require("../../services/database");
@@ -15,7 +15,8 @@ SELECT
   FULL_NAME,
   START_ET,
   END_DT_ET,
-  SEQ_VAL
+  SEQ_VAL,
+  PRIMARY_FLAG
 FROM PRIMARY_PROV
 WHERE MRN = :mrn
 `;
@@ -23,10 +24,23 @@ WHERE MRN = :mrn
 async function getProviderInfoSqlExecutor(conn, binds) {
   await conn.execute(`ALTER SESSION SET nls_date_format = 'YYYY-MM-DD"T"HH24:MI:SS'`);
   const providerResult = await conn.execute(GET_PROVIDER_INFO_SQL, binds).then((ret) => ret.rows);
+  const primaryFlagResults = providerResult.filter((item) => item.PRIMARY_FLAG);
+  let primaryCardiologist;
+  let primaryCardiacSurgeon;
+  let referringCardiologist;
+  primaryFlagResults.forEach((element) => {
+    if (element.ROLE_ABBR === "CARDIOLOGIST-TCH") {
+      primaryCardiologist = element.FULL_NAME;
+    } else if (element.ROLE_ABBR === "SURG-STAFF") {
+      primaryCardiacSurgeon = element.FULL_NAME;
+    } else if (element.ROLE_ABBR === "CARDIOLOGIST-REF") {
+      referringCardiologist = element.FULL_NAME;
+    }
+  });
+
   let cardiologistDict = { nullEndDate: [], nonNullEndDate: [] };
   let cardiacSurgeonDict = { nullEndDate: [], nonNullEndDate: [] };
   let refcardiologistDict = { nullEndDate: [], nonNullEndDate: [] };
-
 
   providerResult.forEach((element) => {
     if (element.ROLE_ABBR === "CARDIOLOGIST-TCH") {
@@ -50,10 +64,17 @@ async function getProviderInfoSqlExecutor(conn, binds) {
     }
   });
 
-  const primaryCardiologist = getPrimaryPerson(cardiologistDict);
-  const primaryCardiacSurgeon = getPrimaryPerson(cardiacSurgeonDict);
-  const referringCardiologist = getPrimaryPerson(refcardiologistDict);
-  const primaryICUAttending = "Katie Moynihan, M.D."  
+  if (!primaryCardiologist) {
+    primaryCardiologist = getPrimaryPerson(cardiologistDict);
+  }
+  if (!primaryCardiacSurgeon) {
+    primaryCardiacSurgeon = getPrimaryPerson(cardiacSurgeonDict);
+  }
+  if (!referringCardiologist) {
+    referringCardiologist = getPrimaryPerson(refcardiologistDict);
+  }
+
+  const primaryICUAttending = "Katie Moynihan, M.D.";
 
   return {
     primary_cardiologist: primaryCardiologist || "None assigned",
@@ -63,16 +84,15 @@ async function getProviderInfoSqlExecutor(conn, binds) {
   };
 }
 
+// TODO: double check the algorithm here
 const getPrimaryPerson = (dict) => {
   let ret;
 
   if (!dict.nullEndDate.length) {
-    console.log('error: dict :>> ', dict);
+    console.log("error: dict :>> ", dict);
     return null;
-    
   } else if (dict.nullEndDate.length === 1) {
     return dict.nullEndDate[0].FULL_NAME;
-    
   } else {
     let nullEdDict = {};
     let maxCount = 0;
@@ -101,8 +121,7 @@ const getPrimaryPerson = (dict) => {
   }
 
   return ret;
-
-}
+};
 
 const getProviderInfo = database.withConnection(getProviderInfoSqlExecutor);
 
