@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2021-02-28 20:36:11
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-03-02 22:24:04
+ * @Last Modified time: 2021-03-03 23:31:15
  */
 
 const socketIo = require("socket.io");
@@ -28,7 +28,7 @@ const initializeSocket = (httpServer) => {
     }
   };
 
-  // temp auth
+  // temp auth, .env file
   io.use((socket, next) => {
     const token = socket.handshake.auth.token;
     if (token === process.env.SOCKET_IO_TOKEN) {

@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-01-21 10:12:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-11-05 15:30:18
+ * @Last Modified time: 2021-03-03 23:33:05
  */
 
 /**
@@ -149,7 +149,7 @@ async function enQuerySQLExecutor(conn, query) {
     SQL_GET_EN_PART3 +
     Number(query[FROM]) +
     SQL_GET_EN_PART4;
-  console.log("~~SQL for EN: ", SQL_GET_EN);
+  // console.log("~~SQL for EN: ", SQL_GET_EN);
   console.time("getEN-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_EN);
   console.timeEnd("getEN-sql" + timestampLable);
@@ -166,7 +166,7 @@ async function tpnQuerySQLExecutor(conn, query) {
     SQL_GET_TPN_PART3 +
     Number(query[FROM]) +
     SQL_GET_TPN_PART4;
-  console.log("~~SQL for TPN: ", SQL_GET_TPN);
+  // console.log("~~SQL for TPN: ", SQL_GET_TPN);
   console.time("getTPN-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_TPN);
   console.timeEnd("getTPN-sql" + timestampLable);
@@ -183,7 +183,7 @@ async function lipidsQuerySQLExecutor(conn, query) {
     SQL_GET_TPN_LIPID_PART3 +
     Number(query[FROM]) +
     SQL_GET_TPN_LIPID_PART4;
-  console.log("~~SQL for LIPIDS: ", SQL_GET_LIPIDS);
+  // console.log("~~SQL for LIPIDS: ", SQL_GET_LIPIDS);
   console.time("getLipids-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_LIPIDS);
   console.timeEnd("getLipids-sql" + timestampLable);
@@ -201,7 +201,7 @@ async function inOutEventQuerySQLExecutor(conn, query) {
     SQL_GET_IN_OUT_EVENT_PART3 +
     query[TO] * 1 +
     SQL_GET_IN_OUT_EVENT_PART4;
-  console.log("~~SQL for in-out Event: ", SQL_GET_IN_OUT_EVENT);
+  // console.log("~~SQL for in-out Event: ", SQL_GET_IN_OUT_EVENT);
   console.time("getInOutEvent-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT_EVENT);
   console.timeEnd("getInOutEvent-sql" + timestampLable);
@@ -231,7 +231,7 @@ async function inOutDiluentsQuerySQLExecutor(conn, query) {
     query[TO] +
     `))` +
     SQL_GET_IN_OUT_DILUENTS_PART2;
-  console.log("~~SQL for in-out Diluents: ", SQL_GET_IN_OUT_DILUENTS);
+  // console.log("~~SQL for in-out Diluents: ", SQL_GET_IN_OUT_DILUENTS);
   console.time("getInOutDiluents-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_IN_OUT_DILUENTS);
   console.timeEnd("getInOutDiluents-sql" + timestampLable);
@@ -246,7 +246,7 @@ async function medVolQuerySQLExecutor(conn, query) {
   };
   console.log("binds :>> ", binds);
   let timestampLable = timeLable++;
-  console.log("~~SQL for med volume in out v2: ", SQL_GET_MED_VOL);
+  // console.log("~~SQL for med volume in out v2: ", SQL_GET_MED_VOL);
   console.time("getMedVol-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_MED_VOL, binds);
   console.timeEnd("getMedVol-sql" + timestampLable);

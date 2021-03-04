@@ -78,7 +78,7 @@ async function getOrangeDrugSqlExecutor(conn,binds){
   });
 
   let SQL_ORANGE = SQL_ORANGE_INFUSIONS_PART1 + SQL_Orange_Infusions + SQL_ORANGE_INFUSIONS_PART2;
-  console.log("SQL_ORANGE = " + SQL_ORANGE);
+  // console.log("SQL_ORANGE = " + SQL_ORANGE);
 
   let drugRecords = await conn.execute(SQL_ORANGE, binds);    
   let jsonString = calculateOrangeDrugRecords(drugRecords);

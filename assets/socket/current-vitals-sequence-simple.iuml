@@ -2,13 +2,12 @@
 title Current Vitals Socket Sequence Single Client
 
 participant "Client 1" as C1
-' participant "Client 2" as C2
-' participant "Client 3" as C3
 participant "Server" as SR #LightSkyBlue
 database "DWTST" as DWTST #LightGreen
 
 == start connection ==
-C1 -> SR : person_id = 001
+note over C1 : open client
+C1 -> SR :  socket.emit("newClient", person_id=001) 
 note over SR : id_array: [001]
 SR -> DWTST : person_id in id_array
 activate DWTST
@@ -16,14 +15,14 @@ DWTST -> SR : vitals data
 deactivate DWTST
 SR -> C1 : io.emit("currentVitals", vitals)
 
-== refresh every 5 seconds ==
-SR -> SR : 5 seconds
+== loop every 3 seconds ==
+SR -> SR : 3 seconds
 SR -> DWTST : person_id in id_array
 activate DWTST
 DWTST -> SR : vitals data
 deactivate DWTST
 SR -> C1 : io.emit("currentVitals", vitals)
-SR -> SR : 5 seconds
+SR -> SR : 3 seconds
 SR -> DWTST : person_id in id_array
 activate DWTST
 DWTST -> SR : vitals data
@@ -32,7 +31,8 @@ SR -> C1 : io.emit("currentVitals", vitals)
 ...
 
 == disconnect ==
-C1 -> SR : disconnect person_id = 001
+note over C1 : closed client
+C1 -> SR : disconnect
 note over SR : id_array: []
 SR ->x DWTST : empty id_array
 

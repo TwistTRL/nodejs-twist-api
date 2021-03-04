@@ -2,7 +2,7 @@
  * @Author: Peng
  * @Date: 2020-04-13 17:23:49
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-09-18 16:44:02
+ * @Last Modified time: 2021-03-03 23:33:39
  */
 
 const isEmpty = require("lodash.isempty");
@@ -43,7 +43,7 @@ ORDER BY ORDER_ID`;
 
 async function micbioQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
-  console.log("~~SQL for Microbiology all time: ", SQL_GET_MICROBIOLOGY);
+  // console.log("~~SQL for Microbiology all time: ", SQL_GET_MICROBIOLOGY);
   console.time("getMicbio-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_MICROBIOLOGY, binds);
   console.timeEnd("getMicbio-sql" + timestampLable);
@@ -52,7 +52,7 @@ async function micbioQuerySQLExecutor(conn, binds) {
 
 async function micbioSensQuerySQLExecutor(conn, binds) {
   let timestampLable = timeLable++;
-  console.log("~~SQL for Microbiology all time: ", SQL_GET_MICROBIOLOGY_SENS);
+  // console.log("~~SQL for Microbiology all time: ", SQL_GET_MICROBIOLOGY_SENS);
   console.time("getMicbioSens-sql" + timestampLable);
   let rawRecord = await conn.execute(SQL_GET_MICROBIOLOGY_SENS, binds);
   console.timeEnd("getMicbioSens-sql" + timestampLable);
