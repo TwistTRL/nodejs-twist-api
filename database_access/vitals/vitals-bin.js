@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-03 10:10:03
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-12-20 16:59:23
+ * @Last Modified time: 2021-03-03 23:20:20
  */
 
 const database = require("../../services/database");
@@ -47,9 +47,16 @@ async function vitalsBinQuerySQLExecutor(conn, binds) {
     const bin_table = BIN_TABLE[table_name][data_resolution];
     if (bin_table) {
       const cur_result = await conn
-      .execute(SQL_BIN(bin_table, binIdList), { person_id })
-      .then((ret) => ret.rows)
-      .then((ret) => ret.map((x) => ({ ...x, table_source: table_name })));
+        .execute(SQL_BIN(bin_table, binIdList), { person_id })
+        .then((ret) => ret.rows)
+        .then((ret) =>
+          ret.map((x) => ({
+            START_TM: parseInt(x.START_TM),
+            END_TM: parseInt(x.END_TM),
+            BIN_ID: parseInt(x.BIN_ID),
+            table_source: table_name,
+          }))
+        );
       bin_data = [...bin_data, ...cur_result];
     }
   }

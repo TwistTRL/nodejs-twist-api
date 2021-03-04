@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2021-02-09 20:27:10
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-03-03 12:08:23
+ * @Last Modified time: 2021-03-03 21:55:45
  */
 
 /**
@@ -73,7 +73,7 @@ const getNotesContentsForEventId = async (binds) => {
 
   const notesContentsData = await getNotesContentsData();
   if (notesContentsData.length !== 1) {
-    console.warn("notesContentsData length !== 1: ");
+    // console.warn("notesContentsData length !== 1: ");
     if (!notesContentsData.length) {
       return null;
     }
@@ -81,7 +81,7 @@ const getNotesContentsForEventId = async (binds) => {
 
   const ret = [];
   for (const element of notesContentsData) {
-    console.log("element :>> ", element);
+    // console.log("element :>> ", element);
     let notes = "";
     // COMPRESSION_CD is 727(non-compressed) or 728
     if (element.COMPRESSION_CD === 727) {
