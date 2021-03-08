@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-23 13:53:26
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-05 16:27:52
+ * @Last Modified time: 2021-03-08 10:42:11
  */
 
 const { getInOutTooltipQueryV2 } = require("../get-in-out-tooltip-v2");
@@ -88,12 +88,12 @@ ORDER BY DT_UNIX DESC`;
 
 const GET_3DAYS_ECMO_SQL = (ereyesterday_start) => `
 SELECT
-  VALID_FROM_DT_TM,
+  EVENT_END_UNIX,
   ECMO_VAD_SCORE
-FROM ECMO_VAD_VARIABLE
+FROM ECMO_VAD
 WHERE PERSON_ID = :person_id
-AND VALID_FROM_DT_TM > ${ereyesterday_start}
-ORDER BY VALID_FROM_DT_TM`;
+AND EVENT_END_UNIX > ${ereyesterday_start}
+ORDER BY EVENT_END_UNIX`;
 
 const GET_3DAYS_RSS_SQL = (ereyesterday_start) => `
 SELECT  
@@ -474,7 +474,8 @@ const getCensus3DaysCache = async (person_id) => {
     ereyesterday: getIntermittentEreyesterday,
   };
 
-  const ecmo = await getECMO3Days(person_id);
+  const ecmoRaw = await getECMO3Days(person_id);
+  const ecmo = ecmoRaw.filter(item => item.ECMO_VAD_SCORE !== null);
   const rss = await getRespiratorySupportVariable({
     person_id,
     from_: ereyesterday_start,

@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-08-27 11:07:25
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2020-10-31 09:18:56
+ * @Last Modified time: 2021-03-08 10:25:28
  */
  
 const database = require("../../services/database");
@@ -26,12 +26,12 @@ ORDER BY EVENT_DT_TM`;
 
 const SQL_GET_ECMO = `
 SELECT
-  VALID_FROM_DT_TM,
+  EVENT_END_UNIX,
   ECMO_VAD_SCORE
-FROM ECMO_VAD_VARIABLE
+FROM ECMO_VAD
 JOIN CHB_MRN USING (PERSON_ID)
 WHERE MRN = :mrn
-ORDER BY VALID_FROM_DT_TM`;
+ORDER BY EVENT_END_UNIX`;
 
 async function operativeQuerySQLExecutor(conn, binds) {
   // set nls_date_format for oracledb.fetchAsString
@@ -123,11 +123,11 @@ const calculateEcmoDays = async (arr, conn, binds) => {
  
          const ecmo_arr = rawRecordECMO.rows;
          let ecmo_days;
-         if (!ecmo_arr || !ecmo_arr[0] || moment.unix(ecmo_arr[0].VALID_FROM_DT_TM) > moment(endTime)) {
+         if (!ecmo_arr || !ecmo_arr[0] || moment.unix(ecmo_arr[0].EVENT_END_UNIX) > moment(endTime)) {
            console.log('ecmo_arr :>> ', ecmo_arr);
            ecmo_days = "error ";
          } else {
-           let ecmo_start = ecmo_arr[0].VALID_FROM_DT_TM;
+           let ecmo_start = ecmo_arr[0].EVENT_END_UNIX;
            let pre_ecmo = ecmo_start;
            let found_ecmo_start = false;
            for (let time of ecmo_arr.map((x) => x[0])) {
