@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-03-03 12:09:00
+ * @Last Modified time: 2021-03-09 23:41:03
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -4050,23 +4050,25 @@ router.get("/lines-tooltips/:person_id", async (req, res) => {
  * @apiSuccessExample Success-Response:
  *  [
  *    {
- *        ENCNTR_ID,
-          EVENT_CD,
-          EVENT_CLASS_CD,
-          EVENT_DISP,
-          EVENT_END_DT_TM,
-          EVENT_ID,
-          EVENT_TAG,
-          EVENT_TITLE_TEXT,
-          FORMAT, //480629133 (xml), 125 (rtf), 114 (string)
-          PARENT_EVENT_ID,
-          PERFORMED_DT_TM,
-          PERFORMED_PRSNL,
-          VALID_FROM_DT_TM,
-          VALID_UNTIL_DT_TM,
-          VERIFIED_DT_TM,
-          VERIFIED_PRSNL,
-      }
+          "ENCNTR_ID": 1111111,
+          "EVENT_CD": 67621024,
+          "EVENT_CLASS_CD": 224,
+          "EVENT_DISP": "Brief Operative",
+          "EVENT_END_DT_TM": "2021-02-04T12:49:00Z",
+          "EVENT_ID": 222222222,
+          "TWIST_DISPLAY_CATEGORY": "ADTPE",
+          "TWIST_DISPLAY": "Brief Operative",
+          "EVENT_TAG": "Brief Operative",
+          "EVENT_TITLE_TEXT": " ",
+          "FORMAT": 125, //480629133 (xml), 125 (rtf), 114 (string)
+          "PARENT_EVENT_ID": 33333333,
+          "PERFORMED_DT_TM": "2021-02-04T12:51:20Z",
+          "PERFORMED_PRSNL": "...",
+          "VALID_FROM_DT_TM": "2021-02-05T01:25:05Z",
+          "VALID_UNTIL_DT_TM": "2100-12-31T00:00:00Z",
+          "VERIFIED_DT_TM": "2021-02-05T01:25:05Z",
+          "VERIFIED_PRSNL": "..."
+      }, 
     ]
  *
  */
