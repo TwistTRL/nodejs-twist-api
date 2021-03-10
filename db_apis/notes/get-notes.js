@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2021-02-09 20:27:10
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-03-03 21:55:45
+ * @Last Modified time: 2021-03-09 23:06:49
  */
 
 /**
@@ -17,6 +17,11 @@ const child_process = require("child_process");
 
 const database = require("../../services/database");
 // note: in /services/database.js, oracledb.fetchAsBuffer = [ oracledb.BLOB ];
+
+const {
+  NOTES_EVENT_DICT,
+  NOTES_EVENT_XLSX_PATH,
+} = require("../../db_relation/notes-db-relation");
 
 const GET_NOTES_SQL = `
 SELECT
@@ -138,6 +143,8 @@ const getNotesForPatientId = async (binds) => {
       EVENT_DISP: element.EVENT_DISP,
       EVENT_END_DT_TM: element.EVENT_END_DT_TM,
       EVENT_ID: element.EVENT_ID,
+      TWIST_DISPLAY_CATEGORY: element.EVENT_CD in NOTES_EVENT_DICT ? NOTES_EVENT_DICT[element.EVENT_CD].TWIST_DISPLAY_CATEGORY : null,
+      TWIST_DISPLAY: element.EVENT_CD in NOTES_EVENT_DICT ? NOTES_EVENT_DICT[element.EVENT_CD].DISPLAY : null,
       EVENT_TAG: element.EVENT_TAG,
       EVENT_TITLE_TEXT: element.EVENT_TITLE_TEXT,
       FORMAT: element.FORMAT,

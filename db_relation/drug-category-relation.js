@@ -2,14 +2,13 @@
  * @Author: Peng
  * @Date: 2019-12-27 12:54:04
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-02-02 16:06:20
+ * @Last Modified time: 2021-03-09 22:49:28
  */
 
 //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 // define the category based on drug string
 // will updating for more
 // Table: DRUG_INFUSIONS
-const database = require("../services/database");
 
 const DRUG_INFUSIONS_LIST = [
   "DOPamine",
