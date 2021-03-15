@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-03-09 23:41:03
+ * @Last Modified time: 2021-03-15 11:36:12
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -4132,6 +4132,12 @@ router.get("/notes-contents/:event_id", async (req, res) => {
         "study_description": "XR-Chest 2 Views",
         "institution": "Boston Childrens Hospital",
         "accession_number": "2222",
+        "location": [
+            "Abdomen"
+        ],
+        "study_type": [
+            "XR"
+        ],
         "referring_physician": "....",
         "acquisition_date": "20210108",
         "thumbnailes": "/9j/4AAQSkZJRgABAQA...", // base64
