@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-30 01:44:49
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-03-16 11:55:36
+ * @Last Modified time: 2021-03-16 13:10:28
  */
 
 const TRLDSC2_SERVER = "http://10.7.46.137:7001/images/";
@@ -172,10 +172,10 @@ const getPersonXrayImageList = async (mrn) => {
     thumbnailes: item.FILE_THUMBNAILES ? item.FILE_THUMBNAILES.toString('base64') : null,
     width: item.WIDTH,
     height: item.HEIGHT,    
-    topLeftRibCageAlignmentPoints: [item.TOPLEFTRIBCAGEX, item.TOPLEFTRIBCAGEY],
-    topRightRibCageAlignmentPoints: [item.TOPRIGHTRIBCAGEX, item.TOPRIGHTRIBCAGEY],
-    bottomLeftRibCageAlignmentPoints: [item.BOTTOMLEFTRIBCAGEX, item.BOTTOMLEFTRIBCAGEY],
-    bottomRightRibCageAlignmentPoints: [item.BOTTOMRIGHTRIBCAGEX, item.BOTTOMRIGHTRIBCAGEY],
+    top_left_rib_cage_alignment_points: [item.TOPLEFTRIBCAGEX, item.TOPLEFTRIBCAGEY],
+    top_right_rib_cage_alignment_points: [item.TOPRIGHTRIBCAGEX, item.TOPRIGHTRIBCAGEY],
+    bottom_left_rib_cage_alignment_points: [item.BOTTOMLEFTRIBCAGEX, item.BOTTOMLEFTRIBCAGEY],
+    bottom_right_rib_cage_alignment_points: [item.BOTTOMRIGHTRIBCAGEX, item.BOTTOMRIGHTRIBCAGEY],
   }))
 
   
