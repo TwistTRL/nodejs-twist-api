@@ -2,7 +2,7 @@
  * @Author: Mingyu/Peng
  * @Date:
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-03-15 11:36:12
+ * @Last Modified time: 2021-03-16 11:49:41
  */
 const sleep = require("util").promisify(setTimeout);
 const express = require("express");
@@ -4141,6 +4141,24 @@ router.get("/notes-contents/:event_id", async (req, res) => {
         "referring_physician": "....",
         "acquisition_date": "20210108",
         "thumbnailes": "/9j/4AAQSkZJRgABAQA...", // base64
+        "width": 1689,
+        "height": 1688,
+        "topLeftRibCageAlignmentPoints": [
+            364,
+            283
+        ],
+        "topRightRibCageAlignmentPoints": [
+            251,
+            578
+        ],
+        "bottomLeftRibCageAlignmentPoints": [
+            880,
+            429
+        ],
+        "bottomRightRibCageAlignmentPoints": [
+            1203,
+            1060
+        ]
       }
  *  ]
  *

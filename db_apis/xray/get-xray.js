@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2020-12-30 01:44:49
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-03-15 11:35:00
+ * @Last Modified time: 2021-03-16 11:55:36
  */
 
 const TRLDSC2_SERVER = "http://10.7.46.137:7001/images/";
@@ -82,8 +82,18 @@ SELECT
     ACQUISITION_DATE,
     STUDY_TIME,
     STUDY_DATE,
-    FILE_THUMBNAILES
-FROM API_CACHE_XRAY
+    FILE_THUMBNAILES,
+    WIDTH,
+    HEIGHT,
+    TOPLEFTRIBCAGEX,
+    TOPRIGHTRIBCAGEX,
+    BOTTOMLEFTRIBCAGEX,
+    BOTTOMRIGHTRIBCAGEX,
+    TOPLEFTRIBCAGEY,
+    TOPRIGHTRIBCAGEY,
+    BOTTOMLEFTRIBCAGEY,
+    BOTTOMRIGHTRIBCAGEY
+FROM API_XRAY
 WHERE MRN = :mrn
 `;
 
@@ -95,7 +105,7 @@ SELECT
     UPDT_UNIX,    
     FILE_NAME,
     FILE_JPG
-FROM API_CACHE_XRAY
+FROM API_XRAY
 WHERE ID = :id
 `;
 
@@ -107,7 +117,7 @@ SELECT
     UPDT_UNIX,    
     FILE_NAME,
     FILE_DCM
-FROM API_CACHE_XRAY
+FROM API_XRAY
 WHERE ID = :id
 `;
 
@@ -160,6 +170,12 @@ const getPersonXrayImageList = async (mrn) => {
     referring_physician: item.REFERRING_PHYSICIAN,
     acquisition_date: item.ACQUISITION_DATE,
     thumbnailes: item.FILE_THUMBNAILES ? item.FILE_THUMBNAILES.toString('base64') : null,
+    width: item.WIDTH,
+    height: item.HEIGHT,    
+    topLeftRibCageAlignmentPoints: [item.TOPLEFTRIBCAGEX, item.TOPLEFTRIBCAGEY],
+    topRightRibCageAlignmentPoints: [item.TOPRIGHTRIBCAGEX, item.TOPRIGHTRIBCAGEY],
+    bottomLeftRibCageAlignmentPoints: [item.BOTTOMLEFTRIBCAGEX, item.BOTTOMLEFTRIBCAGEY],
+    bottomRightRibCageAlignmentPoints: [item.BOTTOMRIGHTRIBCAGEX, item.BOTTOMRIGHTRIBCAGEY],
   }))
 
   

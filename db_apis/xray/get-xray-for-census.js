@@ -2,7 +2,7 @@
  * @Author: Peng Zeng
  * @Date: 2021-01-14 18:03:53
  * @Last Modified by: Peng Zeng
- * @Last Modified time: 2021-01-17 01:10:40
+ * @Last Modified time: 2021-03-16 11:19:56
  */
 
 // const TRLDSC2_SERVER = "http://10.7.46.137:7001/images/";
@@ -28,7 +28,7 @@ SELECT
     STUDY_TIME,
     STUDY_DATE,
     FILE_THUMBNAILES
-FROM API_CACHE_XRAY
+FROM API_XRAY
 JOIN CHB_MRN USING (MRN)
 JOIN PERSON USING (PERSON_ID)
 JOIN ADT USING (PERSON_ID)

@@ -32,7 +32,7 @@ node "TWIST SERVER" as twist #LightGoldenRodYellow {
 }
 
 database DWTST #fbe9e7 {
-    frame "API_CACHE_XRAY" as dbCache {
+    frame "API_XRAY" as dbCache {
         interface jpg
         interface dcm
     }
